@@ -119,6 +119,7 @@ logs/
 # Конфигурационные файлы с секретами
 config.ini
 secrets.json
+.env
 .env.local
 .env.*.local
 

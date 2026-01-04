@@ -1,0 +1,2340 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="journal">
+    <xs:annotation>
+      <xs:documentation>
+				Корневой элемент, который содержит сведения о журнале и метаданные выпуска
+		</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:all>
+        <xs:element minOccurs="1" maxOccurs="1" name="titleid" type="xs:unsignedInt">
+          <xs:annotation>
+            <xs:documentation>
+					Элемент, содержащий идентификатор журнала в elibrary, служит для определения журнала в БД. Представляет собой число и является обязательным для заполнения.  
+				</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element minOccurs="0" maxOccurs="1" name="issn" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>
+					Элемент, содержащий issn журнала  
+				</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element minOccurs="0" maxOccurs="1" name="eissn" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>
+					Элемент, значение которого содержит электронный issn журнала  
+				</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name="journalInfo">
+          <xs:annotation>
+            <xs:documentation>
+				Элемент, значение которого содержит сведения о журнале. Является обязательным для заполнения. Может содержать атрибут языка. 
+			</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="title" type="xs:string">
+                <xs:annotation>
+                  <xs:documentation>
+						Элемент, значение которого содержит название журнала. Является обязательным для заполнения.  
+					</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+            </xs:sequence>
+            <xs:attribute name="lang" type="typeLang" use="optional">
+              <xs:annotation>
+                <xs:documentation>
+						 Атрибут, в значении которого указывается язык названия журнала   
+					</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="1" maxOccurs="1" name="issue">
+          <xs:annotation>
+            <xs:documentation>
+				Элемент, включающий в себя список элементов, значения которых содержат данные о выпуске. Является обязательным для заполнения и в xml используется один раз. 
+			</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:all>
+              <xs:element minOccurs="0" maxOccurs="1" name="volume" type="xs:unsignedInt">
+                <xs:annotation>
+                  <xs:documentation>
+						Элемент, значение которого число, являющиеся томом выпуска. Обязательно наличие или тома, или номера в выпуске.    
+					</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element minOccurs="0" maxOccurs="1" name="number" type="xs:string">
+                <xs:annotation>
+                  <xs:documentation>
+						Элемент, значение которого является номером выпуска. Обязательно наличие или тома, или номера в выпуске.   
+					</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element minOccurs="0" maxOccurs="1" name="altNumber" type="xs:string">
+                <xs:annotation>
+                  <xs:documentation>
+						Элемент, значение которого число, являющиеся сквозным номером выпуска.   
+					</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element minOccurs="0" maxOccurs="1" name="part" type="xs:unsignedShort">
+                <xs:annotation>
+                  <xs:documentation>
+						Элемент, значение которого число, представляющее собой часть выпуска.  
+					</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element minOccurs="0" maxOccurs="1" name="pages" type="xs:string">
+                <xs:annotation>
+                  <xs:documentation>
+						Элемент, значение которого содержит диапазон страниц выпуска. Является обязательным для заполнения. Если журнал является электронным и у него отсутствуют страницы выпуска, то в качестве первой страницы выпуска указывается первая страница первой статьи, а в качестве последней страницы указывается последняя страница последней статьи. Диапазон страниц может быть в двух форматах: <p>1. Без использования букв в страницах.</p><p>2. Использование только букв в страницах (без цифр).</p><p>Допускается использование одной страницы через запятую, например: 7-8, 27 </p></xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element minOccurs="1" maxOccurs="1" name="dateUni" type="xs:unsignedShort">
+                <xs:annotation>
+                  <xs:documentation>
+						Элемент, значение которого, год издания выпуска. Является обязательным для заполнения.   
+					</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element minOccurs="0" name="issTitle">
+                <xs:annotation>
+                  <xs:documentation>
+						Элемент, значение которого содержит название(тему) выпуска. У элемента есть обязательнный атрибут lang.
+					</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:simpleContent>
+                    <xs:extension base="xs:string">
+                      <xs:attribute name="lang" type="typeLang" use="optional">
+                        <xs:annotation>
+                          <xs:documentation>
+								 Атрибут, в значении которого указывается язык названия темы выпуска в трёхбуквенном коде (см. справочник typeLang) 
+							</xs:documentation>
+                        </xs:annotation>
+                      </xs:attribute>
+                    </xs:extension>
+                  </xs:simpleContent>
+                </xs:complexType>
+              </xs:element>
+              <xs:element minOccurs="0" maxOccurs="1" name="codes">
+                <xs:annotation>
+                  <xs:documentation>
+									Элемент, включающий в себя список элементов, значения которых содержат коды выпуска
+								</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:choice maxOccurs="unbounded">
+                      <xs:element minOccurs="0" maxOccurs="1" name="doi" type="xs:string">
+                        <xs:annotation>
+                          <xs:documentation>
+												Элемент, значение которого содержит код DOI выпуска.
+											</xs:documentation>
+                        </xs:annotation>
+                      </xs:element>
+                      <xs:element minOccurs="0" maxOccurs="1" name="edn" type="xs:string">
+                        <xs:annotation>
+                          <xs:documentation>
+												Элемент, значение которого содержит код EDN (eLIBRARY Document Number). Содержит шесть латинских символов.
+											</xs:documentation>
+                        </xs:annotation>
+                      </xs:element>
+                    </xs:choice>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element minOccurs="1" maxOccurs="1" name="articles">
+                <xs:annotation>
+                  <xs:documentation>
+						Элемент, включающий в себя список элементов, значения которых содержат данные о статьях выпуска. Является обязательным для заполнения и в xml используется один раз.
+					</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:choice maxOccurs="unbounded">
+                      <xs:element minOccurs="0" maxOccurs="unbounded" name="section">
+                        <xs:annotation>
+                          <xs:documentation>
+								Элемент, содержит названия раздела на разных языках и вставляется перед первой статьёй, принадлежащей этому разделу
+							</xs:documentation>
+                        </xs:annotation>
+                        <xs:complexType>
+                          <xs:sequence>
+                            <xs:element maxOccurs="unbounded" name="secTitle">
+                              <xs:annotation>
+                                <xs:documentation>
+									Элемент, значение которого содержит название раздела. У этого элемента есть обязательный атрибут lang. 
+									Внутри этого элемента допустимо использование следующих элементов: i, b, sub, sup, br
+								</xs:documentation>
+                              </xs:annotation>
+                              <xs:complexType mixed="true">
+                                <xs:choice maxOccurs="unbounded">
+                                  <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded" />
+                                </xs:choice>
+                                <xs:attribute name="lang" type="typeLang" use="required">
+                                  <xs:annotation>
+                                    <xs:documentation>
+												 Атрибут, в значении которого указывается язык названия раздела в трёхбуквенном коде (см. справочник typeLang) 
+											</xs:documentation>
+                                  </xs:annotation>
+                                </xs:attribute>
+                              </xs:complexType>
+                            </xs:element>
+                          </xs:sequence>
+                        </xs:complexType>
+                      </xs:element>
+                      <xs:element minOccurs="1" maxOccurs="unbounded" name="article">
+                        <xs:annotation>
+                          <xs:documentation>
+								Элемент, включающий в себя список элементов, значения которых содержат данные о статье выпуска. Является обязательным для использования. Внимание! Порядок элементов внутри элемента "article" должен соответствовать тому порядку, в котором они представлены в XSD-схеме. Если какого-то элемента нет, то его можно пропустить.
+							</xs:documentation>
+                        </xs:annotation>
+                        <xs:complexType>
+                          <!-- <xs:sequence> -->
+                          <xs:choice maxOccurs="unbounded">
+                            <xs:element minOccurs="1" maxOccurs="1" name="pages" type="xs:string">
+                              <xs:annotation>
+                                <xs:documentation>
+										Элемент, значение которого содержит диапазон страниц статьи. Является обязательным для заполнения. Диапазон страниц может быть в двух форматах: <p>1. Без использования букв в страницах.</p><p>2. Использование только букв в страницах (без цифр).</p><p>Допускается использование страницы через запятую, например: 7-8, 27</p></xs:documentation>
+                              </xs:annotation>
+                            </xs:element>
+                            <xs:element minOccurs="1" maxOccurs="1" name="artType" type="typeArticleType">
+                              <xs:annotation>
+                                <xs:documentation>
+										Элемент, значение которого это – тип статьи. Тип статьи указывается в трёхбуквенном виде (см. справочник typeArticleType). Является обязательным для заполнения. 
+									</xs:documentation>
+                              </xs:annotation>
+                            </xs:element>
+                            <xs:element minOccurs="0" maxOccurs="1" name="langPubl" type="typeLang">
+                              <xs:annotation>
+                                <xs:documentation>
+										Элемент, значение которого содержит язык статьи в трёхбуквенном коде (см. справочник typeLang). Является обязательным для заполнения.   
+									</xs:documentation>
+                              </xs:annotation>
+                            </xs:element>
+                            <xs:element minOccurs="0" maxOccurs="1" name="authors">
+                              <xs:annotation>
+                                <xs:documentation>
+									Элемент, который содержит всех авторов, в том числе рецензентов, редакторов и т.д. 
+								</xs:documentation>
+                              </xs:annotation>
+                              <xs:complexType>
+                                <xs:sequence>
+                                  <xs:element maxOccurs="unbounded" name="author">
+                                    <xs:annotation>
+                                      <xs:documentation>
+											Элемент, который содержит данные об авторе. У этого элемента есть обязательный атрибут num, значение которого содержит порядковый номер автора. Также у этого элемента есть необязательный атрибут id, значение которого –это идентификатор автора в elibrary. Если указан элемент authors, то использование элемента author обязательно.   
+										</xs:documentation>
+                                    </xs:annotation>
+                                    <xs:complexType>
+                                      <xs:sequence>
+                                        <xs:choice maxOccurs="unbounded">
+                                          <xs:element name="role" type="typeRole">
+                                            <xs:annotation>
+                                              <xs:documentation>
+														Элемент, который содержит роль автора (редактор, рецензент и т.д.). Если элемент отсутствует, то автор просто автор. Значение элемента – это числовой идентификатор. Идентификаторы роли представлены в справочнике typeRole 
+													</xs:documentation>
+                                            </xs:annotation>
+                                          </xs:element>
+                                          <xs:element name="correspondent" type="typeCorrespondent">
+                                            <xs:annotation>
+                                              <xs:documentation>
+														Автор-корреспондент   
+													</xs:documentation>
+                                            </xs:annotation>
+                                          </xs:element>
+                                          <xs:element name="authorCodes">
+                                            <xs:annotation>
+                                              <xs:documentation>
+													Элемент, который содержит идентификационные коды автора. 
+												</xs:documentation>
+                                            </xs:annotation>
+                                            <xs:complexType>
+                                              <xs:sequence>
+                                                <xs:choice maxOccurs="unbounded">
+                                                  <xs:element name="researcherid" type="xs:string">
+                                                    <xs:annotation>
+                                                      <xs:documentation>
+															Элемент, содержащий researcherId автора
+														</xs:documentation>
+                                                    </xs:annotation>
+                                                  </xs:element>
+                                                  <xs:element name="spin" type="xs:string">
+                                                    <xs:annotation>
+                                                      <xs:documentation>
+															Элемент, содержащий спин-код автора. Формат спин-кода: XXXX-XXXX, где X – это число
+														</xs:documentation>
+                                                    </xs:annotation>
+                                                  </xs:element>
+                                                  <xs:element name="scopusid" type="xs:string">
+                                                    <xs:annotation>
+                                                      <xs:documentation>
+															элемент, содержащий scopusId автора
+														</xs:documentation>
+                                                    </xs:annotation>
+                                                  </xs:element>
+                                                  <xs:element name="orcid" type="xs:string">
+                                                    <xs:annotation>
+                                                      <xs:documentation>
+															Элемент, содержащий orcid автора
+														</xs:documentation>
+                                                    </xs:annotation>
+                                                  </xs:element>
+                                                </xs:choice>
+                                              </xs:sequence>
+                                            </xs:complexType>
+                                          </xs:element>
+                                          <xs:element minOccurs="1" maxOccurs="3" name="individInfo">
+                                            <xs:annotation>
+                                              <xs:documentation>
+													Элемент, содержащий индивидуальные сведения об авторе. В атрибуте lang этого элемента обязательно указывается язык в трёхбуквенном коде, на котором написаны индивидуальные сведения об авторе(на каком языке отображать метаданные). Атрибут lang обязателен для использования  
+												</xs:documentation>
+                                            </xs:annotation>
+                                            <xs:complexType>
+                                              <xs:all>
+                                                <xs:element minOccurs="1" maxOccurs="1" name="surname">
+                                                  <xs:annotation>
+                                                    <xs:documentation>
+															Элемент, значение которого содержит фамилию автора. Элемент является обязательным для заполнения.
+														</xs:documentation>
+                                                  </xs:annotation>
+                                                  <xs:complexType mixed="true">
+                                                    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                                                      <xs:choice maxOccurs="unbounded">
+                                                        <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded" />
+                                                      </xs:choice>
+                                                    </xs:sequence>
+                                                  </xs:complexType>
+                                                </xs:element>
+                                                <xs:element minOccurs="0" maxOccurs="1" name="initials">
+                                                  <xs:annotation>
+                                                    <xs:documentation>
+															Элемент, значение которого содержит инициалы автора.
+														</xs:documentation>
+                                                  </xs:annotation>
+                                                  <xs:complexType mixed="true">
+                                                    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                                                      <xs:choice maxOccurs="unbounded">
+                                                        <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded" />
+                                                      </xs:choice>
+                                                    </xs:sequence>
+                                                  </xs:complexType>
+                                                </xs:element>
+                                                <xs:element minOccurs="0" maxOccurs="1" name="address">
+                                                  <xs:annotation>
+                                                    <xs:documentation>
+															Элемент, значение которого содержит адрес организации, если адресов несколько, то они указываются через точку с запятой. 
+															Внимание, это текстовое поле, теги(элементы) автоматически удаляются и остаётся только текст.
+														</xs:documentation>
+                                                  </xs:annotation>
+                                                  <xs:complexType mixed="true">
+                                                    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                                                      <xs:choice maxOccurs="unbounded">
+                                                        <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded" />
+                                                      </xs:choice>
+                                                    </xs:sequence>
+                                                  </xs:complexType>
+                                                </xs:element>
+                                                <xs:element minOccurs="0" maxOccurs="1" name="town">
+                                                  <xs:annotation>
+                                                    <xs:documentation>
+															Элемент, значение которого содержит город организации, если городов несколько, то они указываются через точку с запятой. 
+															Внимание, это текстовое поле, теги(элементы) автоматически удаляются и остаётся только текст.
+														</xs:documentation>
+                                                  </xs:annotation>
+                                                  <xs:complexType mixed="true">
+                                                    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                                                      <xs:choice maxOccurs="unbounded">
+                                                        <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded" />
+                                                      </xs:choice>
+                                                    </xs:sequence>
+                                                  </xs:complexType>
+                                                </xs:element>
+                                                <xs:element minOccurs="0" maxOccurs="1" name="country">
+                                                  <xs:annotation>
+                                                    <xs:documentation>
+															Элемент, значение которого содержит название страны организации, если стран несколько, то они указываются через точку с запятой. 
+															Внимание, это текстовое поле, теги(элементы) автоматически удаляются и остаётся только текст.
+														</xs:documentation>
+                                                  </xs:annotation>
+                                                  <xs:complexType mixed="true">
+                                                    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                                                      <xs:choice maxOccurs="unbounded">
+                                                        <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded" />
+                                                      </xs:choice>
+                                                    </xs:sequence>
+                                                  </xs:complexType>
+                                                </xs:element>
+                                                <xs:element minOccurs="0" maxOccurs="1" name="otherInfo">
+                                                  <xs:annotation>
+                                                    <xs:documentation>
+															Элемент, значение которого содержит другие сведения об авторе
+														</xs:documentation>
+                                                  </xs:annotation>
+                                                  <xs:complexType mixed="true">
+                                                    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                                                      <xs:choice maxOccurs="unbounded">
+                                                        <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded" />
+                                                      </xs:choice>
+                                                    </xs:sequence>
+                                                  </xs:complexType>
+                                                </xs:element>
+                                                <xs:element minOccurs="0" maxOccurs="1" name="comment">
+                                                  <xs:annotation>
+                                                    <xs:documentation>
+															Элемент, значение которого содержит текст рецензии автора. Рецензия загружается в базу данных, если в элементе role указано значение «рецензент». 
+															Внутри этого элемента допустимо использование следующих элементов: i, b, sub, sup, br
+														</xs:documentation>
+                                                  </xs:annotation>
+                                                  <xs:complexType mixed="true">
+                                                    <xs:choice maxOccurs="unbounded">
+                                                      <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded" />
+                                                    </xs:choice>
+                                                  </xs:complexType>
+                                                </xs:element>
+                                                <xs:element minOccurs="0" maxOccurs="1" name="commentDate" type="xs:string">
+                                                  <xs:annotation>
+                                                    <xs:documentation>
+															Элемент, значение которого содержит дату написания рецензии. Дата должна быть следующего формата «дд.мм.гггг»
+														</xs:documentation>
+                                                  </xs:annotation>
+                                                </xs:element>
+                                                <xs:element minOccurs="0" maxOccurs="1" name="orgName">
+                                                  <xs:annotation>
+                                                    <xs:documentation>
+															Элемент, значение которого содержит название организации, если организаций несколько, то они указываются через точку с запятой
+														</xs:documentation>
+                                                  </xs:annotation>
+                                                  <xs:complexType mixed="true">
+                                                    <xs:choice maxOccurs="unbounded">
+                                                      <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded" />
+                                                    </xs:choice>
+                                                    <xs:attribute name="notAuthentic" type="xs:unsignedByte" use="optional" />
+                                                  </xs:complexType>
+                                                </xs:element>
+                                                <xs:element minOccurs="0" maxOccurs="1" name="email">
+                                                  <xs:annotation>
+                                                    <xs:documentation>
+															Элемент, значение которого содержит электронную почту автора
+														</xs:documentation>
+                                                  </xs:annotation>
+                                                  <xs:complexType mixed="true">
+                                                    <xs:choice maxOccurs="unbounded">
+                                                      <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded" />
+                                                    </xs:choice>
+                                                    <xs:attribute name="notAuthentic" type="xs:unsignedByte" use="optional" />
+                                                  </xs:complexType>
+                                                </xs:element>
+                                              </xs:all>
+                                              <xs:attribute name="lang" type="typeLang" use="required">
+                                                <xs:annotation>
+                                                  <xs:documentation>
+															Атрибут lang элемента individInfo. В атрибуте lang обязательно указывается язык в трёхбуквенном коде, на котором написаны индивидуальные сведения об авторе(на каком языке отображать метаданные). Атрибут lang обязателен для использования
+														</xs:documentation>
+                                                </xs:annotation>
+                                              </xs:attribute>
+                                            </xs:complexType>
+                                          </xs:element>
+                                        </xs:choice>
+                                      </xs:sequence>
+                                      <xs:attribute name="id" type="typeIntegerOrEmpty">
+                                        <xs:annotation>
+                                          <xs:documentation>
+												Атрибут, значение которого содержит идентификатор автора (authorId) на сайте elibrary.ru. На данный момент authorId больше не загружается в базу данных.  
+											</xs:documentation>
+                                        </xs:annotation>
+                                      </xs:attribute>
+                                      <xs:attribute name="num" type="xs:unsignedInt" use="required">
+                                        <xs:annotation>
+                                          <xs:documentation>
+												Атрибут, значение которого содержит порядковый номер автора в статье.
+											</xs:documentation>
+                                        </xs:annotation>
+                                      </xs:attribute>
+                                    </xs:complexType>
+                                  </xs:element>
+                                </xs:sequence>
+                              </xs:complexType>
+                            </xs:element>
+                            <xs:element minOccurs="1" maxOccurs="3" name="artTitles">
+                              <xs:annotation>
+                                <xs:documentation>
+									Элемент, содержит названия статьи на разных языках. Обязателен для использования   
+								</xs:documentation>
+                              </xs:annotation>
+                              <xs:complexType>
+                                <xs:sequence>
+                                  <xs:element minOccurs="1" maxOccurs="unbounded" name="artTitle">
+                                    <xs:annotation>
+                                      <xs:documentation>
+											Элемент, значение которого содержит название статьи. У этого элемента есть обязательный атрибут lang. 
+											Внутри этого элемента допустимо использование следующих элементов: i, b, sub, sup, br  
+										</xs:documentation>
+                                    </xs:annotation>
+                                    <xs:complexType mixed="true">
+                                      <xs:choice maxOccurs="unbounded">
+                                        <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded" />
+                                      </xs:choice>
+                                      <xs:attribute name="lang" type="typeLang" use="required">
+                                        <xs:annotation>
+                                          <xs:documentation>
+												Атрибут lang, значение которого содержит язык названия статьи в трёхбуквенном коде (см. справочник typeLang)   
+											</xs:documentation>
+                                        </xs:annotation>
+                                      </xs:attribute>
+                                    </xs:complexType>
+                                  </xs:element>
+                                </xs:sequence>
+                              </xs:complexType>
+                            </xs:element>
+                            <xs:element minOccurs="0" maxOccurs="1" name="abstracts">
+                              <xs:annotation>
+                                <xs:documentation>
+										Элемент, включающий в себя элементы аннотаций на разных языках 
+									</xs:documentation>
+                              </xs:annotation>
+                              <xs:complexType>
+                                <xs:sequence>
+                                  <xs:element minOccurs="0" maxOccurs="unbounded" name="abstract">
+                                    <xs:annotation>
+                                      <xs:documentation>
+											Элемент, значение которого содержит текст аннотации. У элемента есть обязательный атрибут lang.
+											Внутри этого элемента допустимо использование следующих элементов: i, b, sub, sup, br
+										</xs:documentation>
+                                    </xs:annotation>
+                                    <xs:complexType mixed="true">
+                                      <xs:choice maxOccurs="unbounded">
+                                        <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded" />
+                                      </xs:choice>
+                                      <xs:attribute name="lang" type="typeLang" use="required">
+                                        <xs:annotation>
+                                          <xs:documentation>
+												Атрибут lang, значение которого содержит язык аннотации статьи в трёхбуквенном коде (см. справочник typeLang)   
+											</xs:documentation>
+                                        </xs:annotation>
+                                      </xs:attribute>
+                                    </xs:complexType>
+                                  </xs:element>
+                                </xs:sequence>
+                              </xs:complexType>
+                            </xs:element>
+                            <xs:element minOccurs="1" maxOccurs="unbounded" name="text">
+                              <xs:annotation>
+                                <xs:documentation>
+									Элемент, значение которого содержит неформатированный текст публикации. У элемента есть атрибут lang.
+								</xs:documentation>
+                              </xs:annotation>
+                              <xs:complexType mixed="true">
+                                <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                                  <xs:choice maxOccurs="unbounded">
+                                    <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded" />
+                                  </xs:choice>
+                                </xs:sequence>
+                                <xs:attribute name="lang" type="typeLang">
+                                  <xs:annotation>
+                                    <xs:documentation>
+												Атрибут lang, значение которого содержит язык неформатированного текста в трёхбуквенном коде (см. справочник typeLang)   
+											</xs:documentation>
+                                  </xs:annotation>
+                                </xs:attribute>
+                              </xs:complexType>
+                            </xs:element>
+                            <xs:element minOccurs="0" maxOccurs="1" name="codes">
+                              <xs:annotation>
+                                <xs:documentation>
+									Элемент, включающий в себя список элементов, значения которых содержат коды статьи
+								</xs:documentation>
+                              </xs:annotation>
+                              <xs:complexType>
+                                <xs:sequence>
+                                  <xs:choice maxOccurs="unbounded">
+                                    <xs:element minOccurs="0" maxOccurs="1" name="doi" type="xs:string">
+                                      <xs:annotation>
+                                        <xs:documentation>
+												Элемент, значение которого содержит код DOI
+											</xs:documentation>
+                                      </xs:annotation>
+                                    </xs:element>
+                                    <xs:element minOccurs="0" maxOccurs="1" name="edn" type="xs:string">
+                                      <xs:annotation>
+                                        <xs:documentation>
+												Элемент, значение которого содержит код EDN (eLIBRARY Document Number). Содержит шесть латинских символов.
+											</xs:documentation>
+                                      </xs:annotation>
+                                    </xs:element>
+                                    <xs:element minOccurs="0" maxOccurs="unbounded" name="udk" type="xs:string">
+                                      <xs:annotation>
+                                        <xs:documentation>
+												Элемент, значение которого содержит код УДК
+											</xs:documentation>
+                                      </xs:annotation>
+                                    </xs:element>
+                                    <xs:element minOccurs="0" maxOccurs="unbounded" name="bbk" type="xs:string">
+                                      <xs:annotation>
+                                        <xs:documentation>
+												Элемент, значение которого содержит код ББК
+											</xs:documentation>
+                                      </xs:annotation>
+                                    </xs:element>
+                                    <xs:element minOccurs="0" maxOccurs="1" name="vak" type="xs:string">
+                                      <xs:annotation>
+                                        <xs:documentation>
+												Элемент, значение которого содержит код ВАК (Высшей аттестационной комиссии) в старой номенклатуре специальностей. Код ВАК содержит только шифр научной специальности. 
+												Пример использования элемента: 
+												&lt;vak&gt;5.9.5.&lt;/vak&gt; - код ВАК "Русский язык. Языки народов России"												
+											</xs:documentation>
+                                      </xs:annotation>
+                                    </xs:element>
+                                    <xs:element minOccurs="0" maxOccurs="1" name="vak21" type="xs:string">
+                                      <xs:annotation>
+                                        <xs:documentation>
+												Элемент, значение которого содержит код ВАК (Высшей аттестационной комиссии) в новой номенклатуре специальностей, принятой в 2021 году. Код ВАК содержит только шифр научной специальности. 
+												Пример использования элемента: 
+												&lt;vak21&gt;5.9.5.&lt;/vak21&gt; - код ВАК "Русский язык. Языки народов России" 
+											</xs:documentation>
+                                      </xs:annotation>
+                                    </xs:element>
+                                    <xs:element minOccurs="0" maxOccurs="unbounded" name="jel" type="xs:string">
+                                      <xs:annotation>
+                                        <xs:documentation>
+												Элемент, значение которого содержит код JEL
+											</xs:documentation>
+                                      </xs:annotation>
+                                    </xs:element>
+                                    <xs:element minOccurs="0" maxOccurs="unbounded" name="msc" type="xs:string">
+                                      <xs:annotation>
+                                        <xs:documentation>
+												Элемент, значение которого содержит код MSC
+											</xs:documentation>
+                                      </xs:annotation>
+                                    </xs:element>
+                                    <xs:element minOccurs="0" maxOccurs="unbounded" name="pacs" type="xs:string">
+                                      <xs:annotation>
+                                        <xs:documentation>
+												Элемент, значение которого содержит код PACS
+											</xs:documentation>
+                                      </xs:annotation>
+                                    </xs:element>
+                                    <xs:element minOccurs="0" maxOccurs="unbounded" name="anycode" type="xs:string">
+                                      <xs:annotation>
+                                        <xs:documentation>
+												Элемент, значение которого содержит другие коды статьи. ВНИМАНИЕ! К другим кодам не относятся рубрики ГРНТИ. Для рубрик есть отдельный контейнер rubrics. 
+											</xs:documentation>
+                                      </xs:annotation>
+                                    </xs:element>
+                                  </xs:choice>
+                                </xs:sequence>
+                              </xs:complexType>
+                            </xs:element>
+                            <xs:element minOccurs="0" maxOccurs="1" name="keywords">
+                              <xs:annotation>
+                                <xs:documentation>
+									Элемент, включающий в себя элементы групп ключевых слов на разных языках
+								</xs:documentation>
+                              </xs:annotation>
+                              <xs:complexType>
+                                <xs:sequence>
+                                  <xs:element maxOccurs="unbounded" name="kwdGroup">
+                                    <xs:annotation>
+                                      <xs:documentation>
+											Элемент, содержащий элементы ключевых слов. У элемента есть обязательный атрибут lang. Внимание! Теперь в атрибуте lang нельзя указывать значение "ANY" или "UNK". 
+											Если есть ключевые слова для русских метаданных, то должен быть атрибут lang со значением "RUS"
+										</xs:documentation>
+                                    </xs:annotation>
+                                    <xs:complexType>
+                                      <xs:sequence>
+                                        <xs:element maxOccurs="unbounded" name="keyword">
+                                          <xs:annotation>
+                                            <xs:documentation>
+													Элемент, значение которого содержит ключевое слово. 
+													Внутри этого элемента допустимо использование следующих элементов: i, b, sub, sup
+												</xs:documentation>
+                                          </xs:annotation>
+                                          <xs:complexType mixed="true">
+                                            <xs:sequence maxOccurs="unbounded">
+                                              <xs:choice maxOccurs="unbounded">
+                                                <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded" />
+                                              </xs:choice>
+                                            </xs:sequence>
+                                          </xs:complexType>
+                                        </xs:element>
+                                      </xs:sequence>
+                                      <xs:attribute name="lang" type="typeLang" use="required">
+                                        <xs:annotation>
+                                          <xs:documentation>
+												 Атрибут lang, в значении которого указывается язык ключевых слов в трёхбуквенном коде (см. справочник typeLang»)
+											</xs:documentation>
+                                        </xs:annotation>
+                                      </xs:attribute>
+                                    </xs:complexType>
+                                  </xs:element>
+                                </xs:sequence>
+                              </xs:complexType>
+                            </xs:element>
+                            <xs:element minOccurs="0" maxOccurs="1" name="references">
+                              <xs:annotation>
+                                <xs:documentation>
+									Элемент, включающий в себя список элементов, значения которых содержат ссылки на источники литературы
+								</xs:documentation>
+                              </xs:annotation>
+                              <xs:complexType>
+                                <xs:sequence>
+                                  <xs:element maxOccurs="unbounded" name="reference">
+                                    <xs:annotation>
+                                      <xs:documentation>
+											Элемент, включающий в себя список элементов, значения которых содержат данные о ссылке на источник литературы
+										</xs:documentation>
+                                    </xs:annotation>
+                                    <xs:complexType>
+                                      <xs:sequence>
+                                        <xs:element minOccurs="0" maxOccurs="unbounded" name="refInfo">
+                                          <xs:annotation>
+                                            <xs:documentation>
+													Элемент, включающий в себя полный(неразобранный) текст ссылки и элементы разбора ссылки. У элемента есть обязательный атрибут lang.
+												</xs:documentation>
+                                          </xs:annotation>
+                                          <xs:complexType>
+                                            <xs:sequence>
+                                              <xs:element minOccurs="1" maxOccurs="1" name="text">
+                                                <xs:annotation>
+                                                  <xs:documentation>
+														Элемент, значение которого содержит полный текст ссылки. Обязателен для заполнения. 
+														Внутри этого элемента допустимо использование следующих элементов: i, b, sub, sup, br
+													</xs:documentation>
+                                                </xs:annotation>
+                                                <xs:complexType mixed="true">
+                                                  <xs:sequence maxOccurs="unbounded">
+                                                    <xs:choice maxOccurs="unbounded">
+                                                      <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded" />
+                                                    </xs:choice>
+                                                  </xs:sequence>
+                                                </xs:complexType>
+                                              </xs:element>
+                                              <xs:element name="elements" minOccurs="0">
+                                                <xs:annotation>
+                                                  <xs:documentation>
+														Элемент содержит элементы структурированной ссылки
+													</xs:documentation>
+                                                </xs:annotation>
+                                                <xs:complexType>
+                                                  <xs:sequence>
+                                                    <xs:element maxOccurs="unbounded" name="element">
+                                                      <xs:annotation>
+                                                        <xs:documentation>
+															Элемент, значение которого содержит значение элемента структурированной ссылки. У элемента обязательно есть атрибут field.
+														</xs:documentation>
+                                                      </xs:annotation>
+                                                      <xs:complexType mixed="true">
+                                                        <xs:choice maxOccurs="unbounded">
+                                                          <xs:element minOccurs="0" maxOccurs="unbounded" name="br">
+                                                            <xs:complexType mixed="true">
+                                                              <xs:sequence maxOccurs="unbounded">
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="i" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="I" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sup" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUP" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sub" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUB" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="br" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="BR" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="b" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="B" type="xs:string" />
+                                                              </xs:sequence>
+                                                            </xs:complexType>
+                                                          </xs:element>
+                                                          <xs:element minOccurs="0" maxOccurs="unbounded" name="BR">
+                                                            <xs:complexType mixed="true">
+                                                              <xs:sequence maxOccurs="unbounded">
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="i" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="I" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sup" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUP" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sub" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUB" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="br" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="BR" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="b" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="B" type="xs:string" />
+                                                              </xs:sequence>
+                                                            </xs:complexType>
+                                                          </xs:element>
+                                                          <xs:element minOccurs="0" maxOccurs="unbounded" name="I">
+                                                            <xs:complexType mixed="true">
+                                                              <xs:sequence maxOccurs="unbounded">
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="i" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="I" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sup" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUP" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sub" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUB" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="br" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="BR" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="b" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="B" type="xs:string" />
+                                                              </xs:sequence>
+                                                            </xs:complexType>
+                                                          </xs:element>
+                                                          <xs:element minOccurs="0" maxOccurs="unbounded" name="b">
+                                                            <xs:complexType mixed="true">
+                                                              <xs:sequence maxOccurs="unbounded">
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="i" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="I" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sup" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUP" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sub" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUB" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="br" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="BR" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="b" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="B" type="xs:string" />
+                                                              </xs:sequence>
+                                                            </xs:complexType>
+                                                          </xs:element>
+                                                          <xs:element minOccurs="0" maxOccurs="unbounded" name="B">
+                                                            <xs:complexType mixed="true">
+                                                              <xs:sequence maxOccurs="unbounded">
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="i" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="I" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sup" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUP" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sub" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUB" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="br" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="BR" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="b" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="B" type="xs:string" />
+                                                              </xs:sequence>
+                                                            </xs:complexType>
+                                                          </xs:element>
+                                                          <xs:element minOccurs="0" maxOccurs="unbounded" name="sub">
+                                                            <xs:complexType mixed="true">
+                                                              <xs:sequence maxOccurs="unbounded">
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="i" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="I" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sup" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUP" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sub" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUB" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="br" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="BR" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="b" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="B" type="xs:string" />
+                                                              </xs:sequence>
+                                                            </xs:complexType>
+                                                          </xs:element>
+                                                          <xs:element minOccurs="0" maxOccurs="unbounded" name="sup">
+                                                            <xs:complexType mixed="true">
+                                                              <xs:sequence maxOccurs="unbounded">
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="i" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="I" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sup" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUP" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sub" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUB" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="br" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="BR" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="b" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="B" type="xs:string" />
+                                                              </xs:sequence>
+                                                            </xs:complexType>
+                                                          </xs:element>
+                                                          <xs:element minOccurs="0" maxOccurs="unbounded" name="SUB">
+                                                            <xs:complexType mixed="true">
+                                                              <xs:sequence maxOccurs="unbounded">
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="i" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="I" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sup" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUP" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sub" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUB" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="br" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="BR" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="b" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="B" type="xs:string" />
+                                                              </xs:sequence>
+                                                            </xs:complexType>
+                                                          </xs:element>
+                                                          <xs:element minOccurs="0" maxOccurs="unbounded" name="SUP">
+                                                            <xs:complexType mixed="true">
+                                                              <xs:sequence maxOccurs="unbounded">
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="i" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="I" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sup" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUP" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sub" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUB" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="br" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="BR" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="b" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="B" type="xs:string" />
+                                                              </xs:sequence>
+                                                            </xs:complexType>
+                                                          </xs:element>
+                                                          <xs:element minOccurs="0" maxOccurs="unbounded" name="tex">
+                                                            <xs:complexType mixed="true">
+                                                              <xs:sequence maxOccurs="unbounded">
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="i" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="I" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sup" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUP" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sub" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUB" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="br" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="BR" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="b" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="B" type="xs:string" />
+                                                              </xs:sequence>
+                                                            </xs:complexType>
+                                                          </xs:element>
+                                                          <xs:element minOccurs="0" maxOccurs="unbounded" name="TEX">
+                                                            <xs:complexType mixed="true">
+                                                              <xs:sequence maxOccurs="unbounded">
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="i" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="I" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sup" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUP" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sub" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUB" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="br" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="BR" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="b" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="B" type="xs:string" />
+                                                              </xs:sequence>
+                                                            </xs:complexType>
+                                                          </xs:element>
+                                                          <xs:element minOccurs="0" maxOccurs="unbounded" name="i">
+                                                            <xs:complexType mixed="true">
+                                                              <xs:sequence maxOccurs="unbounded">
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="i" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="I" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sup" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUP" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="sub" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="SUB" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="br" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="BR" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="b" type="xs:string" />
+                                                                <xs:element minOccurs="0" maxOccurs="unbounded" name="B" type="xs:string" />
+                                                              </xs:sequence>
+                                                            </xs:complexType>
+                                                          </xs:element>
+                                                        </xs:choice>
+                                                        <xs:attribute name="field" type="typeElement" use="required">
+                                                          <xs:annotation>
+                                                            <xs:documentation>
+																		Атрибут field, значение которого содержит название элемента структурированной ссылки (см. справочник typeElement)
+																	</xs:documentation>
+                                                          </xs:annotation>
+                                                        </xs:attribute>
+                                                      </xs:complexType>
+                                                    </xs:element>
+                                                  </xs:sequence>
+                                                </xs:complexType>
+                                              </xs:element>
+                                            </xs:sequence>
+                                            <xs:attribute name="lang" type="typeLang" use="required">
+                                              <xs:annotation>
+                                                <xs:documentation>
+														 Атрибут lang, значение которого содержит язык ссылки в трёхбуквенном коде (см. справочник typeLang)
+													</xs:documentation>
+                                              </xs:annotation>
+                                            </xs:attribute>
+                                          </xs:complexType>
+                                        </xs:element>
+                                      </xs:sequence>
+                                    </xs:complexType>
+                                  </xs:element>
+                                </xs:sequence>
+                              </xs:complexType>
+                            </xs:element>
+                            <xs:element minOccurs="0" maxOccurs="1" name="files">
+                              <xs:annotation>
+                                <xs:documentation>
+									Элемент, включающий в себя список элементов, значения которых содержат файлы, прикрепляемые к статье 
+								</xs:documentation>
+                              </xs:annotation>
+                              <xs:complexType>
+                                <xs:sequence>
+                                  <xs:choice maxOccurs="unbounded">
+                                    <xs:element minOccurs="0" maxOccurs="unbounded" name="file">
+                                      <xs:annotation>
+                                        <xs:documentation>
+												Элемент, значение которого содержит название файла. У элемента есть обязательный атрибут desc.
+											</xs:documentation>
+                                      </xs:annotation>
+                                      <xs:complexType>
+                                        <xs:simpleContent>
+                                          <xs:extension base="xs:string">
+                                            <xs:attribute name="desc" type="typeFileDesc" use="optional">
+                                              <xs:annotation>
+                                                <xs:documentation>
+															 Атрибут desc, значение которого содержит тип файла (см. справочник typeFileDesc)
+														</xs:documentation>
+                                              </xs:annotation>
+                                            </xs:attribute>
+                                            <xs:attribute name="lang" type="typeLang" use="optional">
+                                              <xs:annotation>
+                                                <xs:documentation>
+															Атрибут lang элемента file. В атрибуте lang указывается язык файла в трёхбуквенном коде. Атрибут lang используется опционально
+														</xs:documentation>
+                                              </xs:annotation>
+                                            </xs:attribute>
+                                          </xs:extension>
+                                        </xs:simpleContent>
+                                      </xs:complexType>
+                                    </xs:element>
+                                    <xs:element minOccurs="0" maxOccurs="unbounded" name="furl">
+                                      <xs:annotation>
+                                        <xs:documentation>
+												Элемент, значение которого содержит ссылку на полный текст на внешнем сайте
+											</xs:documentation>
+                                      </xs:annotation>
+                                      <xs:complexType>
+                                        <xs:simpleContent>
+                                          <xs:extension base="xs:string">
+                                            <xs:attribute name="lang" type="typeLang" use="optional">
+                                              <xs:annotation>
+                                                <xs:documentation>
+															Атрибут lang элемента furl. В атрибуте lang указывается язык файла в трёхбуквенном коде. Атрибут lang используется опционально
+														</xs:documentation>
+                                              </xs:annotation>
+                                            </xs:attribute>
+                                            <xs:attribute name="desc" type="typeUrlDesc" use="optional">
+                                              <xs:annotation>
+                                                <xs:documentation>
+															 Атрибут desc, значение которого содержит тип файла (см. справочник typeUrlDesc)
+														</xs:documentation>
+                                              </xs:annotation>
+                                            </xs:attribute>
+                                            <xs:attribute name="location" type="xs:string" use="optional">
+                                              <xs:annotation>
+                                                <xs:documentation>
+															 Атрибут location (ЯВЛЯЕТСЯ УСТАРЕВШИМ И НЕ ИСПОЛЬЗУЕТСЯ), значение которого содержит место размещения pdf-файла.
+														</xs:documentation>
+                                              </xs:annotation>
+                                            </xs:attribute>
+                                            <xs:attribute name="version" type="xs:string" use="optional">
+                                              <xs:annotation>
+                                                <xs:documentation>
+															 Атрибут version (ЯВЛЯЕТСЯ УСТАРЕВШИМ И НЕ ИСПОЛЬЗУЕТСЯ), значение которого содержит версию pdf-файла.
+														</xs:documentation>
+                                              </xs:annotation>
+                                            </xs:attribute>
+                                          </xs:extension>
+                                        </xs:simpleContent>
+                                      </xs:complexType>
+                                    </xs:element>
+                                  </xs:choice>
+                                </xs:sequence>
+                              </xs:complexType>
+                            </xs:element>
+                            <xs:element minOccurs="0" maxOccurs="1" name="rubrics">
+                              <xs:annotation>
+                                <xs:documentation>
+										Элемент, включающий в себя список элементов, значения которых содержат рубрики ГРНТИ
+									</xs:documentation>
+                              </xs:annotation>
+                              <xs:complexType>
+                                <xs:sequence>
+                                  <xs:element maxOccurs="unbounded" name="rubric" type="xs:string">
+                                    <xs:annotation>
+                                      <xs:documentation>
+													Элемент, значение которого содержит код рубрики
+												</xs:documentation>
+                                    </xs:annotation>
+                                  </xs:element>
+                                </xs:sequence>
+                              </xs:complexType>
+                            </xs:element>
+                            <xs:element minOccurs="0" maxOccurs="1" name="dates">
+                              <xs:annotation>
+                                <xs:documentation>
+									Элемент, включающий в себя список элементов, значения которых содержат список дат
+								</xs:documentation>
+                              </xs:annotation>
+                              <xs:complexType>
+                                <xs:sequence>
+                                  <xs:choice maxOccurs="unbounded">
+                                    <xs:element minOccurs="0" maxOccurs="1" name="dateReceived" type="xs:string">
+                                      <xs:annotation>
+                                        <xs:documentation>
+												Элемент, значение которого содержит дату поступления статьи в редакцию. Дата должна быть следующего формата «дд.мм.гггг» 
+											</xs:documentation>
+                                      </xs:annotation>
+                                    </xs:element>
+                                    <xs:element minOccurs="0" maxOccurs="1" name="dateAccepted" type="xs:string">
+                                      <xs:annotation>
+                                        <xs:documentation>
+												Элемент, значение которого содержит дату принятия статьи в печать. Дата должна быть следующего формата «дд.мм.гггг» 
+											</xs:documentation>
+                                      </xs:annotation>
+                                    </xs:element>
+                                    <xs:element minOccurs="0" maxOccurs="1" name="datePublication" type="xs:string">
+                                      <xs:annotation>
+                                        <xs:documentation>
+												Элемент, значение которого содержит дату публикации статьи. Дата должна быть следующего формата «дд.мм.гггг» 
+											</xs:documentation>
+                                      </xs:annotation>
+                                    </xs:element>
+                                  </xs:choice>
+                                </xs:sequence>
+                              </xs:complexType>
+                            </xs:element>
+                            <xs:element minOccurs="0" maxOccurs="1" name="fundings">
+                              <xs:annotation>
+                                <xs:documentation>
+									Элемент, включающий в себя список элементов, значения которых содержат сведения о финансовой поддержке статьи
+								</xs:documentation>
+                              </xs:annotation>
+                              <xs:complexType>
+                                <xs:sequence>
+                                  <xs:element minOccurs="0" maxOccurs="unbounded" name="funding">
+                                    <xs:annotation>
+                                      <xs:documentation>
+											Элемент, значение которого содержит финансовую поддержку статьи. У этого элемента есть обязательный атрибут lang.
+											Внутри этого элемента допустимо использование следующих элементов: i, b, sub, sup, br
+										</xs:documentation>
+                                    </xs:annotation>
+                                    <xs:complexType mixed="true">
+                                      <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                                        <xs:choice maxOccurs="unbounded">
+                                          <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded" />
+                                        </xs:choice>
+                                      </xs:sequence>
+                                      <xs:attribute name="lang" type="typeLang" use="required">
+                                        <xs:annotation>
+                                          <xs:documentation>
+													Атрибут lang, в значении которого указывается язык финансовой поддержки в трёхбуквенном коде (см. справочник typeLang)
+												</xs:documentation>
+                                        </xs:annotation>
+                                      </xs:attribute>
+                                    </xs:complexType>
+                                  </xs:element>
+                                </xs:sequence>
+                              </xs:complexType>
+                            </xs:element>
+                          </xs:choice>
+                          <!-- </xs:sequence> -->
+                        </xs:complexType>
+                      </xs:element>
+                    </xs:choice>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element minOccurs="0" maxOccurs="1" name="files">
+                <xs:annotation>
+                  <xs:documentation>
+									Элемент, включающий в себя список элементов, значения которых содержат файлы, прикрепляемые к выпуску 
+								</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:choice maxOccurs="unbounded">
+                      <xs:element minOccurs="0" maxOccurs="unbounded" name="file">
+                        <xs:annotation>
+                          <xs:documentation>
+												Элемент, значение которого содержит название файла. У элемента есть обязательный атрибут desc.
+											</xs:documentation>
+                        </xs:annotation>
+                        <xs:complexType>
+                          <xs:simpleContent>
+                            <xs:extension base="xs:string">
+                              <xs:attribute name="desc" type="typeIssueDesc" use="required">
+                                <xs:annotation>
+                                  <xs:documentation>
+															 Атрибут desc, значение которого содержит тип файла (см. справочник typeIssueDesc)
+														</xs:documentation>
+                                </xs:annotation>
+                              </xs:attribute>
+                            </xs:extension>
+                          </xs:simpleContent>
+                        </xs:complexType>
+                      </xs:element>
+                    </xs:choice>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:all>
+            <xs:attribute name="type" type="typeIssueType" use="optional">
+              <xs:annotation>
+                <xs:documentation>
+								 Атрибут, в значении которого указывается тип выпуска в трёхбуквенном коде (см. справочник typeIssueType) 
+							</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+  <!-- Unit Block -->
+  <!-- file type -->
+  <xs:simpleType name="typeIntegerOrEmpty">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[+-]?[0-9]+" />
+      <xs:pattern value="" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="typeFile">
+    <xs:annotation>
+      <xs:documentation xml:lang="ru">Паттерн имени файла</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value=".+\.[\d\w]{2,4}" />
+    </xs:restriction>
+  </xs:simpleType>
+  <!-- file description -->
+  <xs:simpleType name="typeFileDesc">
+    <xs:annotation>
+      <xs:documentation xml:lang="ru">Описание прикрепляемых файлов</xs:documentation>
+      <!--  <xs:documentation xml:lang="en">Attachment Description</xs:documentation> -->
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="fullText">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Полный текст публикации в формате PDF</xs:documentation>
+          <xs:documentation xml:lang="en">Full text of the publication in PDF</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="addition">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Дополнительный материал(приложение) к публикации</xs:documentation>
+          <xs:documentation xml:lang="en">Additional material to the publication</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="illustration">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Иллюстрация к публикации (чаще всего в аннотации)</xs:documentation>
+          <xs:documentation xml:lang="en">Illustration in the publication</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <!-- url description -->
+  <xs:simpleType name="typeUrlDesc">
+    <xs:annotation>
+      <xs:documentation xml:lang="ru">Описание прикрепляемых ссылок</xs:documentation>
+      <!--  <xs:documentation xml:lang="en">Attachment Description</xs:documentation> -->
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="fullText">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Ссылка на полный текст публикации в формате PDF</xs:documentation>
+          <xs:documentation xml:lang="en">Link to the full text of the publication in PDF format</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="description">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Ссылка на описание публикации</xs:documentation>
+          <xs:documentation xml:lang="en">Link to post description</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="preprint">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Ссылка на препринт</xs:documentation>
+          <xs:documentation xml:lang="en">Link to preprint</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="versionAnotherLanguage">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Ссылка на версию на другом языке</xs:documentation>
+          <xs:documentation xml:lang="en">Link to another language version</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="anotherEdition">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Ссылка на другое издание</xs:documentation>
+          <xs:documentation xml:lang="en">Another Edition</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="continuation">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Ссылка на продолжение</xs:documentation>
+          <xs:documentation xml:lang="en">Continuation</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="beginning">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Ссылка на начало</xs:documentation>
+          <xs:documentation xml:lang="en">Beginning</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="application">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Ссылка на приложение</xs:documentation>
+          <xs:documentation xml:lang="en">Application</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="correction">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Ссылка на исправление</xs:documentation>
+          <xs:documentation xml:lang="en">correction</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="addition">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Ссылка на дополнение</xs:documentation>
+          <xs:documentation xml:lang="en">Addition</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="review">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Ссылка на рецензию</xs:documentation>
+          <xs:documentation xml:lang="en">Review</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="comment">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Ссылка на комментарий</xs:documentation>
+          <xs:documentation xml:lang="en">Comment</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="mediaFile">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Ссылка на медиафайл</xs:documentation>
+          <xs:documentation xml:lang="en">Media File</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="presentation">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Ссылка на презентацию</xs:documentation>
+          <xs:documentation xml:lang="en">Presentation</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="data">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Ссылка на данные</xs:documentation>
+          <xs:documentation xml:lang="en">Data</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="additionalMaterials">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Ссылка на дополнительные материалы</xs:documentation>
+          <xs:documentation xml:lang="en">Additional Materials</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="other">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Другое</xs:documentation>
+          <xs:documentation xml:lang="en">Other</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <!-- file description for Issue -->
+  <xs:simpleType name="typeIssueDesc">
+    <xs:annotation>
+      <xs:documentation xml:lang="ru">Описание прикрепляемых файлов для выпуска журнала</xs:documentation>
+      <!--  <xs:documentation xml:lang="en">Attachment Description</xs:documentation> -->
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="cover">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Обложка в формате JPEG, JPG, PNG или GIF</xs:documentation>
+          <xs:documentation xml:lang="en">Cover</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <!-- role authors dictionary -->
+  <xs:simpleType name="typeRole">
+    <xs:annotation>
+      <xs:documentation xml:lang="ru">Роли авторов</xs:documentation>
+      <!--  <xs:documentation xml:lang="en">Author Roles</xs:documentation> -->
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Автор (значение отсутствует)</xs:documentation>
+          <xs:documentation xml:lang="en">Author (no value)</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Редактор</xs:documentation>
+          <xs:documentation xml:lang="en">Editor</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="1">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Ответственный редактор</xs:documentation>
+          <xs:documentation xml:lang="en">Executive editor</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="2">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Научный редактор</xs:documentation>
+          <xs:documentation xml:lang="en">Science editor</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="3">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Переводчик</xs:documentation>
+          <xs:documentation xml:lang="en">Translator</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="4">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Составитель</xs:documentation>
+          <xs:documentation xml:lang="en">Compiler</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="5">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Фотограф</xs:documentation>
+          <xs:documentation xml:lang="en">Photographer</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="6">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Художник</xs:documentation>
+          <xs:documentation xml:lang="en">Artist</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="9">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Иллюстратор</xs:documentation>
+          <xs:documentation xml:lang="en">Illustrator</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="10">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Автор комментария</xs:documentation>
+          <xs:documentation xml:lang="en">Comment author</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="20">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Автор вступительной статьи</xs:documentation>
+          <xs:documentation xml:lang="en">Author of the introductory article</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="23">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Рецензент</xs:documentation>
+          <xs:documentation xml:lang="en">Reviewer</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="24">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Автор предисловия</xs:documentation>
+          <xs:documentation xml:lang="en">Foreword by</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="25">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Автор послесловия</xs:documentation>
+          <xs:documentation xml:lang="en">Afterword</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="26">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Научный руководитель</xs:documentation>
+          <xs:documentation xml:lang="en">Supervisor</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="48">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Редактор перевода</xs:documentation>
+          <xs:documentation xml:lang="en">Translation editor</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <!-- correspondent authors -->
+  <xs:simpleType name="typeCorrespondent">
+    <xs:annotation>
+      <xs:documentation xml:lang="ru">Автор-корреспондент</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Автор (значение отсутствует)</xs:documentation>
+          <xs:documentation xml:lang="en">Author (no value)</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Автор</xs:documentation>
+          <xs:documentation xml:lang="en">Author</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="1">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Автор, отвечающий за переписку</xs:documentation>
+          <xs:documentation xml:lang="en">Corresponding author</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <!-- article type dictionary -->
+  <xs:simpleType name="typeArticleType">
+    <xs:annotation>
+      <xs:documentation xml:lang="ru">Типы статей</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="ABS">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Аннотация</xs:documentation>
+          <xs:documentation xml:lang="en">Abstract</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="BRV">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Рецензия</xs:documentation>
+          <xs:documentation xml:lang="en">Review</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="CNF">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Материалы конференции, Тезисы доклада на конференции</xs:documentation>
+          <xs:documentation xml:lang="en">Conference Report, Theses of Report</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="COR">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Переписка</xs:documentation>
+          <xs:documentation xml:lang="en">Correspondence</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EDI">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Редакторская заметка</xs:documentation>
+          <xs:documentation xml:lang="en">Editorial</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="MIS">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Разное</xs:documentation>
+          <xs:documentation xml:lang="en">Miscellaneous</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="PER">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Персоналия</xs:documentation>
+          <xs:documentation xml:lang="en">Personal</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="RAR">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Научная статья</xs:documentation>
+          <xs:documentation xml:lang="en">Research Article</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="REP">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Научный отчёт</xs:documentation>
+          <xs:documentation xml:lang="en">Scientific Report</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="REV">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Обзорная статья</xs:documentation>
+          <xs:documentation xml:lang="en">Review Article</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="RPR">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Репринт</xs:documentation>
+          <xs:documentation xml:lang="en">Reprint</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SCO">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Краткое сообщение</xs:documentation>
+          <xs:documentation xml:lang="en">Short Communication</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="UNK">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Не определён. Этот тип является УСТАРЕВШИМ и больше не используется.</xs:documentation>
+          <xs:documentation xml:lang="en">Unknown</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <!-- article type dictionary -->
+  <xs:simpleType name="typeIssueType">
+    <xs:annotation>
+      <xs:documentation xml:lang="ru">Типы выпусков</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="ISS">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Выпуск журнала</xs:documentation>
+          <xs:documentation xml:lang="en">Journal Issue</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="OFI">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Выпуск Online First</xs:documentation>
+          <xs:documentation xml:lang="en">Online First Issue</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SPI">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Спец.выпуск</xs:documentation>
+          <xs:documentation xml:lang="en">Special Issue</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <!-- language dictionary -->
+  <xs:simpleType name="typeLang">
+    <xs:annotation>
+      <xs:documentation xml:lang="ru">Словарь языков (трехбуквенный стандарт ISO 639)</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="ANY">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Не определён (любой)</xs:documentation>
+          <xs:documentation xml:lang="en">Any</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ABK">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Абхазский</xs:documentation>
+          <xs:documentation xml:lang="en">Abkhazian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="AVA">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Аварский</xs:documentation>
+          <xs:documentation xml:lang="en">Avar</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ADY">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Адыгейский</xs:documentation>
+          <xs:documentation xml:lang="en">Adyghe; Adygei</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ALT">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Алтайский</xs:documentation>
+          <xs:documentation xml:lang="en">Southern Altai</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ARA">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Арабский</xs:documentation>
+          <xs:documentation xml:lang="en">Arabic</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="AZE">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Азербайджанский</xs:documentation>
+          <xs:documentation xml:lang="en">Azerbaijani</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="AFR">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Африкаанс</xs:documentation>
+          <xs:documentation xml:lang="en">Afrikaans</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ALB">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Албансикй</xs:documentation>
+          <xs:documentation xml:lang="en">Albanian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="BAK">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Башкирский</xs:documentation>
+          <xs:documentation xml:lang="en">Bashkir</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="BAQ">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Баскский</xs:documentation>
+          <xs:documentation xml:lang="en">Basque</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="BEL">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Белорусский</xs:documentation>
+          <xs:documentation xml:lang="en">Belarusian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="BGR">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Болгарский</xs:documentation>
+          <xs:documentation xml:lang="en">Bulgarian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="BUA">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Бурятский</xs:documentation>
+          <xs:documentation xml:lang="en">Buriat</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="CAT">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Каталанский</xs:documentation>
+          <xs:documentation xml:lang="en">Catalan</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="CHE">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Чеченский</xs:documentation>
+          <xs:documentation xml:lang="en">Chechen</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="CHM">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Марийский</xs:documentation>
+          <xs:documentation xml:lang="en">Mari</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="CJS">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Шорский</xs:documentation>
+          <xs:documentation xml:lang="en">Shor</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="CRH">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Крымско-татарский</xs:documentation>
+          <xs:documentation xml:lang="en">Crimean Tatar; Crimean Turkish</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="CES">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Чешский</xs:documentation>
+          <xs:documentation xml:lang="en">Czech</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="CHV">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Чувашский</xs:documentation>
+          <xs:documentation xml:lang="en">Chuvash</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DEU">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Немецкий</xs:documentation>
+          <xs:documentation xml:lang="en">German</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DAN">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Датский</xs:documentation>
+          <xs:documentation xml:lang="en">Danish</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DAR">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Даргинский</xs:documentation>
+          <xs:documentation xml:lang="en">Dargin</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DUT">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Фламандский</xs:documentation>
+          <xs:documentation xml:lang="en">Flemish</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ELL">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Греческий</xs:documentation>
+          <xs:documentation xml:lang="en">Greek</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ENG">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Английский</xs:documentation>
+          <xs:documentation xml:lang="en">English</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EPO">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Эсперанто</xs:documentation>
+          <xs:documentation xml:lang="en">Esperanto</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ESP">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Испанский</xs:documentation>
+          <xs:documentation xml:lang="en">Spanish; Castilian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EST">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Эстонский</xs:documentation>
+          <xs:documentation xml:lang="en">Estonian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="FAS">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Персидский</xs:documentation>
+          <xs:documentation xml:lang="en">Persian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="FIN">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Финский</xs:documentation>
+          <xs:documentation xml:lang="en">Finnish</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="FRE">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Французский</xs:documentation>
+          <xs:documentation xml:lang="en">French</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="GEO">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Грузинский</xs:documentation>
+          <xs:documentation xml:lang="en">Georgian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="GLG">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Галисийский</xs:documentation>
+          <xs:documentation xml:lang="en">Galician</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="HAW">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Гавайский</xs:documentation>
+          <xs:documentation xml:lang="en">Hawaiian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="HBS">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Сербохорватский</xs:documentation>
+          <xs:documentation xml:lang="en">Serbo-croatian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="HEB">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Иврит</xs:documentation>
+          <xs:documentation xml:lang="en">Hebrew</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="HIN">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Хинди</xs:documentation>
+          <xs:documentation xml:lang="en">Hindi</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="HRV">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Хорватский</xs:documentation>
+          <xs:documentation xml:lang="en">Croatian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="HUN">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Венгерский</xs:documentation>
+          <xs:documentation xml:lang="en">Hungarian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="HYE">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Армянский</xs:documentation>
+          <xs:documentation xml:lang="en">Armenian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ILE">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Ирландский</xs:documentation>
+          <xs:documentation xml:lang="en">Irish</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="IND">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Индонезийский</xs:documentation>
+          <xs:documentation xml:lang="en">Indonesian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INH">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Ингушский</xs:documentation>
+          <xs:documentation xml:lang="en">Ingush</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ITA">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Итальянский</xs:documentation>
+          <xs:documentation xml:lang="en">Italian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="JPN">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Японский</xs:documentation>
+          <xs:documentation xml:lang="en">Japanese</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="KAA">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Каракалпакский</xs:documentation>
+          <xs:documentation xml:lang="en">Kara-Kalpak</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="KBD">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Кабардино-черкесский язык</xs:documentation>
+          <xs:documentation xml:lang="en">Kabardian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="KCA">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Хантыйский</xs:documentation>
+          <xs:documentation xml:lang="en">Khanty</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="KHM">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Кумыкский</xs:documentation>
+          <xs:documentation xml:lang="en">Kumyk</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="KJH">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Хакасский</xs:documentation>
+          <xs:documentation xml:lang="en">Khakas</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="KKZ">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Казахский</xs:documentation>
+          <xs:documentation xml:lang="en">Kazakh</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="KIR">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Киргизский</xs:documentation>
+          <xs:documentation xml:lang="en">Kirghiz; Kyrgyz</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="KOM">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Коми</xs:documentation>
+          <xs:documentation xml:lang="en">Komi</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="KOR">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Корейский</xs:documentation>
+          <xs:documentation xml:lang="en">Korean</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="KRC">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Карачаево-балкарский</xs:documentation>
+          <xs:documentation xml:lang="en">Karachaevo-balkarski</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="KRL">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Карельский</xs:documentation>
+          <xs:documentation xml:lang="en">Karelian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LAT">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Латинский</xs:documentation>
+          <xs:documentation xml:lang="en">Latin</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LAV">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Латышский</xs:documentation>
+          <xs:documentation xml:lang="en">Latvian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LBE">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Лакский</xs:documentation>
+          <xs:documentation xml:lang="en">Lak</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LIT">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Литовский</xs:documentation>
+          <xs:documentation xml:lang="en">Lithuanian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="MAL">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Многоязычный</xs:documentation>
+          <xs:documentation xml:lang="en">Multi-language</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="MKD">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Македонский</xs:documentation>
+          <xs:documentation xml:lang="en">Macedonian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="MON">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Монгольский</xs:documentation>
+          <xs:documentation xml:lang="en">Mongolian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="MYV">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Мордовский</xs:documentation>
+          <xs:documentation xml:lang="en">Mordovia</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NLD">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Голландский</xs:documentation>
+          <xs:documentation xml:lang="en">Dutch, Flemish</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NOR">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Норвежский</xs:documentation>
+          <xs:documentation xml:lang="en">Norwegian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NSO">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Cепеди</xs:documentation>
+          <xs:documentation xml:lang="en">Sepedi</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ORV">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Русинский</xs:documentation>
+          <xs:documentation xml:lang="en">Ruthenian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="OSS">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Осетинский</xs:documentation>
+          <xs:documentation xml:lang="en">Ossetian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="POL">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Польский</xs:documentation>
+          <xs:documentation xml:lang="en">Polish</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="PRS">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Дари</xs:documentation>
+          <xs:documentation xml:lang="en">Dari</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="PRT">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Португальский</xs:documentation>
+          <xs:documentation xml:lang="en">Portuguese</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="RON">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Молдавский</xs:documentation>
+          <xs:documentation xml:lang="en">Moldovan</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ROU">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Румынский</xs:documentation>
+          <xs:documentation xml:lang="en">Romanian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="RUS">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Русский</xs:documentation>
+          <xs:documentation xml:lang="en">Russian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SAH">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Якутский</xs:documentation>
+          <xs:documentation xml:lang="en">Yakut</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SAN">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Санскрит</xs:documentation>
+          <xs:documentation xml:lang="en">Sanskrit</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SOM">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Cомалийский</xs:documentation>
+          <xs:documentation xml:lang="en">Somali</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SOT">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Южный сото</xs:documentation>
+          <xs:documentation xml:lang="en">Southern Sotho</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SVK">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Словацкий</xs:documentation>
+          <xs:documentation xml:lang="en">Slovak</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SWA">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Суахили</xs:documentation>
+          <xs:documentation xml:lang="en">Kiswahili</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SWE">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Шведский</xs:documentation>
+          <xs:documentation xml:lang="en">Swedish</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SLV">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Словенский</xs:documentation>
+          <xs:documentation xml:lang="en">Slovenian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SRB">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Сербский</xs:documentation>
+          <xs:documentation xml:lang="en">Serbian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SYR">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Шведский</xs:documentation>
+          <xs:documentation xml:lang="en">Syriac</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="TAT">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Татарский</xs:documentation>
+          <xs:documentation xml:lang="en">Tatar</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="TGL">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Транслитерация</xs:documentation>
+          <xs:documentation xml:lang="en">Transliteration</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="THA">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Тайский</xs:documentation>
+          <xs:documentation xml:lang="en">Thai</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="TJK">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Таджикский</xs:documentation>
+          <xs:documentation xml:lang="en">Tajik</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="TSN">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Тохоно</xs:documentation>
+          <xs:documentation xml:lang="en">Tohono o'odham</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="TUK">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Туркменский</xs:documentation>
+          <xs:documentation xml:lang="en">Turkmen</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="TUR">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Турецкий</xs:documentation>
+          <xs:documentation xml:lang="en">Turkish</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="TYV">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Tувинский</xs:documentation>
+          <xs:documentation xml:lang="en">Tuvinian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="UDM">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Удмурский</xs:documentation>
+          <xs:documentation xml:lang="en">Udmurt</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="UKR">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Украинский</xs:documentation>
+          <xs:documentation xml:lang="en">Ukrainian</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="UNK">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Не определён (любой)</xs:documentation>
+          <xs:documentation xml:lang="en">Unknown (any)</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="UZB">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Узбекский</xs:documentation>
+          <xs:documentation xml:lang="en">Uzbek</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="VEN">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Чивенда</xs:documentation>
+          <xs:documentation xml:lang="en">Tshivenda</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="VEP">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Вепсский</xs:documentation>
+          <xs:documentation xml:lang="en">Veps</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="VIE">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Вьетнамский</xs:documentation>
+          <xs:documentation xml:lang="en">Vietnamese</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="WEL">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Валлийский</xs:documentation>
+          <xs:documentation xml:lang="en">Welsh</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="XAL">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Калмыцкий</xs:documentation>
+          <xs:documentation xml:lang="en">Kalmyk, Oirat</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ZHO">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Китайский</xs:documentation>
+          <xs:documentation xml:lang="en">Chinese</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <!-- type reference element dictionary -->
+  <xs:simpleType name="typeElement">
+    <xs:annotation>
+      <xs:documentation xml:lang="ru">Значение атрибута field в элементе refInfo</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Authors">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Авторы публикации</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="AuthorsNorm">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru"></xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DOI">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">DOI публикации</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EDN">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Код EDN (eLIBRARY Document Number). Содержит шесть латинских символов.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="GenreId">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Идентификатор жанра публикации (можно не указывать). Это может быть журнал, книга и т.п.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ISBN">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">ISBN книги</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="Issue">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Номер выпуска</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="Name">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Название публикации</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="PMID">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru"></xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="Pages">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Страницы</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SPage">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Начальная страница</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="Title">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Название журнала</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="URL">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Электронная ссылка на публикацию</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="Volume">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Том</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="YearPubl">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Год издания публикации</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ArXiv">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Автор, отвечающий за переписку</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ZBMath">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru"></xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="MathSciNet">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru"></xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="MathNet">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru"></xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ADS">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru"></xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="PlacePubl">
+        <xs:annotation>
+          <xs:documentation xml:lang="ru">Место публикации. Этот элемент я вляется устаревшим и не используется для загрузки.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

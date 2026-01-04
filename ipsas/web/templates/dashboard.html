@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Дашборд - IPSAS{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="margin-bottom: 1rem; color: #667eea;">
+        Добро пожаловать{% if user.get_full_name() != user.username %}, {{ user.get_full_name() }}{% else %}, {{ user.username }}{% endif %}!
+    </h1>
+    
+    <div style="margin-top: 2rem;">
+        <h2 style="margin-bottom: 1rem; color: #333;">Информация о системе</h2>
+        <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px;">
+            <p><strong>Версия системы:</strong> 0.1.0</p>
+            <p><strong>Логин:</strong> {{ user.username }}</p>
+            {% if user.get_full_name() != user.username %}
+            <p><strong>ФИО:</strong> {{ user.get_full_name() }}</p>
+            {% endif %}
+            <p><strong>Ваш статус:</strong> 
+                {% if user.is_admin %}
+                    <span class="badge badge-primary">Администратор</span>
+                {% else %}
+                    <span class="badge badge-success">Пользователь</span>
+                {% endif %}
+            </p>
+            {% if user.email %}
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            {% endif %}
+            {% if user.last_login %}
+            <p><strong>Последний вход:</strong> {{ user.last_login.strftime('%d.%m.%Y %H:%M') }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if user.is_admin %}
+    <div style="margin-top: 2rem;">
+        <h2 style="margin-bottom: 1rem; color: #333;">Управление системой</h2>
+        <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; border-left: 4px solid #28a745;">
+            <h3 style="margin-bottom: 0.5rem; color: #28a745;">Управление пользователями</h3>
+            <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;">Создание и управление учетными записями пользователей системы</p>
+            <a href="{{ url_for('admin.admin_panel') }}" class="btn btn-primary">
+                Перейти в админ-панель
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

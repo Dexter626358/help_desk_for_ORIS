@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Админ-панель - IPSAS{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1 style="color: #667eea;">Админ-панель</h1>
+        <a href="{{ url_for('admin.create_user') }}" class="btn btn-primary">
+            + Создать пользователя
+        </a>
+    </div>
+
+    <h2 style="margin-bottom: 1rem; color: #333;">Список пользователей</h2>
+
+    <!-- Поиск и фильтры -->
+    <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; margin-bottom: 1.5rem;">
+        <form method="GET" action="{{ url_for('admin.admin_panel') }}" style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 1rem; align-items: end;">
+            <div class="form-group" style="margin: 0;">
+                <label for="search" style="margin-bottom: 0.5rem;">Поиск</label>
+                <input 
+                    type="text" 
+                    id="search" 
+                    name="search" 
+                    value="{{ search_query }}"
+                    placeholder="Логин, Email, ФИО..."
+                    style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px;"
+                >
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label for="role" style="margin-bottom: 0.5rem;">Роль</label>
+                <select 
+                    id="role" 
+                    name="role" 
+                    style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px;"
+                >
+                    <option value="">Все</option>
+                    <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Администратор</option>
+                    <option value="user" {% if role_filter == 'user' %}selected{% endif %}>Пользователь</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label for="status" style="margin-bottom: 0.5rem;">Статус</label>
+                <select 
+                    id="status" 
+                    name="status" 
+                    style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px;"
+                >
+                    <option value="">Все</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Активен</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Неактивен</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.5rem;">Поиск</button>
+                <a href="{{ url_for('admin.admin_panel') }}" class="btn btn-secondary" style="padding: 0.75rem 1.5rem;">Сбросить</a>
+            </div>
+        </form>
+    </div>
+
+    {% if users %}
+    <div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Логин</th>
+                <th>ФИО</th>
+                <th>Email</th>
+                <th>Статус</th>
+                <th>Роль</th>
+                <th>Создан</th>
+                <th>Последний вход</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td><strong>{{ user.username }}</strong></td>
+                <td>
+                    {% if user.get_full_name() != user.username %}
+                        {{ user.get_full_name() }}
+                    {% else %}
+                        <span style="color: #999;">-</span>
+                    {% endif %}
+                </td>
+                <td>{{ user.email or '-' }}</td>
+                <td>
+                    {% if user.is_active %}
+                        <span class="badge badge-success">Активен</span>
+                    {% else %}
+                        <span class="badge badge-danger">Неактивен</span>
+                    {% endif %}
+                    {% if user.must_change_password %}
+                        <br><span class="badge" style="background-color: #ffc107; color: #000; margin-top: 0.25rem;">Требуется смена пароля</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if user.is_admin %}
+                        <span class="badge badge-primary">Администратор</span>
+                    {% else %}
+                        <span class="badge badge-success">Пользователь</span>
+                    {% endif %}
+                </td>
+                <td>{{ user.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                <td>
+                    {% if user.last_login %}
+                        {{ user.last_login.strftime('%d.%m.%Y %H:%M') }}
+                    {% else %}
+                        <span style="color: #999;">Никогда</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        {% if user.id != current_user.id %}
+                        <a href="{{ url_for('admin.reset_password', user_id=user.id) }}" 
+                           class="btn btn-primary" 
+                           style="padding: 0.5rem 1rem; font-size: 0.875rem; text-decoration: none;">
+                            Сбросить пароль
+                        </a>
+                        <form method="POST" action="{{ url_for('admin.force_password_change', user_id=user.id) }}" style="display: inline;">
+                            <button type="submit" 
+                                    class="btn btn-secondary" 
+                                    style="padding: 0.5rem 1rem; font-size: 0.875rem;"
+                                    title="Пользователь будет обязан сменить пароль при следующем входе">
+                                {% if user.must_change_password %}✓ Требуется смена{% else %}Заставить сменить{% endif %}
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('admin.toggle_user_active', user_id=user.id) }}" style="display: inline;">
+                            <button type="submit" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                                {% if user.is_active %}Деактивировать{% else %}Активировать{% endif %}
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}" style="display: inline;"
+                              onsubmit="return confirm('Вы уверены, что хотите удалить пользователя {{ user.username }}?');">
+                            <button type="submit" class="btn btn-danger" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                                Удалить
+                            </button>
+                        </form>
+                        {% else %}
+                        <span style="color: #999; font-size: 0.875rem;">Текущий пользователь</span>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p style="color: #666; text-align: center; padding: 2rem;">Пользователи не найдены</p>
+    {% endif %}
+</div>
+{% endblock %}
+
