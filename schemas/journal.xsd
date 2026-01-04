@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Пример XSD схемы для журнала (journal)
+    Это базовая схема, которую можно расширить под ваши нужды
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+           elementFormDefault="qualified">
+    
+    <xs:element name="journal">
+        <xs:complexType>
+            <xs:all>
+                <xs:element name="metadata" type="metadataType" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="titleid" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="issn" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="eissn" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="codeNEB" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="journalInfo" type="journalInfoType" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="articles" type="articlesType" minOccurs="1" maxOccurs="1"/>
+            </xs:all>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:complexType name="journalInfoType">
+        <xs:all>
+            <xs:element name="title" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="Title" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="abbrTitle" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="publ" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="placePubl" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="address" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        </xs:all>
+        <xs:attribute name="lang" type="xs:string" use="optional"/>
+    </xs:complexType>
+    
+    <xs:complexType name="metadataType">
+        <xs:sequence>
+            <xs:element name="title" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="titleid" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="issn" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="publisher" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="year" type="xs:positiveInteger" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="articlesType">
+        <xs:sequence>
+            <xs:element name="article" type="articleType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="articleType">
+        <xs:sequence>
+            <xs:element name="title" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="titleid" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="authors" type="authorsType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="abstract" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="keywords" type="keywordsType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="pages" type="pagesType" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:string" use="required"/>
+    </xs:complexType>
+    
+    <xs:complexType name="authorsType">
+        <xs:sequence>
+            <xs:element name="author" type="authorType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="authorType">
+        <xs:sequence>
+            <xs:element name="firstname" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="lastname" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="affiliation" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="email" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="keywordsType">
+        <xs:sequence>
+            <xs:element name="keyword" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="pagesType">
+        <xs:sequence>
+            <xs:element name="start" type="xs:positiveInteger" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="end" type="xs:positiveInteger" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+</xs:schema>
+

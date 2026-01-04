@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Результат валидации XML - IPSAS{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="margin-bottom: 2rem; color: #667eea;">Результат валидации XML</h1>
+    
+    <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem;">
+        <p><strong>Файл:</strong> {{ filename }}</p>
+        <p><strong>Схема:</strong> {{ schema_name }}</p>
+        {% if result.schemas_results %}
+            <p><strong>Проверено схем:</strong> {{ result.schemas_results|length }}</p>
+        {% else %}
+            <p><strong>Схема загружена:</strong> 
+                {% if result.schema_loaded %}
+                    <span class="badge badge-success">Да</span>
+                {% else %}
+                    <span class="badge badge-danger">Нет</span>
+                {% endif %}
+            </p>
+        {% endif %}
+    </div>
+
+    {% if result.schemas_results %}
+        {# Результаты для нескольких схем - показываем единый результат #}
+        {% if result.overall_valid %}
+        <div style="background-color: #d4edda; padding: 1.5rem; border-radius: 5px; border-left: 4px solid #28a745; margin-bottom: 2rem;">
+            <h2 style="color: #155724; margin-bottom: 1rem; font-size: 1.5rem;">✓ Файл валиден!</h2>
+            <p style="color: #155724; margin: 0;">
+                XML файл успешно прошел валидацию по всем схемам.
+            </p>
+        </div>
+        {% else %}
+        <div style="background-color: #f8d7da; padding: 1.5rem; border-radius: 5px; border-left: 4px solid #dc3545; margin-bottom: 2rem;">
+            <h2 style="color: #721c24; margin-bottom: 1rem; font-size: 1.5rem;">✗ Файл не валиден</h2>
+            <p style="color: #721c24; margin: 0;">
+                Найдено ошибок: {{ result.errors|length }}
+            </p>
+        </div>
+        {% endif %}
+    {% else %}
+        {# Результаты для одной схемы #}
+        {% if result.valid %}
+        <div style="background-color: #d4edda; padding: 1.5rem; border-radius: 5px; border-left: 4px solid #28a745; margin-bottom: 2rem;">
+            <h2 style="color: #155724; margin-bottom: 1rem; font-size: 1.5rem;">✓ Файл валиден!</h2>
+            <p style="color: #155724; margin: 0;">
+                XML файл успешно прошел валидацию{% if result.schema_loaded %} по схеме {{ schema_name }}{% endif %}.
+            </p>
+        </div>
+        {% else %}
+        <div style="background-color: #f8d7da; padding: 1.5rem; border-radius: 5px; border-left: 4px solid #dc3545; margin-bottom: 2rem;">
+            <h2 style="color: #721c24; margin-bottom: 1rem; font-size: 1.5rem;">✗ Файл не валиден</h2>
+            <p style="color: #721c24; margin: 0;">
+                Найдено ошибок: {{ result.errors|length }}
+            </p>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    {% if result.warnings and not result.schemas_results %}
+    <div style="background-color: #fff3cd; padding: 1.5rem; border-radius: 5px; border-left: 4px solid #ffc107; margin-bottom: 2rem;">
+        <h3 style="color: #856404; margin-bottom: 1rem;">Предупреждения</h3>
+        <ul style="color: #856404; margin: 0; padding-left: 1.5rem;">
+            {% for warning in result.warnings %}
+            <li>{{ warning.message }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if result.errors %}
+    <div style="margin-bottom: 2rem;">
+        <h2 style="margin-bottom: 1rem; color: #333;">Детали ошибок</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Строка</th>
+                        <th>Колонка</th>
+                        <th>Элемент</th>
+                        <th>Схема</th>
+                        <th>Описание ошибки</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for error in result.errors %}
+                    <tr>
+                        <td><strong>{{ error.line }}</strong></td>
+                        <td>{{ error.column }}</td>
+                        <td>
+                            {% if error.element %}
+                                <code style="background-color: #f8f9fa; padding: 0.25rem 0.5rem; border-radius: 3px;">{{ error.element }}</code>
+                            {% else %}
+                                <span style="color: #999;">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if error.schema %}
+                                <span class="badge badge-info">{{ error.schema }}</span>
+                            {% else %}
+                                <span style="color: #999;">-</span>
+                            {% endif %}
+                        </td>
+                        <td style="color: #721c24;">{{ error.message }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+        <a href="{{ url_for('xml_validation.xml_validator_page') }}" class="btn btn-primary">
+            Проверить другой файл
+        </a>
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">
+            Назад в дашборд
+        </a>
+    </div>
+</div>
+{% endblock %}
+

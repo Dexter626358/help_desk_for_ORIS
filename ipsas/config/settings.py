@@ -15,6 +15,7 @@ class Settings:
         self.data_dir: Path = self.base_dir / "data"
         self.logs_dir: Path = self.base_dir / "logs"
         self.temp_dir: Path = self.base_dir / "temp"
+        self.schemas_dir: Path = self.base_dir / "schemas"  # Директория для XSD схем
 
         # Создание необходимых директорий
         self._create_directories()
@@ -44,6 +45,7 @@ class Settings:
         self.data_dir.mkdir(exist_ok=True)
         self.logs_dir.mkdir(exist_ok=True)
         self.temp_dir.mkdir(exist_ok=True)
+        self.schemas_dir.mkdir(exist_ok=True)
 
 
 # Глобальный экземпляр настроек

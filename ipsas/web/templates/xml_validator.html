@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Валидация XML - IPSAS{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="margin-bottom: 2rem; color: #667eea;">Валидация XML файлов</h1>
+    
+    <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem;">
+        <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.2rem;">Описание сервиса</h2>
+        <p style="color: #666; line-height: 1.6;">
+            Этот сервис позволяет загрузить XML файл и проверить его на соответствие XSD схеме journal3.
+            Если файл валиден, вы получите подтверждение. Если есть проблемы, будут указаны подробные ошибки
+            с указанием номера строки и описанием проблемы.
+        </p>
+    </div>
+
+    <form method="POST" action="{{ url_for('xml_validation.validate_xml') }}" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="xml_file">Выберите XML файл *</label>
+            <input 
+                type="file" 
+                id="xml_file" 
+                name="xml_file" 
+                accept=".xml"
+                required
+                style="padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px; width: 100%;"
+            >
+            <small style="color: #666; display: block; margin-top: 0.5rem;">
+                Поддерживаются только файлы с расширением .xml
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label for="schema">Выберите XSD схему (опционально)</label>
+            <select 
+                id="schema" 
+                name="schema" 
+                style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px;"
+            >
+                {% if 'journal3.xsd' in schemas %}
+                <option value="journal3.xsd">journal3.xsd</option>
+                {% endif %}
+                <option value="">Без схемы (только проверка синтаксиса XML)</option>
+            </select>
+            {% if 'journal3.xsd' in schemas %}
+            <small style="color: #666; display: block; margin-top: 0.5rem;">
+                💡 Выберите схему journal3.xsd для проверки XML файла на соответствие схеме
+            </small>
+            {% else %}
+            <small style="color: #ffc107; display: block; margin-top: 0.5rem;">
+                ⚠️ Схема journal3.xsd не найдена. Будет выполнена только проверка синтаксиса XML.
+            </small>
+            {% endif %}
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary">
+                Проверить файл
+            </button>
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">
+                Назад
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

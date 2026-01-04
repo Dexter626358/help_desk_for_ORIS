@@ -1,60 +1,137 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}IPSAS{% endblock %}</title>
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary: #667eea;
+            --primary-hover: #5568d3;
+
+            --bg1: #667eea;
+            --bg2: #764ba2;
+
+            --text: #333;
+            --muted: #6c757d;
+
+            --surface: rgba(255, 255, 255, 0.95);
+            --card: #fff;
+
+            --border: #ddd;
+            --radius: 10px;
+
+            --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.2);
+
+            --focus: 0 0 0 3px rgba(102, 126, 234, 0.15);
         }
 
+        * { box-sizing: border-box; }
+        body { margin: 0; }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            color: var(--text);
+        }
+
+        .main-wrapper {
+            display: flex;
+            flex: 1;
+            min-height: calc(100vh - 80px);
+        }
+
+        .sidebar {
+            width: 280px;
+            background-color: var(--surface);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            padding: 2rem 1rem;
+            overflow-y: auto;
+        }
+
+        .sidebar h3 {
+            color: var(--primary);
+            margin: 0 0 1rem 0;
+            font-size: 1.1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-menu li { margin-bottom: 0.5rem; }
+
+        .sidebar-menu a {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: var(--text);
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .sidebar-menu a:hover {
+            background-color: #f0f0f0;
+            color: var(--primary);
+        }
+
+        .sidebar-menu a.active,
+        .sidebar-menu a[aria-current="page"] {
+            background-color: var(--primary);
+            color: #fff;
+        }
+
+        .content-wrapper {
+            flex: 1;
+            overflow-y: auto;
         }
 
         .navbar {
-            background-color: rgba(255, 255, 255, 0.95);
+            background-color: var(--surface);
             padding: 1rem 2rem;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-sm);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 1rem;
         }
 
         .navbar-brand {
             font-size: 1.5rem;
-            font-weight: bold;
-            color: #667eea;
+            font-weight: 700;
+            color: var(--primary);
             text-decoration: none;
+            white-space: nowrap;
         }
 
         .navbar-nav {
             display: flex;
-            gap: 1.5rem;
+            gap: 1rem;
             align-items: center;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .navbar-nav a {
-            color: #333;
+            color: var(--text);
             text-decoration: none;
             padding: 0.5rem 1rem;
             border-radius: 5px;
-            transition: background-color 0.3s;
+            transition: background-color 0.2s;
         }
 
-        .navbar-nav a:hover {
-            background-color: #f0f0f0;
-        }
+        .navbar-nav a:hover { background-color: #f0f0f0; }
 
         .container {
-            flex: 1;
             max-width: 1200px;
             width: 100%;
             margin: 2rem auto;
@@ -62,12 +139,13 @@
         }
 
         .card {
-            background: white;
-            border-radius: 10px;
+            background: var(--card);
+            border-radius: var(--radius);
             padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: var(--shadow-md);
         }
 
+        /* Alerts */
         .alert {
             padding: 1rem;
             border-radius: 5px;
@@ -80,7 +158,8 @@
             border: 1px solid #c3e6cb;
         }
 
-        .alert-error {
+        .alert-error,
+        .alert-danger { /* алиас под распространённую категорию */
             background-color: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
@@ -92,6 +171,7 @@
             border: 1px solid #bee5eb;
         }
 
+        /* Buttons */
         .btn {
             display: inline-block;
             padding: 0.75rem 1.5rem;
@@ -100,52 +180,34 @@
             cursor: pointer;
             text-decoration: none;
             font-size: 1rem;
-            transition: all 0.3s;
+            transition: background-color 0.2s, transform 0.1s;
         }
+        .btn:active { transform: translateY(1px); }
 
-        .btn-primary {
-            background-color: #667eea;
-            color: white;
-        }
+        .btn-primary { background-color: var(--primary); color: #fff; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
 
-        .btn-primary:hover {
-            background-color: #5568d3;
-        }
+        .btn-danger { background-color: #dc3545; color: #fff; }
+        .btn-danger:hover { background-color: #c82333; }
 
-        .btn-danger {
-            background-color: #dc3545;
-            color: white;
-        }
+        .btn-secondary { background-color: var(--muted); color: #fff; }
+        .btn-secondary:hover { background-color: #5a6268; }
 
-        .btn-danger:hover {
-            background-color: #c82333;
-        }
-
-        .btn-secondary {
-            background-color: #6c757d;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background-color: #5a6268;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
+        /* Forms */
+        .form-group { margin-bottom: 1.5rem; }
 
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 500;
-            color: #333;
+            color: var(--text);
         }
 
         .form-group input,
         .form-group select {
             width: 100%;
             padding: 0.75rem;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border);
             border-radius: 5px;
             font-size: 1rem;
         }
@@ -153,8 +215,8 @@
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: var(--primary);
+            box-shadow: var(--focus);
         }
 
         .checkbox-group {
@@ -163,8 +225,13 @@
             gap: 0.5rem;
         }
 
-        .checkbox-group input[type="checkbox"] {
-            width: auto;
+        .checkbox-group input[type="checkbox"] { width: auto; }
+
+        /* Tables */
+        .table-container {
+            max-height: 70vh;
+            overflow: auto;
+            margin-top: 1rem;
         }
 
         table {
@@ -177,10 +244,10 @@
         table td {
             padding: 1rem;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid var(--border);
         }
 
-        table th {
+        .table-container table th {
             background-color: #f8f9fa;
             font-weight: 600;
             position: sticky;
@@ -189,13 +256,7 @@
             box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
         }
 
-        .table-container {
-            max-height: 70vh;
-            overflow-y: auto;
-            overflow-x: auto;
-            margin-top: 1rem;
-        }
-
+        /* Badges */
         .badge {
             display: inline-block;
             padding: 0.25rem 0.75rem;
@@ -204,54 +265,89 @@
             font-weight: 500;
         }
 
-        .badge-success {
-            background-color: #d4edda;
-            color: #155724;
-        }
+        .badge-success { background-color: #d4edda; color: #155724; }
+        .badge-danger { background-color: #f8d7da; color: #721c24; }
+        .badge-primary { background-color: var(--primary); color: #fff; }
+        .badge-info { background-color: #17a2b8; color: #fff; }
 
-        .badge-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
+        @media (max-width: 768px) {
+            .main-wrapper { flex-direction: column; }
 
-        .badge-primary {
-            background-color: #667eea;
-            color: white;
+            .sidebar {
+                width: 100%;
+                padding: 1rem;
+                /* лучше не фиксировать жёстко высоту, но если нужно — можно вернуть */
+                /* max-height: 200px; */
+            }
+
+            .navbar { padding: 1rem; }
+            .container { margin: 1rem auto; padding: 0 1rem; }
+            .card { padding: 1.25rem; }
         }
     </style>
-    {% block extra_css %}{% endblock %}
-</head>
-<body>
-    {% if current_user.is_authenticated %}
-    <nav class="navbar">
-        <a href="{{ url_for('main.dashboard') }}" class="navbar-brand">IPSAS</a>
-        <div class="navbar-nav">
-            <a href="{{ url_for('main.dashboard') }}">Дашборд</a>
-            {% if current_user.is_admin %}
-            <a href="{{ url_for('admin.admin_panel') }}">Админ-панель</a>
-            {% endif %}
-            <a href="{{ url_for('auth.change_password') }}">Сменить пароль</a>
-            <a href="{{ url_for('auth.logout') }}">Выход</a>
-            <span style="color: #667eea; font-weight: 500;">{{ current_user.username }}</span>
-        </div>
-    </nav>
-    {% endif %}
 
-    <div class="container">
+    {% block extra_css %}{% endblock %}
+
+    {# Макрос для flash (можно вынести в отдельный файл и подключать через import) #}
+    {% macro render_flashes() -%}
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
+                <div aria-live="polite">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
             {% endif %}
         {% endwith %}
+    {%- endmacro %}
+</head>
 
-        {% block content %}{% endblock %}
+<body>
+    {% if current_user.is_authenticated %}
+        <nav class="navbar" role="navigation" aria-label="Основная навигация">
+            <a href="{{ url_for('main.dashboard') }}" class="navbar-brand">IPSAS</a>
+            <div class="navbar-nav">
+                <a href="{{ url_for('main.dashboard') }}">Дашборд</a>
+                {% if current_user.is_admin %}
+                    <a href="{{ url_for('admin.admin_panel') }}">Админ-панель</a>
+                {% endif %}
+                <a href="{{ url_for('auth.change_password') }}">Сменить пароль</a>
+                <a href="{{ url_for('auth.logout') }}">Выход</a>
+                <span style="color: var(--primary); font-weight: 500;">{{ current_user.username }}</span>
+            </div>
+        </nav>
+    {% endif %}
+
+    <div class="main-wrapper">
+        {% if current_user.is_authenticated %}
+            <aside class="sidebar" role="complementary" aria-label="Сервисы">
+                <h3>Сервисы</h3>
+                <ul class="sidebar-menu">
+                    {% set xml_active = request.endpoint in [
+                        'xml_validation.xml_validator_page',
+                        'xml_validation.validate_xml'
+                    ] %}
+                    <li>
+                        <a href="{{ url_for('xml_validation.xml_validator_page') }}"
+                           class="{{ 'active' if xml_active else '' }}"
+                           {{ 'aria-current="page"' if xml_active else '' }}>
+                            Валидация XML
+                        </a>
+                    </li>
+                </ul>
+            </aside>
+        {% endif %}
+
+        <main class="content-wrapper" role="main">
+            <div class="container">
+                {{ render_flashes() }}
+                {% block content %}{% endblock %}
+            </div>
+        </main>
     </div>
 
     {% block extra_js %}{% endblock %}
 </body>
 </html>
-
