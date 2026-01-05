@@ -1,0 +1,1256 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<journal>
+  <operCard>
+    <operator>ИПУ РАН|Губко М.В.</operator>
+    <date>2024-04-21 12:37:50</date>
+    <cntArticle>11</cntArticle>
+  </operCard>
+  <issn>1819-2440</issn>
+  <eissn>1819-2467</eissn>
+  <titleid>10618</titleid>
+  <journalInfo lang="RUS">
+    <title>Управление большими системами</title>
+    <abbrTitle>УБС</abbrTitle>
+    <publ>Институт проблем управления им. В.А. Трапезникова РАН</publ>
+    <placePubl>Москва</placePubl>
+    <address>117997, г. Москва, ул. Профсоюзная, д. 65.</address>
+  </journalInfo>
+  <journalInfo lang="ENG">
+    <title>Large-scale Systems Control</title>
+    <abbrTitle>LSSC</abbrTitle>
+  </journalInfo>
+  <issue>
+    <number>106</number>
+    <dateUni>202306</dateUni>
+    <pages>1–313</pages>
+    <articles>
+      <section>
+        <secTitle lang="RUS">Системный анализ</secTitle>
+      </section>
+      <article>
+        <pages>6-51</pages>
+        <artType>RAR</artType>
+        <authors>
+          <author num="1">
+            <individInfo lang="RUS">
+              <surname>Жилякова</surname>
+              <initials>Людмила Юрьевна</initials>
+              <orgName>ФГБУН Институт проблем управления им. В.А. Трапезникова РАН</orgName>
+              <email>zhilyakova@ipu.ru</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Zhilyakova</surname>
+              <initials>Liudmila</initials>
+              <orgName>V.A. Trapeznikov Institute of Control Sciences of RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+          <author num="2">
+            <individInfo lang="RUS">
+              <surname>Кузнецов</surname>
+              <initials>Олег Петрович</initials>
+              <orgName>ФГБУН Институт проблем управления им. В.А. Трапезникова РАН</orgName>
+              <email>olpkuz@yandex.ru</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Kuznetsov</surname>
+              <initials>Oleg</initials>
+              <orgName>V.A. Trapeznikov Institute of Control Sciences of RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+        </authors>
+        <artTitles>
+          <artTitle lang="RUS">Моделирование нейронов и их взаимодействий. Обзор подходов и методов</artTitle>
+          <artTitle lang="ENG">Modeling of neurons and their interactions. overview of approaches and methods</artTitle>
+        </artTitles>
+        <abstracts>
+          <abstract lang="RUS">Статья содержит подробный обзор математических моделей нейронов и нейронных взаимодействий. Модели разделены на два больших, но неравных класса: «электрические», которые уделяют внимание только электрическим процессам, и «гетерохимические», в которых основной упор делается на химизм нейрона, на его химические входы и выходы. Первый класс моделей гораздо шире, поскольку имеет более долгую историю. Модели второго класса принадлежат к новому развивающемуся направлению в нейробиологии. В конце статьи кратко описана асинхронная гетерохимическая модель, предложенная авторами совместно с коллегами из ИПУ РАН и ИБР РАН.</abstract>
+          <abstract lang="ENG">The article contains a detailed overview of mathematical models of neurons and neural interactions. Models are divided into two large but unequal classes: “electrical”, which pay attention only to electrical processes, and “heterochemical”, in which the main emphasis is on the chemistry of the neuron, on its chemical inputs and outputs. The first class of models is much broader because it has a longer history. It contains models of neurons of varying complexity: from the simplest (McCulloch – Pitts model) to very complex ones, such as the Hodgkin – Huxley model and its modifications. Models of the second class belong to a relatively new developing direction in neurobiology and neuroinformatics. Their number is not very large yet. At the end of the article, the asynchronous heterochemical model proposed by the authors together with colleagues from the Trapeznikov Institute of Control Sciences of RAS and the Koltzov Institute of Developmental Biology of RAS is briefly described.</abstract>
+        </abstracts>
+        <text lang="RUS">NO TEXT</text>
+        <codes>
+          <udk>519.7</udk>
+          <bbk>22.18</bbk>
+          <doi>10.25728/ubs.2023.106.1</doi>
+        </codes>
+        <keywords>
+          <kwdGroup lang="ANY">
+            <keyword>модели нейронов</keyword>
+            <keyword>нейронные сети</keyword>
+            <keyword>биологически правдоподобное моделирование</keyword>
+            <keyword>гетерохимические взаимодействия нейронов</keyword>
+            <keyword>neuron models</keyword>
+            <keyword>neural networks</keyword>
+            <keyword>biologically plausible modeling</keyword>
+            <keyword>heterochemical interactions of neurons</keyword>
+          </kwdGroup>
+        </keywords>
+        <references>
+          <reference>АРТЁМОВ Н.М., САХАРОВ Д.А. Хачатур Седракович Коштоянц. – М.: Наука, 1986. Гл. 3. Работы по химиче-ским основам механизмов нервной деятельности. – С. 106–162. </reference>
+          <reference>БАЗЕНКОВ Н.И., ВОРОНЦОВ Д.Д., ДЬЯКОНОВА В.Е., ЖИЛЯКОВА Л.Ю. и др. Дискретное моделирование межнейронных взаимодействий в мультитрансмит-терных сетях // Искусственный интеллект и принятие решений. – М.: Изд. ФИЦ «Информатика и управление» РАН, 2017. – №2. – С. 55–73.</reference>
+          <reference>БАЛАБАН П.М., ВОРОНЦОВ Д.Д., ДЬЯКОНОВА В.Е., ДЬЯКОНОВА Т.Л. и др. Центральные генераторы пат-терна (CPGs). // Журн. высш. нерв. деят. – 2013. – №63(5). – С. 1–21.</reference>
+          <reference>БОЛДЫШЕВ Б.А., ЖИЛЯКОВА Л.Ю. Нейромодуляция как инструмент управления нейронными ансамблями // Проблемы управления. – 2021. – №2. – С. 76–84.</reference>
+          <reference>ДЬЯКОНОВА В.Е. Нейротрансмиттерные механизмы контекст-зависимого поведения // Журн. высш. нерв. де-ят. – 2012. – №62(6). – С. 1–17.</reference>
+          <reference>ДЬЯКОНОВА В.Е., САХАРОВ Д.А. Пострефлекторная нейробиология поведения. – М.: Издательский дом ЯСК, 2019. – 592 с.</reference>
+          <reference>ЕМЕЛЬЯНОВ-ЯРОСЛАВСКИЙ Л.Б. Интеллектуальная квазибиологическая система. Индуктивный автомат. – М.: Наука, 1990. – 111 c.</reference>
+          <reference>КУЗНЕЦОВ О.П. Сложные сети и распространение ак-тивности // Автоматика и телемеханика. – 2015. – №12. – С. 3–26.</reference>
+          <reference>КУЗНЕЦОВ О.П. Стационарные ансамбли в пороговых сетях // Автоматика и телемеханика. – 2017. – №3. – С. 111–129. </reference>
+          <reference>КУЗНЕЦОВ О.П., БАЗЕНКОВ Н.И., БОЛДЫШЕВ Б.А., ЖИЛЯКОВА Л.Ю. и др. Асинхронная дискретная модель химических взаимодействий в простых нейронных си-стемах // Искусственный интеллект и принятие решений. – М.: Изд. ФИЦ «Информатика и управление» РАН. – 2018. – №2. – С. 3–20.</reference>
+          <reference>МЕДВЕДЕВ С.В. Мозг против мозга: новеллы о мозге. – М.: Бослен, 2017. – 145 с.</reference>
+          <reference>МИНСКИЙ М., ПЕЙПЕРТ С. Персептроны. – М.: Мир, 1971. – 261 с.</reference>
+          <reference>РАБИНОВИЧ М.И., МЮЕЗИНОЛУ М.К. Нелинейная ди-намика мозга: Эмоции и интеллектуальная деятель-ность // Успехи физических наук. – 2010. – Т. 180, № 4. – C. 371–386.</reference>
+          <reference>РОЗЕНБЛАТТ Ф. Принципы нейродинамики: Перцеп-троны и теория механизмов мозга. (Principles of Neuro-dynamic: Perceptrons and the Theory of Brain Mecha-nisms.) – М.: Мир, 1965. – 480 с.</reference>
+          <reference>САХАРОВ Д.А. Биологический субстрат генерации по-веденческих актов // Журн. общ. биологии. – 2012. – №73(5). – С. 334–348. </reference>
+          <reference>САХАРОВ Д.А. Синаптическая и бессинаптическая мо-дели нейронной системы // Простые нервные системы. Ч.2. – Казань: КГУ, 1985. – С.78–80. </reference>
+          <reference>ЧАПЛИНСКАЯ Н.В. Обучение спайковой нейронной се-ти на основе изменения временных задержек на синап-сах // Сборник трудов XXIV Международной научно-технической конференции «Нейроинформатика-2022». – Москва: МФТИ, 2022. – С. 78–87. </reference>
+          <reference>ШУМСКИЙ С.А. Машинный интеллект. Очерки по тео-рии машинного обучения и искусственного интеллекта. – М:  РИОР, 2022. – 340 с.</reference>
+          <reference>ШУМСКИЙ С.А. Воспитание машин: Новая история разума.  – М.: Альпина нон-фикшн, 2021. – 174 с.</reference>
+          <reference>ABBOTT L.F. Lapique’s introduction of the integrate-and-fire model neuron (1907) //  Brain Research Bulletin. – 1999. – No. 50 (5/6). – P. 303–304.</reference>
+          <reference>AGNATI L.F., GUIDOLIN D., GUESCINI M., GENEDA-NI S. et al. Understanding wiring and volume transmission // Brain Res. Rev. – 2010. – No. 64 – P. 137–159. </reference>
+          <reference>AIELLO G.L., BACH-Y-RITA P. Nonsynaptically connected neural nets // European Symposium on Artificial Neural Networks (ESANN 2000), Methuen, Bruges. – 2000. – P. 425–428.</reference>
+          <reference>ALENCAR B. M., CANÁRIO J.P., NETO R.L., PRAZERES C. et al. Fog-DeepStream: A new approach combining LSTM and Concept Drift for data stream analyt-ics on Fog computing // Internet of Things. – 2023. – Vol. 22. – 100731.</reference>
+          <reference>ALNAJJAR F., MURASE K. Sensor-fusion in spiking neural network that generates autonomous behavior in real mobile robot // IEEE  Int. Joint Conf. on Neural Networks – 2008 (IEEE World Congress on Computational Intelligence). – IEEE, 2008. – P. 2200–2206. </reference>
+          <reference>AONUMA H., MEZHERITSKIY M., BOLDYSHEV B., TO-TANI Y.et al The Role of Serotonin in the Influence of In-tense Locomotion on the Behavior Under Uncertainty in the Mollusk Lymnaea stagnalis // Frontiers in Physiology. – 2020. – Vol. 11. – N Art. 221.</reference>
+          <reference>BACH-Y-RITA P., AIELLO G.L. Nerve length and volume in synaptic versus diffusion neurotransmission: a model // NeuroReport. – 1996. – No. 7. – P. 1502–1504.</reference>
+          <reference>BARGMANN C.I. Beyond the connectome: How neuromod-ulators shape neural circuits // BioEssays. – 2012. – Vol. 34, No.6. – P. 458–465.</reference>
+          <reference>BARONCHELLI A., FERRER-I-CANCHO R., PASTOR-SATORRAS R., CHATER N.et al. Networks in Cognitive Science // Trends in Cognitive Sciences. – 2013. – Vol. 17, No. 7. – P. 348–360.</reference>
+          <reference>BAZENKOV N.I., BOLDYSHEV B.A., DYA-KONOVA V.E., KUZNETSOV O.P. Simulating Small Neu-ral Circuits with a Discrete Computational Model // Biol. Cybern. – 2020. – No. 114. – P. 349–362.</reference>
+          <reference>BENJAMIN B.V., GAO P., MCQUINN E., CHOUDHARY S. et al. Neurogrid: A Mixed-Analog-Digital Multichip System for Large-Scale Neural Simulations // Proc. of the IEEE. – 2014. – Vol. 102, No. 5. – P. 699–716. </reference>
+          <reference>BENJAMIN P.R. Distributed network organization underly-ing feeding behavior in the mollusk Lymnaea // Neural Syst Circuits. – 2012. – Vol. 2, No. 4. </reference>
+          <reference>BISWAS S.S. Role of Chat GPT in Public Health // Ann Bi-omed Eng 51. – 2023. – P. 868–869.</reference>
+          <reference>BISWAS S.S. Potential Use of Cha GPT in Global Warm-ing // Ann Biomed Eng 51. – 2023. – P. 1126–1127.</reference>
+          <reference>BOUGANIS A., SHANAHAN M. Training a spiking neural network to control a 4-dof robotic arm based on spike tim-ing-dependent plasticity // IEEE Int. Joint Conf. on Neural Networks – 2010 (IJCNN–2010). – IEEE, 2010. – P. 1–8.</reference>
+          <reference>BREZINA V. Beyond the wiring diagram: signalling through complex neuromodulator networks // Philos. Trans. R. Soc. Lond. B. Biol. Sci. – 2010. – Vol. 365(1551). – P. 2363–2374. </reference>
+          <reference>BUBECK S., CHANDRASEKARAN V., ELDAN R., GEHRKE J. et al. Sparks of artificial general intelligence: Early experiments with gpt-4 // arXiv preprint arXiv:2303.12712. – 2023.</reference>
+          <reference>BULLMORE E., SPORNS O. Complex brain networks: graph theoretical analysis of structural and functional sys-tems // Nature Reviews Neuroscience. – 2009. – No. 10. – P. 186–198. </reference>
+          <reference>BYRNE J. Learning and memory: a comprehensive refer-ence. – Academic Press. – 2017. – 2402 p. </reference>
+          <reference>DAVIES M., SRINIVASA N., LIN T. et al. Loihi: A Neuro-morphic Manycore Processor with OnChip Learning // IEEE Micro. – 2018.– Vol. 38, No. 1. – P. 82–99. </reference>
+          <reference>DENG B., LI Q., LIU X., CAO Y. et al. Chemoconnec-tomics: Mapping Chemical Transmission in Drosophila // Neuron. – 2019. – Vol. 101, Iss. 5, 6. – P. 876–893.</reference>
+          <reference>DENG L., YU D. Deep Learning: Methods and Applica-tions // Foundations and Trends in Signal Processing. – 2014. – Vol. 7, Nos. 3–4. – P. 197–387.  </reference>
+          <reference>DITZLER G., POLIKAR R., ROSEN G. Multi-Layer and Re-cursive Neural Networks for Metagenomic Classification // IEEE Trans. on NanoBioscience. – 2015. – Vol. 14, No. 6. – P. 608–616. </reference>
+          <reference>DONG L., XU B. CIF: Continuous Integrate-And-Fire for End-To-End Speech Recognition // IEEE Int. Conf. on Acoustics, Speech and Signal Processing – 2020 (ICASSP–2020), Barcelona, Spain. – 2020. – P. 6079–6083. </reference>
+          <reference>DONG Y., YANG S., LIANG Y., WANG G. Neuromorphic dynamics near the edge of chaos in memristive neurons // Chaos, Solitons &amp; Fractals. – 2022. – Vol. 160. – 112241.</reference>
+          <reference>DOROGOVTSEV S. Lectures on Complex Networks. – Ox-ford: Oxford Univer. Press, 2010. – 144 p.</reference>
+          <reference>DOYA K. Metalearning and Neuromodulation // Neural Networks. – 2002. – Vol. 15(4-6). – P. 495–506.</reference>
+          <reference>DYAKONOVA T.L., DYAKONOVA V.E. Coordination of rhythm-generating units via NO and extrasynaptic neuro-transmitter release // J. Comp. Physiol. A. – 2010. – Vol. 196, No. 8. – P. 529–541.</reference>
+          <reference>DYAKONOVA T.L., SULTANAKHMETOV G.S., MEZHE-RITSKIY M.I., SAKHAROV D.A. et al. Storage and Eras-ure of Behavioural Experiences at the Single Neuron Level // Scientific Reports. – 2019. – Vol. 9, No. 1. – 14733. </reference>
+          <reference>ESTEVA A., CHOU K., YEUNG S. et al. Deep learning-enabled medical computer vision // npj Digit. Med. – 2021. – Vol. 4, No. 5. </reference>
+          <reference>FAN W., CHEN X., WU H., LI Z. et al. Firing patterns and synchronization of Morris-Lecar neuron model with memris-tive autapse // AEU – Int. Journal of Electronics and Com-munications. – 2023. – Vol. 158. – 154454.</reference>
+          <reference>FANG H., WANG Y., HE J. Spiking neural networks for cortical neuronal spike train decoding // Neural Computa-tion. – 2010. – Vol. 22, No. 4. – P. 1060–1085. </reference>
+          <reference>FITZHUGH R. Impulses and physiological states in theoreti-cal models of nerve membrane // Biophysical J. – 1961. – Vol. 1. – P. 445–466.</reference>
+          <reference>FORTUNA L., BUSCARINO A. Spiking neuron mathemati-cal models: a compact overview // Bioengineering. – 2023. – Vol. 10(2). – P. 174.</reference>
+          <reference>FURBER S.B., GALLUPPI F., TEMPLE S., PLANA L.A. The spinnaker project // Proc. of the IEEE. – 2014. – Vol. 102, No. 5. – P. 652–665. </reference>
+          <reference>GALVES A., LÖCHERBACH E. Infinite Systems of Interact-ing Chains with Memory of Variable Length – A Stochastic Model for Biological Neural Nets // Journal of Statistical Physics. – 2013. – Vol. 151. – P. 896–921.</reference>
+          <reference>GERSTNER W. Population dynamics of spiking neurons: fast transients, asynchronous states, and locking // Neural Computation. – 2000. – Vol. 12 (1) – P. 43–89. </reference>
+          <reference>GERSTNER W., KISTLER W. Spiking Neuron Models: Sin-gle Neurons, Populations, Plasticity. Cambridge: Cambridge University Press, 2002. – 480 p.</reference>
+          <reference>GHIGLIAZZA R., HOLMES P. Minimal models of bursting neurons: The effects of multiple currents and timescales // SIAM J. Appl. Dyn. Syst. – 2004. – Vol. 3, No. 4. – P. 636–670.</reference>
+          <reference>GHIGLIAZZA R., HOLMES P. A Minimal Model of a Cen-tral Pattern Generator and Motoneurons for Insect Locomo-tion // SIAM J. Appl. Dyn. Syst. – 2004. – Vol. 3, No. 4. – P. 671–700.</reference>
+          <reference>GOODFELLOW I., BENGIO Y., COURVILLE A. Deep Learning. – MIT Press, 2016. – 787 p.</reference>
+          <reference>GÓRSKI T., DEPANNEMAECKER D., DESTEXHE A. Conductance-based adaptive exponential integrate-and-fire model // Neural Computation. – 2021. – Vol. 33(1). – P. 41–66.</reference>
+          <reference>GRAUPNER M., GUTKIN B. Modeling nicotinic neuro-modulation from global functional and network levels to nAChR based mechanisms // Acta Pharmacologica Sinica. – 2009. – Vol. 30. – P. 681–693.</reference>
+          <reference>GUTKIN B., DEHAENE S, CHANGEUX J.P. A neurocom-putational hypothesis for nicotine addiction // Proc Natl Acad Sci USA. – 2006. – Vol. 103. – P. 1106–1111.</reference>
+          <reference>HARRIS-WARRICK R.M. Neuromodulation and flexibility in Central Pattern Generator networks // Current Opinion in Neurobiology. – 2011. – Vol. 21, No. 5. – P. 685–692. </reference>
+          <reference>HAYKIN S. Neural Networks and Learning Machines (3rd Edition). – Prentice Hall, 2009. – 944 p. </reference>
+          <reference>HAZAN H., CABY S., EARL C., SIEGELMANN H. et al. Memory via Temporal Delays in weightless Spiking Neural Network // arXiv preprint arXiv:2202.07132. – 2022. </reference>
+          <reference>HILL-YARDIN E.L., HUTCHINSON M.R., LAYCOCK R., SPENCER S.J. A Chat (GPT) about the future of scientific publishing // Brain Behav Immun. – 2023. – Vol. 110. – P. 152–154.</reference>
+          <reference>HINDMARSH J.L., ROSE R.M. A model of neuronal burst-ing using three coupled first order differential equations // Proc. of the Royal Society of London. Series B. Biological Sciences. – 1984. – Vol. 221, No. 1222. – P. 87–102.</reference>
+          <reference>HINTON G.E., OSINDERO S., TEH Y.W. A fast learning algorithm for deep belief nets // Neural Computation. – 2006. – Vol. 18. – P. 1527–1554.</reference>
+          <reference>HODGKIN A.L., HUXLEY A.F. A quantitative description of membrane current and its applications to conduction and excitation in nerve // J. Physiol. (Lond.). –1952. – Vol. 116. – P. 500–544.</reference>
+          <reference>HOPFIELD J.J. Neural networks and physical systems with emergent collective computational abilities // Proc. of Na-tional Academy of Sciences USA. – 1982. – Vol. 79, No. 8. – P. 2554–2558.</reference>
+          <reference>HOPKINS M., PINEDA-GARCÍA G., BOGDAN P.A., FURBER S.B.  Spiking neural networks for computer vision // Interface Focus. – 2018. – Vol. 8. – No. 4. – 20180007. </reference>
+          <reference>HU X., LIU C. Dynamic property analysis and circuit im-plementation of simplified memristive Hodgkin–Huxley neu-ron model // Nonlinear Dynamics. – 2019. – No. 97. – P. 1721–1733.</reference>
+          <reference>IZHIKEVICH E. Neural excitability, spiking and bursting // Int. Journal of Bifurcation and Chaos. – 2000. – Vol. 10, No. 6. – P. 1171–1266.</reference>
+          <reference>IZHIKEVICH E. Which Model to Use for Cortical Spiking Neurons? // IEEE Trans. on Neural Networks. – 2004. – Vol. 15, No. 5. – P.1063–1070.</reference>
+          <reference>JACKSON M.O. Social and Economic Networks. – Prinston Univer. Press, 2010. – 520 p. </reference>
+          <reference>JAFARIAN M., JOHANSSON K.H. Synchronization of quadratic integrate-and-fire spiking neurons: Constant ver-sus voltage-dependent couplings //  IEEE 58th Conf. on De-cision and Control 2019 (CDC–2019), Nice, France. – 2019. – P. 4711–4716.</reference>
+          <reference>JENIFER P.I.R., KANNAN S. Deep Learning with Optimal Hierarchical Spiking Neural Network for Medical Image Classification // Comput. Syst. Sci. Eng. – 2023. – Vol. 44, No. 2. – P. 1081–1097.</reference>
+          <reference>KHERADPISHEH S.R., GANJTABESH M., THORPE S.J., MASQUELIER T. STDP-based spiking deep convolutional neural networks for object recognition // Neural Networks. – 2018. – Vol. 99. – P. 56–67. </reference>
+          <reference>KHOSHKHOU M., MONTAKHAB A. Spike-timing-dependent plasticity with axonal delay tunes networks of izhikevich neurons to the edge of synchronization transition with scale-free avalanches // Frontiers in systems neurosci-ence. – 2019. – Vol. 13. – P. 73. </reference>
+          <reference>KLEENE S.C. Representation of Events in Nerve Nets and Finite Automata // In: Automata Studies / Eds.: C.E. Shannon, J. McCarthy. – Princeton, Princeton Universi-ty Press, 1956. (Рус. пер.: КЛИНИ С.К. Представление событий в нервных сетях и конечных автоматах // В кн. Автоматы / Под ред. К.Э. Шеннона и Дж.Маккарти. – М., ИЛ, 1956. C. 15–67). </reference>
+          <reference>KOCH C., SEGEV I. Methods in neuronal modeling: from ions to networks. – Cambridge, Massachusetts: MIT Press. –1999. – 687 p.</reference>
+          <reference>LECUN Y., BENGIO Y., HINTON G. Deep learning // Na-ture. – 2015. – Vol. 521, No. 7553. – P. 436–444.</reference>
+          <reference>LEVAKOVA M., KOSTAL L., MONSEMPÈS C., LUCAS P. et al. Adaptive integrate-and-fire model reproduces the dy-namics of olfactory receptor neuron responses in a moth // Journal of the Royal Society Interface. – 2019. – Vol. 16, No. 157. – 20190246.</reference>
+          <reference>LIN J.W., FABER D.S. Modulation of synaptic delay during synaptic plasticity // Trends in neurosciences. – 2002. – Vol. 25, No. 9. – P. 449–455. </reference>
+          <reference>LIN H., WANG C., SUN Y., YAO W. Firing multistability in a locally active memristive neuron model // Nonlinear Dyn. – 2020. – No. 100. – P. 3667–3683.</reference>
+          <reference>LIU CH., GOEL P., KAESER P.S. Spatial and temporal scales of dopamine transmission // Nat Rev Neurosci. – 2021. – Vol. 22, No. 6. – P. 345–358. </reference>
+          <reference>LIU Y., IU H.H.C., QIAN Y. Implementation of Hodgkin-Huxley neuron model with the novel memristive oscillator // IEEE Trans. on Circuits and Systems II: Express Briefs. – 2021. – Vol. 68, No. 8. – P 2982–2986.</reference>
+          <reference>MAASS W., SCHMITT M. On the complexity of learning for spiking neurons with temporal coding // Information and Computation. – 1999. – Vol. 153, No. 1. – P. 26–46.</reference>
+          <reference>MANOHAR N., PRASAD S.S. Use of ChatGPT in academic publishing: a rare case of seronegative systemic lupus ery-thematosus in a patient with HIV infection // Cureus. – 2023. – Vol. 15, No. 2. – e34616. </reference>
+          <reference>MARDER E., BUCHER D. Central Pattern Generators and the Control of Rhythmic Movements // Current Biology. – 2001. – Vol. 11, No. 23. – Р. 986–996. </reference>
+          <reference>MCCULLOCH W.S., PITTS W. A logical calculus of the ideas immanent in nervous activity // Bull. Math. Biophys. – 1943. – Vol. 5. – P.115–133. (Рус. пер.: Мак-Каллок У.С., Питтс В. Логическое исчисление идей, от-носящихся к нервной активности // Автоматы: Сб. – М., 1956. – С. 363–384.)</reference>
+          <reference>MILES V., GIANI S., VOGT O. Recursive encoder network for the automatic analysis of STEP files // J Intell Manuf. – 2023. – Vol. 34. – P. 181–196. </reference>
+          <reference>MORRIS C., LECAR H. Voltage Oscillations in the barnacle giant muscle fiber // Biophys. J. – 1981. – Vol. 35, No. 1. – P. 193–213.</reference>
+          <reference>MOSBACHER Y., KHOYRATEE F., GOLDIN M. et al. To-ward neuroprosthetic real-time communication from in silico to biological neuronal network via patterned optogenetic stimulation // Scientific reports. – 2020. – Vol. 10. – 7512. </reference>
+          <reference>MULLONEY B., SMARANDACHE C. Fifty years of CPGs: two neuroethological papers that shaped the course of neu-roscience // Front. Behav. Neurosci. – 2010. – Vol. 4, No. 45. – P. 1–8.</reference>
+          <reference>MUNI S. S., RAJAGOPAL K., KARTHIKEYAN A., ARUN S. Discrete hybrid Izhikevich neuron model: Nodal and network behaviours considering electromagnetic flux coupling // Chaos, Solitons &amp; Fractals. – 2022. – Vol. 155. – 111759.</reference>
+          <reference>NAGUMO J., ARIMOTO S., YOSHIZAWA S. An active pulse transmission line simulating nerve axon // Proc. IRE. – 1962. – Vol. 50. – P. 2061–2070. </reference>
+          <reference>NADAFIAN A., GANJTABESH M. Bio-plausible Unsuper-vised Delay Learning for Extracting Temporal Features in Spiking Neural Networks // arXiv preprint arXiv:2011.09380. – 2020. </reference>
+          <reference>NAZARI S., KEYANFAR A., VAN HULLE M.M. Neu-romorphic circuit based on the un-supervised learning of biologically inspired spiking neural network for pattern recognition // Engineering Applications of Artificial Intelli-gence. – 2022. – Vol. 116. – 105430.</reference>
+          <reference>NOBUKAWA S., NISHIMURA H., YAMANISHI T. Chaotic Resonance in Typical Routes to Chaos in the Izhikevich Neuron Model // Sci Rep. – 2017. – Vol. 7. – 1331. </reference>
+          <reference>OUBARI O. Precise timing and computationally efficient learning in neuromorphic systems: Diss. – Sorbonne univer-sité, 2020. </reference>
+          <reference>PAUGAM-MOISY H., MARTINEZ R., BENGIO S. De-lay learning and polychronization for reservoir computing // Neurocomputing. – 2008. – Vol. 71. – Nos. 7–9. – P. 1143–1158. </reference>
+          <reference>PEHLE C., BILLAUDELLE S., CRAMER B., KAISER J. et al. The BrainScales-2 Accelerated Neuromorphic System With Hybrid Plasticity // Frontiers in Neuroscience. – 2022. – Vol. 16.</reference>
+          <reference>PEI J., DENG L., SONG S. et al. Towards artificial gen-eral intelligence with hybrid Tianjic chip architecture // Na-ture. – 2019.– Vol. 572, No. 7767. – P. 106–111. </reference>
+          <reference>PÉREZ-CARRASCO J.A., ACHA B., SERRANO C., CAMUNAS-MESA L. et al. Fast vision through frameless event-based sensing and convolutional processing: Applica-tion to texture recognition // IEEE Trans. on Neural Net-works. – 2010. – Vol. 21, No. 4. – P. 609–620. </reference>
+          <reference>PIETRAS B., DEVALLE F., ROXIN A., DAF-FERTSHOFER A. et al. Exact firing rate model reveals the differential effects of chemical versus electrical synapses in spiking networks // Physical Review E. – 2019. – Vol. 100, No. 4. – 042412.</reference>
+          <reference>RAIMONDO L., HEIJ J., PRIOVOULOS N., KUNDU P. et al. Advances in resting state fMRI acquisitions for func-tional connectomics // NeuroImage. – 2021. – Vol. 243. – 118503.</reference>
+          <reference>RAJAGOPAL K., MOROZ I., RAMAKRISHNAN B., KARTHIKEYN A. et al. Modified Morris–Lecar neuron model: effects of very low frequency electric fields and of magnetic fields on the local and network dynamics of an ex-citable media // Nonlinear Dynamics. – 2021. – Vol. 104, No. 4. – P. 4427–4443.</reference>
+          <reference>RATHI N., CHAKRABORTY I., KOSTA A., SENGUPTA A. et al. Exploring neuromorphic computing based on spiking neural networks: Algorithms to hardware // ACM Computing Surveys. – 2023. – Vol. 55, No. 12. – H. 1–49.</reference>
+          <reference>RATNASINGAM S., MCGINNITY T.M. A spiking neu-ral network for tactile form-based object recognition // IEEE Int. Joint Conf. on Neural Networks – 2011. – IEEE, 2011. – P. 880–885.</reference>
+          <reference>ROBERTS A. CONTE D., HULL M., MERRISON-HORT R. et al. Can Simple Rules Control Development of a Pioneer Vertebrate Neuronal Network Generating Behavior? // The Journal of Neuroscience. – 2014. – Vol. 34, No. 2. – P. 608–621.</reference>
+          <reference>ROBERTS P.D. Classification of Temporal Patterns in Dynamic Biological Networks // Neural Computation: Mas-sachusetts Institute of Technology. – 1998. – Vol. 10. No. 7. – P. 1831–1846. </reference>
+          <reference>SAKURAI A., KATZ P.S. The central pattern generator underlying swimming in dendronotus iris: a simple half-center network oscillator with a twist // J Neurophysiol. – 2016. – Vol. 116, No. 4. – P. 1728–1742.</reference>
+          <reference>SAXE A., NELLI S., SUMMERFIELD C. If deep learn-ing is the answer, what is the question? // Nat Rev Neurosci. – 2021. – Vol. 22. – P. 55–67. </reference>
+          <reference>SCHEMMEL J., GRÜBL A., HARTMANN S. et al. Live demonstration: A scaled-down version of the BrainScaleS wafer-scale neuromorphic system // IEEE Int.Symposium on Circuits and Systems – 2012 (ISCAS–2012). – P. 702. </reference>
+          <reference>SERRANO-BALBONTÍN A.J., TEJADO I., VINAGRE B.M. Fractional Integrate-and-Fire Neuron: An-alog Realization and Application to Neuromorphic Control // IEEE Int. Conf. on Fractional Differentiation and Its Appli-cations – 2023 (ICFDA–2023). – 2023. – P. 1–6.</reference>
+          <reference>SHAFIEI M., PARASTESH F., JALILI M., JAFARI S. et al. Effects of partial time delays on synchronization patterns in Izhikevich neuronal networks // Eur. Phys. J. B. – 2019. – Vol. 92. –P 36.</reference>
+          <reference>SHAFIEI M., JAFARI S., PARASTESH F., OZER M. et al. Time delayed chemical synapses and synchronization in multilayer neuronal networks with ephaptic inter-layer cou-pling // Communications in Nonlinear Science and Numeri-cal Simulation. – 2020. – Vol. 84. – 105175.</reference>
+          <reference>SHERSTINSKY A. Fundamentals of Recurrent Neural Network (RNN) and Long Short-Term Memory (LSTM) net-work // Physica D: Nonlinear Phenomena. – 2020. – Vol. 404. – 132306.</reference>
+          <reference>SHORTEN C., KHOSHGOFTAAR T.M., FURHT B. Deep Learning applications for COVID-19 // J Big Data. – 2021. – Vol. 8. – 18.</reference>
+          <reference>SONG X., WANG H., CHEN Y. Autapse-induced firing patterns transitions in the Morris–Lecar neuron model // Nonlinear Dynamics. – 2019. – Vol. 96. – P. 2341–2350.</reference>
+          <reference>SPORNS O., TONONI G., KÖTTER R. The human con-nectome: A structural description of the human brain // PLoS Computational Biology. – 2005. – Vol. 1, No. 4. – e42.</reference>
+          <reference>STERRATT D., GRAHAM B., GILLIES A., WILL-SHAW D. Principles of computational modelling in neuro-science. – Cambridge University Press, 2011. – 390 p.</reference>
+          <reference>SULTANA F., SUFIAN A., DUTTA P. Evolution of Im-age Segmentation using Deep Convolutional Neural Net-work: A Survey. Knowledge-Based Systems. – 2020. – Vol. 201–202. – 106062.</reference>
+          <reference>USHA K., SUBHA P.A., Hindmarsh-Rose neuron model with memristors // Biosystems. – 2019. – Vol. 178. – P. 1–9.</reference>
+          <reference>VAVOULIS D., STRAUB V., KEMENES I., KE-MENES G. et al. Dynamic control of a central pattern gen-erator circuit: a computational model of the snail feeding network // European Journal of Neuroscience. – 2007. – Vol. 25. – P. 2805–2818.</reference>
+          <reference>VIVEKANANDHAN G., HAMARASH I.I., ALI ALI A.M., HE S. et al. Firing patterns of Izhikevich neu-ron model under electric field and its synchronization pat-terns // The European Physical Journal Special Topics. – 2022. – Vol. 231, No. 22. – P. 4017–4023.</reference>
+          <reference>WIENCKE K., HORSTMANN A., MATHAR D., VILL-RINGER A. et al. Dopamine release, diffusion and uptake: A computational model for synaptic and volume transmis-sion // PLoS Comput Biol. – 2020. – Vol. 16, No. 11. –  e1008410. </reference>
+          <reference>XU L., QI G., MA J. Modeling of memristor-based Hindmarsh-Rose neuron and its dynamical analyses using energy method // Applied Mathematical Modelling. – 2022. – Vol. 101. – P. 503–516.</reference>
+          <reference>XU Q., JU Z., DING S., FENG C. et al. Electromagnetic induction effects on electrical activity within a memristive Wilson neuron model // Cogn Neurodyn. – 2022. – Vol. 16. – P. 1221–1231.</reference>
+          <reference>XU Q., LI Y., SHEN J., LIU J.K. et al . Constructing deep spiking neural networks from artificial neural networks with knowledge distillation // Proc. of the IEEE/CVF Conf. on Computer Vision and Pattern Recognition. – 2023. – P. 7886–7895.</reference>
+          <reference>YADAV P., MISHRA A., KIM S. Neuromorphic Hard-ware Accelerators // In: Artificial Intelligence and Hardware Accelerators. – Cham: Springer International Publishing, 2023. – P. 225–268.</reference>
+          <reference>YAMAZAKI K., VO-HO V.K., BULSARA D., LE N. Spiking neural networks and their applications: A Review // Brain Sciences. – 2022. – Vol. 12, No. 7. – P. 863.</reference>
+          <reference>YAN B., PANAHI S., HE S., JAFARI S. Further dynam-ical analysis of modified Fitzhugh–Nagumo model under the electric field // Nonlinear Dynamics. – 2020. – Vol. 101. – P. 521–529.</reference>
+          <reference>YANG J.Q., WANG R., WANG Z.P., MA Q.Y. et al. Leaky integrate-and-fire neurons based on perovskite memristor for spiking neural networks // Nano Energy. – 2020. – Vol. 74. – 104828.</reference>
+          <reference>YAO P., WU H., GAO B., TANG J. et al. Fully hard-ware-implemented memristor convolutional neural network // Nature. – 2020. – Vol. 577. – P. 641–646.</reference>
+          <reference>YAO X., LI F., MO Z., CHENG J. Glif: A unified gated leaky integrate-and-fire neuron for spiking neural networks // Advances in Neural Information Processing Systems. – 2022. – Vol. 35. – P. 32160–32171.</reference>
+          <reference>YASIN M.W., IQBAL M.S., AHMED N., AKGÜL A. et al. Numerical scheme and stability analysis of stochastic Fitzhugh–Nagumo model // Results in Physics. – 2022. – Vol. 32. – 105023.</reference>
+          <reference>YIN X., HUANG X., PAN Y., LIU Q. Point and interval estimation of rock mass boreability for tunnel boring ma-chine using an improved attribute-weighted deep belief net-work // Acta Geotech. – 2023. – Vol. 18. – P. 1769–1791. </reference>
+        </references>
+        <files>
+          <furl>http://ubs.mtas.ru/archive/search_results_new.php?publication_id=23164</furl>
+          <file>UBS10601.pdf</file>
+        </files>
+        <dates>
+          <dateReceived>04.09.2023.</dateReceived>
+        </dates>
+      </article>
+      <article>
+        <pages>52-70</pages>
+        <artType>RAR</artType>
+        <authors>
+          <author num="1">
+            <individInfo lang="RUS">
+              <surname>Лаговский</surname>
+              <initials>Борис Андреевич</initials>
+              <orgName>Российский технологический университет МИРЭА</orgName>
+              <email>robertlag@yandex.ru</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Lagovsky</surname>
+              <initials>Boris</initials>
+              <orgName>Russian Technological University</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+          <author num="2">
+            <individInfo lang="RUS">
+              <surname>Рубинович</surname>
+              <initials>Евгений Яковлевич</initials>
+              <orgName>ФГБУН Институт проблем управления им. В.А. Трапезникова РАН</orgName>
+              <email>rubinvch@gmail.com</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Rubinovich</surname>
+              <initials>Evgeny</initials>
+              <orgName>V.A. Trapeznikov Institute of Control Sciences of RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+          <author num="3">
+            <individInfo lang="RUS">
+              <surname>Юрченков</surname>
+              <initials>Иван Александрович</initials>
+              <orgName>Российский технологический университет МИРЭА</orgName>
+              <email>yurchenkov@mirea.ru</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Yurchenkov</surname>
+              <initials>Ivan</initials>
+              <orgName>Russian Technological University</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+        </authors>
+        <artTitles>
+          <artTitle lang="RUS">Решение задачи сверхразрешения с использованием модели нейронной сети прямого распространения</artTitle>
+          <artTitle lang="ENG">Solving the problem of super-resolution using a model of a neural network of direct propagation</artTitle>
+        </artTitles>
+        <abstracts>
+          <abstract lang="RUS">Рассмотрена и решена задача повышения эффективности управления подвижными объектами при использовании новых алгоритмов, улучшающих качество изображений, получаемых при обзоре пространства. Существенное повышение качества основано на достижении угловой разрешающей способности, в десятки раз превышающей критерий Рэлея. Угловое сверхразрешение обеспечивает раздельное наблюдение нескольких объектов, не разрешаемых при прямом наблюдении, а сопутствующее повышение четкости изображений дает возможность фиксировать незаметные ранее детали образов сложных объектов. На этой основе возрастает вероятность правильных решений задач распознавания и идентификации. Для обеспечения углового сверхразрешения решена задача обучения полносвязной нейронной сети прямого распространения. Для многоэлементных приемо-передающих систем измерений предложен и обоснован экстраполяционный метод достижения углового сверхразрешения. Основу метода составляет экстраполяция значений комплексных амплитуд принятого сигнала отдельными элементами приемных устройств за пределы измерительной системы. Тем самым создаётся виртуальная система большего размера, для которой выполняется критерий Рэлея, превосходящий по показателям критерий для физической системы. В итоге эффективное угловое разрешение возрастает пропорционально возрастанию размеров виртуальной системы. Исследованы и представлены сравнительные результаты  математического моделирования работы нейросети и других методов экстраполяции.</abstract>
+          <abstract lang="ENG">The problem of increasing the efficiency of control of moving objects using new algorithms that improve the quality of images obtained during the survey of space is considered and solved. A significant improvement in quality is based on the achievement of angular resolution, tens of times higher than the Rayleigh criterion. Angular super-resolution provides separate observation of several objects that are not resolved by direct observation, and the accompanying increase in image clarity makes it possible to capture previously unnoticed details of images of complex objects. On this basis, the probability of correct solutions to recognition and identification problems increases. To provide angular super-resolution, the problem of creating a neural network has been solved. For multi-element receiving and transmitting measurement systems, an extrapolation method for achieving angular super-resolution is proposed and justified. The basis of the method is the extrapolation of the values of the complex amplitudes of the received signal by individual elements of the receiving devices outside the measuring system. Thus, a larger virtual system is created, for which its own Rayleigh criterion is fulfilled. As a result, the effective angular resolution increases in proportion to the increase in the size of the virtual system. Comparative results of mathematical modeling of the neural network and other extrapolation methods are investigated and presented, the limits of applicability of the method are determined.</abstract>
+        </abstracts>
+        <text lang="RUS">NO TEXT</text>
+        <codes>
+          <udk>537.86</udk>
+          <bbk>22.18</bbk>
+          <doi>10.25728/ubs.2023.106.2</doi>
+        </codes>
+        <keywords>
+          <kwdGroup lang="ANY">
+            <keyword>угловое сверхразрешение</keyword>
+            <keyword>критерий Рэлея</keyword>
+            <keyword>экстраполяция</keyword>
+            <keyword>нейросети</keyword>
+            <keyword>angular super-resolution</keyword>
+            <keyword>Rayleigh criterion</keyword>
+            <keyword>extrapolation</keyword>
+            <keyword>neural networks</keyword>
+          </kwdGroup>
+        </keywords>
+        <references>
+          <reference>АРСЕНИН В.Я., ТИХОНОВ А.Н. Методы решения некор-ректных задач. – М.: Наука. –1974.</reference>
+          <reference>АХТЕРОВ А.В., КИРИЛЬЧЕНКО А.А. Основы теоретиче-ской робототехники. Искусственные нейронные сети. (Об-зор) // Препринты Института прикладной математикиим. М.В. Келдыша РАН. – 2008. – №10. – С. 2–20.</reference>
+          <reference>ВИНОГРАДОВА Е.П., ГОЛОВИН Е.Н. Метрики качестваалгоритмов машинного обучения в задачах классифика-ции // Научная сессия ГУАП. – 2017. – С. 202–206.</reference>
+          <reference>КАШИРИНА И.Л., ДЕМЧЕНКО М.В. Исследование исравнительный анализ методов оптимизации, используе-мых при обучении нейронных сетей // Вестник ВГУ. Се-рия: Системный анализ и информационные технологии. –2018. – № 4. – С. 123–132.</reference>
+          <reference>КОЗАР Б.А., КУГУРАКОВА В.В., САХИБГАРЕЕВА Г.Ф.Структуризация сущностей естественного текста с ис-пользованием нейронных сетей для генерации трехмерныхсцен // Программные продукты и системы. – 2022. – Т. 35,№3. – С. 329–339.</reference>
+          <reference>ЛАГОВСКИЙ Б.А., РУБИНОВИЧ Е.Я. Алгоритмы цифро-вой обработки данных измерений, обеспечивающие угловоесверхразрешение // Мехатроника, автоматизация, управле-ние. – 2021. – Т. 22, № 7. – С. 349–356.</reference>
+          <reference>МИНАЕВ Е.Ю., КУТИКОВА В.В., НИКОНОРОВ А.В. Тре-кинг объектов в видеопотоке на основе сверточных ней-ронных сетей и фрактального анализа // Сб. тр. IV меж-дународной конференции и молодежной школы «Инфор-мационные технологии и нанотехнологии» (ИТНТ-2018). –Самара: Новая техника. – 2018. – С. 2792–2798.</reference>
+          <reference>СЕМЕНЮК В.В., СКЛАДЧИКОВ М.В. Разработка алго-ритма распознавания эмоций человека с использованиемсверточной нейронной сети на основе аудиоданных // Ин-форматика. – 2022. –Т. 19, №4.</reference>
+          <reference>СУКИНА С.А. Нейронные сети // Новая наука: стратегиии векторы развития. – 2016. – Т. 82, №5. – С. 248.</reference>
+          <reference>ТОРМОЗОВ В.С. Настройка, обучение и тестированиенейронной сети долгой краткосрочной памяти для задачираспознавания образов // Промышленные АСУ и контрол-леры. – 2020. – № 3. – С. 52–57.</reference>
+          <reference>ШИШКИН Ю.Е., СКАТКОВ А.В. Метрики качества дляоценки и прогнозирования критических состояний // Каче-ство и жизнь. – 2019. – №1. – С. 61–66.</reference>
+          <reference>ЯМАШКИН А.А., ЯМАШКИН С.А. Использование нейрон-ных сетей прямого распространения для ландшафтногокартографирования на базе космических снимков // Геоде-зия и картография. – 2014. – №11. – С. 52–58.</reference>
+          <reference>ЯШИНВ.И.Растущие нейронные сетивробототехнике //Роботизация Вооруженных Сил Российской Федерации. –2020. – С. 279–284.</reference>
+          <reference>ALMEIDA M.S., FIGUEIREDO M.A. Deconvolving imageswith unknown boundaries using the alternating directionmethod of multipliers // IEEE Trans. Image Process. – 2013. –Vol. 22, No. 8. – P. 3074–3086.</reference>
+          <reference>BURG J.P. Maximum Entropy Spectral Analysis. – PhD thesis,Department of Geophysics, Stanford University, Stanford, CA,1975.</reference>
+          <reference>DIEDERIK P. KINGMA JIMMY BA. Adam: A Method forStochastic Optimization // arXiv:1412.6980. – 2017.</reference>
+          <reference>KASTURIWALA S.B., LADHAKE S.A. Superresolution: Anovel application to image restoration // International Journalon Computer Science and Engineering. – 2010. – No. 5. –P. 1659–1664.</reference>
+          <reference>LAVATE T.B., KOKATE V.K., SAPKAL A.M. PerformanceAnalysis of MUSIC and ESPRIT. DOA Estimation Algorithmsfor Adaptive Array Smart Antenna in Mobile Communication //2nd Int. Conf. on Computer and Network Technology (ICCNT),US. – 2010. – P. 308–311.</reference>
+          <reference>MORSE P., FESHBACH H. Methods of Theoretical Physics. –McGraw-Hill. Science/Engineering/Math, 1953. – 1978 P.</reference>
+          <reference>PARK S.C., PARK M.K., KANG M.G. Super-resolution imagereconstruction: a technical overview // IEEE Signal ProcessingMagazine. – 2003. – Vol. 20, No. 3. – P. 21–36.</reference>
+          <reference>SHCHUKIN А.А., PAVLOV A.E. Parameterization of userfunctions in digital signal processing for obtaining angularsuper-resolution // Russian Technological Journal. – 2022. –Vol. 10, No. 4. – P. 38–43.</reference>
+          <reference>SROUBEK F.,CRISTOBAL G.,FLUSSER J.SimultaneousSuper-Resolution and Blind Deconvolution //Journal of Physics:Conference Series. – 2008. – Vol. 124, No. 1. – P. 012–048.</reference>
+          <reference>TAN W.Q., HOU Y.G. Estimation of direction of source arrivalbased upon MUSIC and Capon // Journal of Nanchang Instituteof Technology. – 2008. – Vol. 27, No. 1. – P. 20–23.</reference>
+          <reference>UTTAM S., GOODMAN N.A. Super-resolution of coherentsources in real-beam Data // IEEE Trans. on Aerospace andElectronic Systems. – 2010. – Vol. 46, No. 3. – P. 1557– 1566.</reference>
+          <reference>WAWERU N.P., KONDITI D.B.O., LANGAT P.K.Performance Analysis of MUSIC Root-MUSIC and ESPRIT //DOA Estimation Algorithm. International Journal of ElectricalComputer Energetic Electronic and Comm. Engineering. –2014. – Vol. 8, No. 1. – P. 209–216.</reference>
+        </references>
+        <files>
+          <furl>http://ubs.mtas.ru/archive/search_results_new.php?publication_id=23165</furl>
+          <file>UBS10602.pdf</file>
+        </files>
+        <dates>
+          <dateReceived>03.11.2023.</dateReceived>
+        </dates>
+      </article>
+      <section>
+        <secTitle lang="RUS">Информационные технологии в управлении</secTitle>
+      </section>
+      <article>
+        <pages>71-95</pages>
+        <artType>RAR</artType>
+        <authors>
+          <author num="1">
+            <individInfo lang="RUS">
+              <surname>Трефилов</surname>
+              <initials>Петр Михайлович</initials>
+              <orgName>ФГБУН Институт проблем управления им. В.А. Трапезникова РАН</orgName>
+              <email>petertrfi@ipu.ru</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Trefilov</surname>
+              <initials>Peter</initials>
+              <orgName>V.A. Trapeznikov Institute of Control Sciences of RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+          <author num="2">
+            <individInfo lang="RUS">
+              <surname>Романова</surname>
+              <initials>Мария Андреева</initials>
+              <orgName>ФГБУН Институт проблем управления им. В.А. Трапезникова РАН</orgName>
+              <email>rmarda@ipu.ru</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Romanova</surname>
+              <initials>Maria</initials>
+              <orgName>V.A. Trapeznikov Institute of Control Sciences of RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+        </authors>
+        <artTitles>
+          <artTitle lang="RUS">Формирование достоверной навигационной информации в задачах ориентации и навигации автономных робототехнических устройств с использованием инфраструктуры интеллектуальной транспортной среды</artTitle>
+          <artTitle lang="ENG">Formation of reliable navigation information in the tasks of orientation and navigation of autonomous robotic devices using the infrastructure of intelligent transport environment</artTitle>
+        </artTitles>
+        <abstracts>
+          <abstract lang="RUS">В условиях развития интеллектуальной транспортной среды немаловажную роль влияет точное позиционирование автономных робототехнических устройств. Авторами представлен способ ориентации и навигации робототехнических систем с возможным использованием инфраструктуры интеллектуальной транспортной среды. Алгоритм ориентации и навигации роботов в интеллектуальной транспортной среде описывает процесс сбора, обработки, фильтрации, интерполяции и экстраполяции данных для определения местоположения робота и планирования маршрута движения. Предложен способ формирования приоритетного режима работы бортового навигационного комплекса в условиях информационной избыточности навигационных параметров. Способ представляет оптимизационную задачу выбора режима работы бортового навигационного комплекса, который на момент времени имеет наиболее точную оценку при учете внешних условий. Также затрагивается понятие концепции достоверности результатов измерения. Выделены критерии достоверности измерительной информации для обеспечения эффективности принятия решений при управлении измерительными процессами. Описан подход к определению достоверности навигационно-измерительной информации на основе метода теории статистических решений предельных значений результатов измерений. Этот подход позволяет достаточно быстро анализировать, полученную измерительную информацию по статистическим показателям и оценивать степень достоверности результатов.</abstract>
+          <abstract lang="ENG">In the context of the development of intelligent transport environment, the accurate positioning of autonomous robotic devices plays an important role. In this article, the authors present a method of orientation and navigation of robotic systems with the possible use of intelligent transport environment infrastructure. The algorithm of robot orientation and navigation in the intelligent transport environment describes the process of data collection, processing, filtering, interpolation and extrapolation to determine the robot's location and route planning. The method of formation of the priority mode of on-board navigation complex operation under conditions of information redundancy of navigation parameters is proposed. The method represents the optimization problem of selecting the operating mode of the on-board navigation system, which at the moment of time has the most accurate estimation taking into account the external conditions. The article also touches upon the concept of measurement results reliability. The criteria of measurement information reliability to ensure the effectiveness of decision-making in the management of measurement processes are highlighted. The approach to determining the reliability of navigation and measurement information on the basis of the method of statistical decision theory of marginal values of measurement results is described. This approach allows to analyze quickly enough the received measurement information by statistical indicators and to estimate the degree of reliability of the results.</abstract>
+        </abstracts>
+        <text lang="RUS">NO TEXT</text>
+        <codes>
+          <udk>65.011.56+ 656.1</udk>
+          <bbk>39.1</bbk>
+          <doi>10.25728/ubs.2023.106.3</doi>
+        </codes>
+        <keywords>
+          <kwdGroup lang="ANY">
+            <keyword>интеллектуальная транспортная система</keyword>
+            <keyword>задачи навигации и ориентации</keyword>
+            <keyword>достоверность</keyword>
+            <keyword>робототехнические системы</keyword>
+            <keyword>intelligent transport system</keyword>
+            <keyword>navigation and orientation</keyword>
+            <keyword>reliability</keyword>
+            <keyword>robotic systems</keyword>
+          </kwdGroup>
+        </keywords>
+        <references>
+          <reference>АНИЩЕНКО В.А., ПИСАРУК Т.В. Эффективность контроля достоверности измерений в автоматизиро-ванных системах управления энергосистемами по пре-дельным значениям // Энергетика. Изв. высш. учеб. заве-дений и энерг. объединений СНГ. – 2017. – Т. 60, №5. – С. 407–416. – DOI: 10.21122/1029-7448-2017-60-5-407-416</reference>
+          <reference>ВАСИЛЮК Н.Н. Слабое комплексирование инерциаль-ных и спутниковых измерений с помощью расширенного фильтра Калмана с кватернионным представлением ориентации // Проблемы управления. – 2019. – №4. – С. 72–84.</reference>
+          <reference>ВОДИЧЕВА Л.В., ПАРЫШЕВА Ю.В. Оценка точност-ных параметров датчиков бесплатформенного инерци-ального измерительного блока с помощью относитель-но грубого поворотного стола // Гироскопия и навига-ция. – 2019. – Т. 27, № 2(105).</reference>
+          <reference>ВОРОХОБИН И.И. Проверка статистических гипотез распределения погрешностей измерения навигационных параметров // Eastern European Scientific Journal. –2019. – №4-3. – C. 44 </reference>
+          <reference>ДАНИЛЕВИЧ С.Б., ТРЕТЬЯК В.В. Оценка достоверно-сти контроля приборов, поверяемых в нескольких точ-ках диапазона // Системы анализа и обработки данных. – 2020. – №1(78).</reference>
+          <reference>ИБРАЕВ A. Система навигации транспортного сред-ства на основе интегрированной ИНС/СНС/Одометрии // Технические науки – от теории к практике. –2017. – №5. – С. 31–43.</reference>
+          <reference>ПОЛЯКОВА Т.А., ХИМЧЕНКО А.И. Формирование си-стемы беспилотного транспорта: проблемы реализа-ции государственной политики обеспечения информа-ционной безопасности и правового регулирования // Транспортное право и безопасность. – 2020. – №2(34). – С. 118–126.</reference>
+          <reference>СУРКОВ В.О. Повышение достоверности навигацион-ных измерений в навигационных системах подвижных наземных объектов // Молодой ученый. – 2016. – №14(118). – С. 168–170.</reference>
+          <reference>ХРАПОВ Ф.И., Власов П.В. Повышение достоверности результатов измерений в распределенных многоканаль-ных информационноизмерительных системах // Вестник метролога. – 2017. – №4. – С. 9–15. </reference>
+          <reference>ШОЛОХОВ А.В. Метод оценки достоверности инфор-мации при периодической коррекции наземных навига-ционных систем // Информационно-управляющие си-стемы. – 2006. – №6. – C. 7–13.</reference>
+          <reference>AHANGAR M.N., AHMED Q.Z., KHAN F.A., HAFEEZ M. A Survey of Autonomous Vehicles: Enabling Communication Technologies and Challenges // Sensors. – 2021. – Vol. 21(3):706. – DOI: https://doi.org/10.3390/s21030706.</reference>
+          <reference>ALATISE М.В., HANCKE G.P. A Review on Challenges of Autonomous Mobile Robot and Sensor Fusion Methods // IEEE Access. – 2020. – Vol. 8, – P. 39830–39846. – DOI: 10.1109/ACCESS.2020.2975643.</reference>
+          <reference>AYYALASOMAYAJULA R., ARUN A., WU C., SHAR-MA S. et al. Deep learning based wireless localization for indoor navigation. // Proc. of the 26th Annual Int. Conf. on Mobile Computing and Networking (MobiCom '20). Associ-ation for Computing Machinery, New York, NY, USA, – 2020. – Article 17 – P. 1–14. – DOI: https://doi.org/10.1145/3372224.3380894.</reference>
+          <reference>BRODSKY S., PANFEROV A., NEBYLOV A., CHIKRIN D. Integrated Navigation and Distributed Control Intelligent Transport System // 27th Saint Petersburg Int. Conf. on Integrated Navigation Systems (ICINS–2020). – 2020. – P. 1–4.</reference>
+          <reference>GENTNER C., ULMSCHNEIDER M., KUEHNER I., DAMMANN A. WiFi-RTT Indoor Positioning. 2020 IEEE ION Position // Location and Navigation Symposium (PLANS). –2020. – P. 1029–1033</reference>
+          <reference>GUERRERO J., ZEADALLY S., CASTILLO J. Sensor Technologies for Intelligent Transportation Systems // Sen-sors. – 2018. – Vol. 18(4). – P. 1–22.</reference>
+          <reference>GUPTA A., SINGH B. Recent trends in intelligent transpor-tation systems: a review // Journal of Transport Literature. –2015. – Vol. 9(2). – P. 30–34.</reference>
+          <reference>http://www.kremlin.ru/acts/bank/27684/.</reference>
+          <reference>JHARKO E., MAMCHENKO M., KHRIPUNOV S.P. Ro-bot/UAV Indoor Visual SLAM in Smart Cities Based on Re-mote Data Processing // Int. Russian Smart Industry Conf. (SmartIndustryCon–2023). – 2023. – P. 504–508. – DOI: 10.1109/SmartIndustryCon57312.2023.10110777.</reference>
+          <reference>MENOUAR H., GUVENC I., AKKAYA K., ULUA-GAC A.S. et al. UAV-Enabled Intelligent Transportation Systems for the Smart City: Applications and Challenges // IEEE Communications Magazine. –2017. – Vol. 55. – P. 22–28. – DOI: 10.1109/mcom.2017.1600238cm.</reference>
+          <reference>MIAO J., ZHANG P. UAV Visual Navigation System based on Digital Twin // 18th Int. Conf. on Mobility, Sensing and Networking (MSN–2022). –2022. – P. 865–870.</reference>
+          <reference>PANDEY D., NIWARIA K.A Novel Single Front Camera Based Simpler Approach for Autonomous Taxi Navigation for Smart City Deployments // 6th Int. Conf. on Signal Pro-cessing and Integrated Networks (SPIN–2019). – 2019. – P. 448–451. – DOI: 10.1109/SPIN.2019.8711668.</reference>
+          <reference>SANTHIYA R., GEETHAPRIYA C., Machine Learning Techniques for Intelligent Transportation Systems-An over-view // 12th Int. Conf. on Computing Communication and Networking Technologies. – 2021. – P. 1–7. </reference>
+          <reference>SHAN T., ENGLOT B., MEYERS D., WANG W. et al. LIO-SAM: Tightly-coupled Lidar Inertial Odometry via Smooth-ing and Mapping // IEEE/RSJ Int. Conf. on Intelligent Ro-bots and Systems (IROS–2020). – IEEE Press, 2020. – P. 5135–5142. – DOI: https://doi.org/10.1109/IROS45743.2020.9341176.</reference>
+          <reference>SUN J., ZHANG X., ZHANG P., ZHANG Y.. Research on Trustworthiness Evaluation Technology of Aircraft Intelli-gent Navigation System // IEEE 7th Int. Workshop on Me-trology for AeroSpace (MetroAeroSpace), Pisa, Italy. – 2020. – P. 233–237. – DOI: 10.1109/MetroAeroSpace48742.2020.9160164.</reference>
+          <reference>WANG A., CHEN T., CHEN H., JI X. et al. NDNVIC: Named Data Networking for Vehicle Infrastructure Cooper-ation // IEEE Access. –2019. – Vol. 7. – P. 62231–62239.</reference>
+          <reference>WU C.H., TU S.H., TU S.W, WANG L.H. et al. Realization of Remote Monitoring and Navigation System for Multiple UAV Swarm Missions: Using 4G/WiFi-Mesh Communica-tions and RTK GPS Positioning Technology // Int. Automatic Control Conference (CACS–2022). – 2022. – P. 1–6.</reference>
+          <reference>ZHANG Y, OUYANG J, KUANG Y. Satellite Ground Link Planning for Data Transmission of Global Satellite Naviga-tion System // 6th Int. Conf. on Big Data and Information Analytics (BigDIA), Shenzhen, China, 2020. – P. 1–4. – DOI: 10.1109/BigDIA51454.2020.00009.</reference>
+          <reference>ZHAO G., XUAN K., TANIAR D., RAHAYU W. et al. In-telligent transport navigation system using LookAhead Con-tinuous KNN // IEEE Int. Conf. on Industrial Technology. – 2009. – P. 1–6. – DOI: 10.1109/ICIT.2009.4939586.</reference>
+          <reference>ZHIMING C., WENJIE L., YANNIAN R., XUHONG G. Application of improved genetic algorithm to search of op-timum route for intelligent vehicle navigation system // Proc. of the IEEE Int. Conf. on Intelligent Transportation Systems. – 2003. – Vol.2. – P. 1187–1189. </reference>
+        </references>
+        <files>
+          <furl>http://ubs.mtas.ru/archive/search_results_new.php?publication_id=23166</furl>
+          <file>UBS10603.pdf</file>
+        </files>
+        <dates>
+          <dateReceived>16.10.2023</dateReceived>
+        </dates>
+      </article>
+      <section>
+        <secTitle lang="RUS">Управление в социально-экономических системах</secTitle>
+      </section>
+      <article>
+        <pages>96-137</pages>
+        <artType>RAR</artType>
+        <authors>
+          <author num="1">
+            <individInfo lang="RUS">
+              <surname>Горбанёва</surname>
+              <initials>Ольга Ивановна</initials>
+              <orgName>Южный федеральный университет</orgName>
+              <email>oigorbaneva@sfedu.ru</email>
+              <address>Ростов-на-Дону</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Gorbaneva</surname>
+              <initials>Olga</initials>
+              <orgName>Southern Federal University</orgName>
+              <address>Rostov-on-Don</address>
+            </individInfo>
+          </author>
+          <author num="2">
+            <individInfo lang="RUS">
+              <surname>Михалкович</surname>
+              <initials>Станислав Станиславович</initials>
+              <orgName>Южный федеральный университет</orgName>
+              <email>miks@sfedu.ru</email>
+              <address>Ростов-на-Дону</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Mikhalkovich</surname>
+              <initials>Stanislav</initials>
+              <orgName>Southern Federal University</orgName>
+              <address>Rostov-on-Don</address>
+            </individInfo>
+          </author>
+          <author num="3">
+            <individInfo lang="RUS">
+              <surname>Угольницкий</surname>
+              <initials>Геннадий Анатольевич</initials>
+              <orgName>Южный федеральный университет</orgName>
+              <email>gaugolnickiy@sfedu.ru</email>
+              <address>Ростов-на-Дону</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Ougolnitsky</surname>
+              <initials>Gennady</initials>
+              <orgName>Southern Federal University</orgName>
+              <address>Rostov-on-Don</address>
+            </individInfo>
+          </author>
+        </authors>
+        <artTitles>
+          <artTitle lang="RUS">Модели распределения ресурса в иерархически управляемой древовидной динамической системе с учётом оппортунистического поведения агентов</artTitle>
+          <artTitle lang="ENG">Models of resource allocation in a hierarchically controlled tree-like dynamic system with consideration of opportunistic behavior of the agents</artTitle>
+        </artTitles>
+        <abstracts>
+          <abstract lang="RUS">Статья посвящена построению и исследованию СОЧИ-моделей воспроизводства и распределения ресурса в иерархически управляемой древовидной динамической системе с учётом возможного оппортунистического поведения агентов. Предложена оригинальная концепция балансовых соотношений для ресурса. Описана общая структура указанной модели для двухуровневой и трёхуровневой управляющей подсистемы. Приведены иллюстративные примеры аналитического и численного исследования частных случаев указанных моделей для различных информационных регламентов динамических игровых моделей.</abstract>
+          <abstract lang="ENG">This article is devoted to the building and investigation of SPICE-models of reproduction and allocatioп of a resource in a hierarchically controlled tree-like dynamical system with consideration of possible opportunistic behavior of the agents. An original concept of balance relations for the resource is proposed. A general structure of the model for a three-level control subsystem is described. investigation of specific cases of the mentioned models are presented. Illustrative examples of the analytical and numerical investigation of specific cases of the mentioned models with different information structure of dynamic games are presented.</abstract>
+        </abstracts>
+        <text lang="RUS">NO TEXT</text>
+        <codes>
+          <udk>51.7</udk>
+          <bbk>65.054</bbk>
+          <doi>10.25728/ubs.2023.106.4</doi>
+        </codes>
+        <keywords>
+          <kwdGroup lang="ANY">
+            <keyword>имитационное моделирование; оппортунистическое поведение; распределение ресурсов; управляемые динамические системы; экономика общественных благ</keyword>
+            <keyword>controlled dynamic systems; opportunistic behavior; public goods economics; resource allocation; simulation modeling</keyword>
+          </kwdGroup>
+        </keywords>
+        <references>
+          <reference>ГЕРМЕЙЕР Ю.Б., ВАТЕЛЬ И.А. Игры с иерархическим вектором интересов // Известия АН СССР. Техническая кибернетика. – 1974. – №3. – С. 54–69.</reference>
+          <reference>ГОРБАНЕВА О.И. Коррупционные механизмы в моделях сочетания общих и частных интересов в случае одного агента. Оптимизационный подход // Математическая теория игр и её приложения. – 2020. – №12(2). – С. 36–62.</reference>
+          <reference>ГОРБАНЕВА О.И. Статические модели распределения ресурсов с учетом согласования интересов активных агентов : автореферат диссертации ... доктора техниче-ских наук : 05.13.01. – Москва, 2018. – 376 с.</reference>
+          <reference>ГОРБАНЕВА О.И., МУРЗИН А.Д., УГОЛЬНИЦКИЙ Г.А. Динамическая СОЧИ-модель регионального развития: сравнительный анализ административных и экономиче-ских механизмов управления (на примере Южного феде-рального округа) // Математическая теория игр и её при-ложения. – 2021. – №13(1). – С. 59–88.</reference>
+          <reference>ГОРБАНЕВА О.И., УГОЛЬНИЦКИЙ Г.А. Цена анархии и механизмы управления в моделях согласования обще-ственных и частных интересов // Математическая тео-рия игр и её приложения. – 2015. – №7(1). – С. 50–73.</reference>
+          <reference>ГОРБАНЕВА О.И., УГОЛЬНИЦКИЙ Г.А., УСОВ А.Б. Модели коррупции в иерархических системах управле-ния // Проблемы управления. – 2015. – №1. – С. 2–10.</reference>
+          <reference>КОНОНЕНКО А.Ф. О многошаговых конфликтах с обменом информацией // Ж. вычислительной математики и математической физики. – 1977. –Т. 17, №4. – С. 922–931.</reference>
+          <reference>КУКУШКИН Н.С. О существовании устойчивых исхо-дов в теоретико-игровой модели экономики с обще-ственными благами // Доклады АН СССР. – 1991. – №320(1). – С. 25–28.</reference>
+          <reference>Механизмы управления / Под ред. Д.А. Новикова. – М.: УРСС, 2011. – 192 с.</reference>
+          <reference>НОВИКОВ Д.А. Теория управления организационными системами. – М.: МПСИ, 2007. – 583 с.</reference>
+          <reference>УГОЛЬНИЦКИЙ Г.А. Управление устойчивым развити-ем активных систем. – Ростов-на-Дону: ЮФУ, 2016. – 940 с.</reference>
+          <reference>BERGSTROM T., BLUME L., VARIAN H. On the private provision of public goods // Journal of Public Economics. – 1986. – Vol. 29. – P. 25–49.</reference>
+          <reference>BOADWAY R., PESTIAU P., WILDASIN D. Non-cooperative behavior and efficient provision of public goods // Public Finance. – 1989. – Vol. 44. – P. 1–7.</reference>
+          <reference>BOADWAY R., PESTIAU P., WILDASIN D. Tax-transfer policies and the voluntary provision of public goods // Jour-nal of Public Economics. – 1989. – Vol. 39. – P. 157–176.</reference>
+          <reference>CHRISTODOULOU G., SGOURITZA A., TANG B. On the Efficiency of the Proportional Allocation Mechanism for Di-visible Resources // M. Hoefer (Ed.): SAGT 2015, LNCS 9347. – P. 165–177.</reference>
+          <reference>GORBANEVA O.I. SPICE-models with independent Agents // Automation and Remote Control. – 2019. – Vol. 80(9). – P. 1745–1753.</reference>
+          <reference>GORBANEVA O.I., OUGOLNITSKY G.A. Static Models of Coordination of Social and Private Interests in Resource Al-location // Automation and Remote Control. – 2018. – Vol. 79(7). – P. 1319–1341.</reference>
+          <reference>GORBANEVA O.I., OUGOLNITSKY G.A. Sustainability of intertwined supply networks: a game-theoretic approach // Games. – 2022. – Vol. 79(7). – P. 1319–1341</reference>
+          <reference>KAHANA N., KLUNOVER D. Private provision of a public good with a time-allocation choice // Social Choice and Wel-fare. – 2016. – Vol. 47. – P. 379–386.</reference>
+          <reference>NGO VAN LONG. A Survey of Dynamic Games in Econom-ics. –World Scientific, 2010. – 275 p.</reference>
+          <reference>OUGOLNITSKY G.A., USOV A.B. Computer Simulations as a Solution Method for Differential Games // Computer Simulations: Advances in Research and Applications / Eds. M.D. Pfeffer and E. Bachmaier. – N.Y.: Nova Science Pub-lishers, 2018. – P. 63–106.</reference>
+          <reference>WARR P. The private provision of a public good is inde-pendent of the distribution of income // Economics Letters. – 1983. – Vol. 13. – P. 207–211.</reference>
+        </references>
+        <files>
+          <furl>http://ubs.mtas.ru/archive/search_results_new.php?publication_id=23167</furl>
+          <file>UBS10604.pdf</file>
+        </files>
+        <dates>
+          <dateReceived>10.05.2023.</dateReceived>
+        </dates>
+      </article>
+      <article>
+        <pages>138-171</pages>
+        <artType>RAR</artType>
+        <authors>
+          <author num="1">
+            <individInfo lang="RUS">
+              <surname>Команич</surname>
+              <initials>Никита Владимирович</initials>
+              <orgName>ФГБУН Институт проблем управления им. В.А. Трапезникова РАН</orgName>
+              <email>komanichnickitca@gmail.com</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Komanich</surname>
+              <initials>Nikita</initials>
+              <orgName>V.A. Trapeznikov Institute of Control Sciences of RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+          <author num="2">
+            <individInfo lang="RUS">
+              <surname>Чернов</surname>
+              <initials>Игорь Викторович</initials>
+              <orgName>ФГБУН Институт проблем управления им. В.А. Трапезникова РАН</orgName>
+              <email>ichernov@gmail.com</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Chernov</surname>
+              <initials>Igor</initials>
+              <orgName>V.A. Trapeznikov Institute of Control Sciences of RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+          <author num="3">
+            <individInfo lang="RUS">
+              <surname>Шелков</surname>
+              <initials>Алексей Борисович</initials>
+              <orgName>ФГБУН Институт проблем управления им. В.А. Трапезникова РАН</orgName>
+              <email>abshelkov@gmail.com</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Shelkov</surname>
+              <initials>Aleksey</initials>
+              <orgName>V.A. Trapeznikov Institute of Control Sciences of RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+        </authors>
+        <artTitles>
+          <artTitle lang="RUS">Сценарные технологии в управлении развитием нефтегазового комплекса арктической зоны российской федерации</artTitle>
+          <artTitle lang="ENG">Scenario technologies in managing the development of the russian federation arctic zone oil and gas complex</artTitle>
+        </artTitles>
+        <abstracts>
+          <abstract lang="RUS">Работа посвящена сценарному исследованию проблем повышения эффективности процессов управления социально-экономическим развитием российского Севера в условиях санкционного давления. Рассмотрены основные направления реализации государственной политики РФ в арктическом регионе в условиях воздействия широкого спектра угроз и ограничений, носящих как внешний, так и внутренний характер. Приведены результаты сценарного исследования возможных направлений развития и условий функционирования нефтегазовой отрасли в Арктике. В качестве инструмента исследования использован математический аппарат сценарного моделирования и прогнозирования, основным преимуществом которого является возможность предвосхищения наиболее важных событий в развитии ситуации в процессе управления крупномасштабными системами, а также формирования спектра альтернативных сценариев, позволяющих не только оценивать управленческие решения, но и выявлять новые возможности достижения поставленных целей управления в условиях неполной информации и неопределенности. На базе математического аппарата знаковых ориентированных графов разработана технология сценарного исследования, составляющая основу программного комплекса имитационного моделирования. Сформирована базовая многофакторная сценарная модель управления освоением ресурсов Арктической зоны России и ряд ее модификаций. Результатом исследования моделей являются разработанные сценарии, анализ которых, в частности, показал, что в крайне сложной экономической ситуации, вызванной внешним санкционным давлением, наиболее эффективной является управленческая стратегия, основанная на опережающем наращивании финансовой и иных видов поддержки, реализуемых на территории российского Севера нефтегазовых проектов, осуществляемых различными экономическими субъектами.</abstract>
+          <abstract lang="ENG">The paper deals with the scenario study of the problems of increasing the effectiveness of managing the Russian North socio-economic development in the context of sanctions pressure. As a research tool, a developed mathematical model of scenario simulation and forecasting is used. The main advantage of scenario approach is the possibility of foreseeing the most important events in the process of large-scale systems development managing, as well as evaluating management decisions efficiency and identifying new opportunities to achieve the set of management goals in conditions of incomplete information and uncertainty. Based on signed digraphs mathematical model a scenario research technology has been developed, which is the basis of a designed simulation modeling software complex. A basic multifactorial scenario model for managing the development of natural resources of the Russian Federation Arctic zone has been designed. The results of the study of the developed scenarios in particular, showed that in difficult economic situation caused by external sanctions pressure, the most effective is a management strategy based on an expansion of the scale of financial and other types of support for oil and gas projects implemented in the Russian North by various economic entities.</abstract>
+        </abstracts>
+        <text lang="RUS">NO TEXT</text>
+        <codes>
+          <udk>021.8 + 025.1</udk>
+          <bbk>78.34</bbk>
+          <doi>10.25728/ubs.2023.106.5</doi>
+        </codes>
+        <keywords>
+          <kwdGroup lang="ANY">
+            <keyword>управление</keyword>
+            <keyword>сценарный анализ</keyword>
+            <keyword>имитационное моделирование</keyword>
+            <keyword>Арктическая зона РФ</keyword>
+            <keyword>государственная поддержка</keyword>
+            <keyword>нефтегазовая отрасль</keyword>
+            <keyword>management</keyword>
+            <keyword>scenario analysis</keyword>
+            <keyword>simulation modeling</keyword>
+            <keyword>the Arctic zone of the Russian Federation</keyword>
+            <keyword>state support</keyword>
+            <keyword>oil and gas industry</keyword>
+          </kwdGroup>
+        </keywords>
+        <references>
+          <reference>АКОФФ Р. Искусство решения проблем. – М.: Мир, 1982. – 230 с.</reference>
+          <reference>АНСОФФ И. Стратегическое управление. – М.: Экономика, 1989. – 519 с.</reference>
+          <reference>АХРЕМЕНКО A.C. Сценариотехника в аналитическом обеспече-нии процедуры принятия политических решений // Вестник Мос-ковского университета. Серия 12. Политические науки. – 1997. – № 5. – С. 93–107.</reference>
+          <reference>БЕЛЯКОВИЧ Н.Н. Сценариотехника как метод политического прогнозирования // Право и демократия. Сб. научных трудов Бе-лорусского гос. ун-та. – 2002. – Вып. 12. – С. 3–8.</reference>
+          <reference>В Москве прошло первое заседание президиума научно-экспертного совета Государственной комиссии по вопросам раз-вития Арктики / Официальный сайт Правительства Российской Федерации. [Электронный ресурс]. – Режим доступа: http://government.ru/news/48907/ (дата обращения: 30.06.23). </reference>
+          <reference>ДРАНКО О.И., НОВИКОВ Д.А., РАЙКОВ А.Н., ЧЕР¬НОВ И.В. Управление развитием региона. Моделирование возможностей. – М.: URSS, ООО «ЛЕНАНД», 2023. – 432 с.</reference>
+          <reference>КАЧЕЛИН А.С. Научно-технологическое развитие в нефтегазовой отрасли России в условиях глобальной нестабильности // Neftegaz.RU. – 2023. – №3. – С. 80–92.</reference>
+          <reference>КОТОВ А.В. Перспективы развития ключевых арктических проектов РФ в условиях санкций // Научно-аналитический вест-ник Института Европы РАН. – 2022. – №5. – С. 113–123.</reference>
+          <reference>КРАСНОВ Б.И. Анализ политической ситуации. Метод сценариев // Социально-полит. журнал. – 1997. – №5. – С. 91–93.</reference>
+          <reference>КУЛЬБА В.В., КОВАЛЕВСКИЙ С.С., КОНОНОВ Д.А., ЧЕР-НОВ И.В. и др. Проблемы обеспечения экономической безопасно-сти сложных социально-экономических систем. – М.: ИПУ РАН, 2000. – 126 с.</reference>
+          <reference>Модели и методы анализа и синтеза сценариев развития соци-ально-экономических систем: в 2-х кн. / Под ред. В.Л. Шульца и В.В. Кульбы. – М.: Наука, 2012. Кн. 1. – 304 с., кн. 2. – 358 с.</reference>
+          <reference>САЯПИН В.О. О сценарном подходе к прогнозированию // Вестник Тамбовского университета. Серия: гуманитарные науки. – 2010. – № 10 (90). – С. 164–168.</reference>
+          <reference>СЕРОВА Н.А., СЕРОВА В.А. Транспортная инфраструктура российской Арктики: специфика функционирования и перспективы развития // Проблемы прогнозирования. – 2021. – № 2(185). – С. 142–151.</reference>
+          <reference>ФЕОФАНОВ К.А. Сценарные возможности современного прогно-зирования и управления // Вестник МГТУ «Станкин». – 2009. – №4(8). – С. 126–132.</reference>
+          <reference>ЦЫГИЧКО В.Н., ЧЕРЕШКИН Д.С. Сценарный метод прогнозиро-вания и оценки рисков возникновения негативных последствий стратегических решений в организационных системах // Труды ИСА РАН. – 2018. – Т. 68, № 4. – С. 74–83.</reference>
+          <reference>ЧЕРНОВ И.В. Повышение эффективности управленческих реше-ний на основе использования программно-аналитического ком-плекса сценарного анализа и прогнозирования // Вестник РГГУ. Серия: Экономика. Управление. Право. – 2018. – №1(11). – С. 40–57.</reference>
+          <reference>ШУЛЬЦ В.Л., БОЧКАРЕВ С.А., КУЛЬБА В.В., ШЕЛ¬КОВ А.Б. и др. Сценарное исследование проблем обеспечения общественной без-опасности в условиях цифровизации. – М.: Проспект, 2020. – 240 с.</reference>
+          <reference>ШУЛЬЦ В.Л., КУЛЬБА В.В., ЧЕРНОВ И.В., ШЕЛКОВ А.Б. Сце-нарный анализ проблем управления обеспечением безопасности сложных социально-экономических систем // Труды 15-й Между-народной конференции «Управление развитием крупномасштаб-ных систем» (MLSD’2022). – М.: ИПУ РАН, 2022. – С. 55–66.</reference>
+          <reference>ШУЛЬЦ В.Л., КУЛЬБА В.В., ШЕЛКОВ А.Б., ЧЕРНОВ И.В. Диагно-стика и сценарный анализ угроз социально-экономическому раз-витию Арктической зоны Российской Федерации. – М.: ИПУ РАН, 2012. – 164 с.</reference>
+          <reference>ШУЛЬЦ В.Л., КУЛЬБА В.В., ШЕЛКОВ А.Б., ЧЕРНОВ И.В. Мето-ды эффективного управления социально-экономическим развити-ем Арктических территорий // Труды 12-й Международной кон-ференции «Управление развитием крупномасштабных систем» (MLSD’2019). – М.: ИПУ РАН, 2019. – С. 166–178.</reference>
+          <reference>ШУЛЬЦ В.Л., КУЛЬБА В.В., ШЕЛКОВ А.Б., ЧЕРНОВ И.В. Сце-нарный анализ в управлении геополитическим информационным противоборством. – М.: Наука, 2015. – 542 с.</reference>
+          <reference>ШУЛЬЦ В.Л., КУЛЬБА В.В., ШЕЛКОВ А.Б., ЧЕРНОВ И.В., БОГАТЫРЕВА Л.В. Анализ методов группового управления раз-витием Арктической зоны Российской Федерации // Тренды и управление. – 2017. – №4. – С. 35–51.</reference>
+          <reference>HOGWOOD B.W., GUNN L.A. Policy analysis for the real world. – New York: Oxford University Press, 1984. – 289 p.</reference>
+          <reference>KAHN H. On escalation: Metaphors and scenarios. – New York: Praeger, 1965. – 308 p.</reference>
+          <reference>KAHN H., WIENER A. The year 2000: A framework for speculations on the next 33-year. – New York: Macmillan, 1967. – 431 p.</reference>
+        </references>
+        <files>
+          <furl>http://ubs.mtas.ru/archive/search_results_new.php?publication_id=23168</furl>
+          <file>UBS10605.pdf</file>
+        </files>
+        <dates>
+          <dateReceived>21.08.2023.</dateReceived>
+        </dates>
+      </article>
+      <article>
+        <pages>172-183</pages>
+        <artType>RAR</artType>
+        <authors>
+          <author num="1">
+            <individInfo lang="RUS">
+              <surname>Лориц</surname>
+              <initials>Екатерина Михайловна</initials>
+              <orgName>Санкт-Петербургский Государственный Университет</orgName>
+              <email>kate.lorits@gmail.com</email>
+              <address>Санкт-Петербург</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Lorits</surname>
+              <initials>Ekaterina</initials>
+              <orgName>Saint Petersburg State University</orgName>
+              <address>St. Petersburg</address>
+            </individInfo>
+          </author>
+          <author num="2">
+            <individInfo lang="RUS">
+              <surname>Губар</surname>
+              <initials>Елена Алексеевна</initials>
+              <orgName>Санкт-Петербургский Государственный Университет</orgName>
+              <email>e.gubar@spbu.ru</email>
+              <address>Санкт-Петербург</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Gubar</surname>
+              <initials>Elena</initials>
+              <orgName>Saint Petersburg State University</orgName>
+              <address>St. Petersburg</address>
+            </individInfo>
+          </author>
+        </authors>
+        <artTitles>
+          <artTitle lang="RUS">Эволюционная игра с учетом обратной связи с окружающей средой и мнениями игроков</artTitle>
+          <artTitle lang="ENG">An evolutionary game with environmental feedback and players' opinions</artTitle>
+        </artTitles>
+        <abstracts>
+          <abstract lang="RUS">Эволюционные игры являются развивающимся подразделом теории игр, который применяется при изучении адаптации больших, но конечных популяций к~изменениям окружающей среды. При этом предполагается, что каждый из агентов не оказывает значительного влияния на систему. Теория эволюционных игр находит широкое применение во многих областях науки. В частности, в биологии, медицине и моделировании беспроводных сетей. В данной работе исследуется эволюционная игра с двумя уровнями взаимодействия агентов популяции. На первом уровне изменение состояния популяции зависит от изменения состояния окружающей среды, увеличения или уменьшения доступных для агентов ресурсов. На втором уровне изменение состояния популяции зависит от мнений агентов о состоянии окружающей среды. Эти уровни образуют двухуровневую структуру принятия решений, где изменение одного параметра системы, например, состояния среды, влечет за собой изменение остальных элементов системы, т.е изменение состояния популяции и мнений агентов. В рамках исследования был проведен анализ модифицированной эволюционной игры с учетом влияния состояния окружающей среды и мнений агентов, разработаны вычислительные процедуры на языке MATLAB и проведены две серии численных экспериментов.</abstract>
+          <abstract lang="ENG">Evolutionary games are a developing sub-field of game theory. This branch of game theory is used in the study of the adaptation of large, but finite, populations of agents to changes in the environment. It assumes that each agent has no significant influence on the system. Many scientific areas use the theory of evolutionary games. In particular, it is used in biology, medicine and the modelling of wireless networks. In this paper we study an evolutionary game with two levels of interaction between population agents. At the first level, changes in the population state depend on changes in the environment and on increasing or decreasing the resources available to the agents. At the second level, the population's state changes according to how the agents evaluate the state of the environment. These levels make up a decision-making structure with two levels. A change in one parameter of the system, for example the state of the environment, causes a change in the other elements of the system, that is, a change in the state of the population and the opinions of the agents. The study involves the analysis of a modified evolutionary game taking into account the influence of the environment and the opinions of the agents. It also involves the development of computational methods in MATLAB and two sets of numerical experiments.</abstract>
+        </abstracts>
+        <text lang="RUS">NO TEXT</text>
+        <codes>
+          <udk>519.83</udk>
+          <bbk>22.18</bbk>
+          <doi>10.25728/ubs.2023.106.6</doi>
+        </codes>
+        <keywords>
+          <kwdGroup lang="ANY">
+            <keyword>эволюционные игры</keyword>
+            <keyword>динамика мнений</keyword>
+            <keyword>репликативная динамика</keyword>
+            <keyword>имитационная динамика</keyword>
+            <keyword>evolutionary games</keyword>
+            <keyword>opinion dynamics</keyword>
+            <keyword>replicative dynamics</keyword>
+            <keyword>imitation dynamics</keyword>
+          </kwdGroup>
+        </keywords>
+        <references>
+          <reference>КОЛЕСИН И.Д., ГУБАР Е.А., ЖИТКОВА Е.М. Стратегииуправления в медико-социальных системах. – СПб.: Изд-воС.-Петерб. ун-та, 2014. – 128 c.</reference>
+          <reference>КУРНОСЫХ З.А., ГУБАР Е.А. Моделирование эволюцион-ной игры с учетом сетевой структуры // Процессы управ-ления и устойчивость. – 2017. – Т. 4, № 1. – С. 631–635.</reference>
+          <reference>ЛОРИЦ Е.М. Эволюционная игра с учетом обратной свя-зи с окружающей средой и мнениями игроков // Процессыуправления и устойчивость.–2023.–Т.10,№ 1.–С.462–466.</reference>
+          <reference>МАЗАЛОВ В.В., ДОРОФЕЕВА Ю.А., КОНОВАЛЬЧИКО-ВА Е.Н. Моделирование влияния среди участников обра-зовательного коллектива // Вестник Санкт-Петербургскогоуниверситета. – 2019. – Т. 15, Вып. 2. – С. 259–273.</reference>
+          <reference>ПЕТРОСЯН Л.А., ЗЕНКЕВИЧ Н.А., ШЕВКОПЛЯС Е.В.Теория Игр. – СПб.: БХВ-Петербург, 2012. – 432 с.</reference>
+          <reference>ARGASINSKI K., BROOM M. Evolutionary stability underlimited population growth: Eco-evolutionary feedbacks andreplicator dynamics // Ecol. Complex. – 2017. – Vol. 34, No. 6.</reference>
+          <reference>BAYER P., GATENBY R. ET AL. Coordination games incancer // PLoS ONE. – 2022. – Vol. 17, Iss. 1. – Art. e0261578.</reference>
+          <reference>BROOM M., KRIVAN V. Two-strategy games with timeconstraints on regular graphs // Journal of TheoreticalBiology. – 2020. – Vol. 506. – Art. 110426.</reference>
+          <reference>BROOM M., RYCHTAR J. Game-Theoretical Models inBiology. – CRC Press, 2022. – 591 p.</reference>
+          <reference>BROWN J.S., THUIJSMAN F. ET AL. The contributionof evolutionary game theory to understanding and treatingcancer // Dynamic Games and Applications. – 2022. – Vol. 12. –P. 313–342.</reference>
+          <reference>CRESSMAN R. Evolutionary Dynamics and Extensive FormGames. – Cambridge: MIT Press, 2003. – 316 p.</reference>
+          <reference>MENG Y., BROOM M., LI A. Impact of misinformation in theevolution of collective cooperation. – 2023.</reference>
+          <reference>PAARPORN K., EKSIN C. ET AL. Optimal control policiesfor evolutionary dynamics with environmental feedback // IEEEConf. on Decision and Control (CDC). – 2018. – P. 1905–1910.</reference>
+          <reference>PRESSLEY M., SALVIOLI M. Evolutionary dynamics oftreatment-induced resistance in cancer informs understandingof rapid evolution in natural systems // Frontiers in Ecologyand Evolution. – 2021. – Vol. 9. – Art. 681121.</reference>
+          <reference>RIEHL J.R., CAO M. Control of stochastic evolutionary gameson networks // IFAC. – 2015. – Vol. 48, Iss. 22. – P. 76–81.</reference>
+          <reference>SANDHOLM W.H. Population Games and EvolutionaryDynamics. – Cambridge: MIT Press, 2010. – 616 p.</reference>
+          <reference>TEMBINE H., ALTMAN E., EL-AZOUZI R., HAYEL Y.Evolutionary games in wireless networks // IEEE Trans. onSystems, Man, and Cybernetics. – 2009. – Vol. 40. Iss. 3. –P. 634–646.</reference>
+          <reference>VINCENT T.L., BROWN J.S. Evolutionary Game Theory,Natural Selection, and Darwinian Dynamics. – New York:Cambridge University Press, 2005. – 400 p.</reference>
+          <reference>WEIBULL J.W. Evolutionary Game Theory. – Cambridge: MITPress, 1995. – 265 p.</reference>
+          <reference>WEITZ J.S., EKSIN C., PAARPORN K. ET AL. An oscillatingtragedy of the commons in replicator dynamics with game-environment feedback // PNAS. – 2016. – Vol. 113, No 47. –P. E7518–E7525.</reference>
+          <reference>ZHILIANG Z., YULI Z. ET AL. Evolutionary game dynamicsof the competitive information propagation on social networks //Complexity. – 2019. – Vol. 2019. – Art. 8385426.</reference>
+          <reference>ZHU Q., GUBAR E., ALTMAN E. (EDS.). Special Issue onModeling and Control of Epidemics. // Dynamic Games andApplications. – 2022. – Vol. 12.</reference>
+        </references>
+        <files>
+          <furl>http://ubs.mtas.ru/archive/search_results_new.php?publication_id=23169</furl>
+          <file>UBS10606.pdf</file>
+        </files>
+        <dates>
+          <dateReceived>30.08.2023.</dateReceived>
+        </dates>
+      </article>
+      <article>
+        <pages>184-217</pages>
+        <artType>RAR</artType>
+        <authors>
+          <author num="1">
+            <individInfo lang="RUS">
+              <surname>Марьясин</surname>
+              <initials>Олег Юрьевич</initials>
+              <orgName>Ярославский государственный технический университет</orgName>
+              <email>maryasin2003@list.ru</email>
+              <address>Ярославль</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Maryasin</surname>
+              <initials>Oleg</initials>
+              <orgName>Yaroslavl State Technical University</orgName>
+              <address>Yaroslavl</address>
+            </individInfo>
+          </author>
+          <author num="2">
+            <individInfo lang="RUS">
+              <surname>Плохотнюк</surname>
+              <initials>Артем Николаевич</initials>
+              <orgName>Ярославский государственный технический университет</orgName>
+              <email>admin@nixson.ru</email>
+              <address>Ярославль</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Plohotnyuk</surname>
+              <initials>Artem</initials>
+              <orgName>Yaroslavl State Technical University</orgName>
+              <address>Yaroslavl</address>
+            </individInfo>
+          </author>
+        </authors>
+        <artTitles>
+          <artTitle lang="RUS">Оптимизация энергопотребления предприятия с локальными генераторами и накопителями энергии</artTitle>
+          <artTitle lang="ENG">Energy consumption optimization of enterprise with local generators and energy storage devices</artTitle>
+        </artTitles>
+        <abstracts>
+          <abstract lang="RUS">В работе рассмотрена проблема оптимизации энергопотребления предприятия, использующего для энергоснабжения не только центральную энергосистему, но и локальные генераторы и накопители энергии. Для решения этой проблемы в работе предложен эвристический алгоритм оптимального планирования энергопотребления предприятия, включающий решение задачи линейного программирования. Для уменьшения риска существенного расхождения планового и фактического профилей энергопотребления в работе предлагается использовать алгоритм оптимального планирования энергопотребления со сдвигающимся шагом. Особенностью задачи оптимального планирования энергопотребления предприятия, решаемой в данной работе, является использование дополнительных условий, выполнение которых при достаточной мощности локальных генераторов и накопителей энергии приводит к сглаживанию оптимального профиля энергопотребления предприятия. Это облегчает реализацию такого профиля энергопотребления предприятия, так как не требует резкого изменения рабочих режимов, перенастройки оборудования и изменения интенсивности работы персонала предприятия. Предложенный авторами эвристический алгоритм позволяет реализовать выполнение дополнительных условий и при этом избежать сведения задачи  оптимального планирования энергопотребления предприятия к задаче линейно-целочисленной оптимизации. В работе выполнена реализация примера оптимизации энергопотребления небольшого предприятия, на территории которого расположены два потребителя электроэнергии и различные локальные генераторы и накопители энергии.</abstract>
+          <abstract lang="ENG">This paper considers the energy consumption optimization for an enterprise using both the centralized power grid, local generators and energy storage systems. To solve this problem, the authors suggest a heuristic algorithm for the energy consumption optimization of an enterprise, including the solution of a linear programming problem. To reduce the risks of significant discrepancies between the scheduled and actual power consumption profiles, one can use the optimal energy consumption scheduling algorithm with a moving scheduling horizon. The optimal energy consumption scheduling problem solved in this paper has additional restrictions that can result in the smoothing of the optimal power consumption profile of the enterprise, provided the power of local generators and storage devices is enough. This facilitates the implementation of such energy consumption profile of the enterprise, since it does not require a sharp change in operating modes, reconfiguration of equipment and changes in the intensity of work of enterprise personnel. The heuristic algorithm proposed by the authors makes it possible to implement additional conditions, and, at the same time, avoid reducing the optimal energy consumption scheduling problem of the enterprise to a linear-integer optimization problem. This article provides an example of energy consumption optimization for a small enterprise featuring two power consumers, as well as various local generators and power storage devices.</abstract>
+        </abstracts>
+        <text lang="RUS">NO TEXT</text>
+        <codes>
+          <udk>620.92</udk>
+          <bbk>31.281</bbk>
+          <doi>10.25728/ubs.2023.106.7</doi>
+        </codes>
+        <keywords>
+          <kwdGroup lang="ANY">
+            <keyword>оптимизация энергопотребления</keyword>
+            <keyword>оптимальное планирование энергопотребления</keyword>
+            <keyword>возобновляемые источники энергии</keyword>
+            <keyword>micro smart grid</keyword>
+            <keyword>линейное программирование</keyword>
+            <keyword>energy consumption optimization</keyword>
+            <keyword>optimal energy consumption scheduling</keyword>
+            <keyword>renewable energy sources</keyword>
+            <keyword>micro smart grid</keyword>
+            <keyword>linear programming</keyword>
+          </kwdGroup>
+        </keywords>
+        <references>
+          <reference>МАРЬЯСИН О.Ю, ЛУКАШОВ А.И., СМИРНОВ Н.А. Про-гнозирование рыночных цен на электроэнергию и часов пи-ковой нагрузки для региона Российской Федерации // Управ-ление большими системами. – 2022. – Vol. 99. – P. 81–113.</reference>
+          <reference>Цены на электроэнергию ”ТНС энерго Ярославль”.[Электронный ресурс]. – URL: https://yar.tns-e.ru/legal-entities/prices (дата обращения: 10.08.2023).</reference>
+          <reference>Часы пиковой нагрузки от АТС. [Электронный ресурс]. –URL: https://www.atsenergo.ru/results/market/calcfacthour (да-та обращения: 10.08.2023).</reference>
+          <reference>AFRAM A., JANABI-SHARIFI F. Theory and applications ofHVAC control systems – A review of model predictive control(MPC) // Building and Environment. – 2014. – Vol. 72. –P. 343–355.</reference>
+          <reference>AHMAD A., KHAN A., JAVAID N., HUSSAIN H.M.ET AL. An Optimized Home Energy Management Systemwith Integrated Renewable Energy and Storage Resources //Energies. – 2017. – Vol. 10. – P. 2–35.</reference>
+          <reference>AMJADY N., KEYNIA F. A new prediction strategy for pricespike forecasting of day-ahead electricity markets // AppliedSoft Computing. – 2011. – Vol. 11. – P. 4246–4256.</reference>
+          <reference>ASCIONE F., BIANCO N., DE STASIO C., MAURO G.M. ETAL. Simulation-based model predictive control by the multi-objective optimization of building energy performance andthermal comfort // Energy and Buildings. – 2016. – Vol. 111. –P. 131–144.</reference>
+          <reference>ASLAM S., HERODOTOU H., MOHSIN S.M., JAVAID N.ET AL. A survey on deep learning methods for power load andrenewable energy forecasting in smart microgrids // Renewableand Sustainable Energy Reviews. – 2021. – Vol. 144. – P. 1–23.</reference>
+          <reference>BASANTES J.A., PAREDES D.E., LLANOS J.R., ORTIZ D.E.ET AL. Energy Management System (EMS) Based on ModelPredictive Control (MPC) for an Isolated DC Microgrid //Energies. – 2023. – Vol. 16. – P. 1–22.</reference>
+          <reference>CANTILLO-LUNA S., MORENO-CHUQUEN R.,CELEITA D., ANDERS G. Deep and Machine LearningModels to Forecast Photovoltaic Power Generation //Energies. – 2023. – Vol. 16. – P. 1–24.</reference>
+          <reference>CAO Z., HAN Y., WANG J., ZHAO Q. Two-stage energygeneration schedule market rolling optimisation of highly windpower penetrated microgrids // Int. Journal of Electrical Power&amp; Energy Systems. – 2019. – Vol. 112. – P. 12–27.</reference>
+          <reference>CHAUDHARY G., LAMB J.J., BURHEIM O.S., AUSTB B.Review of Energy Storage and Energy Management SystemControl Strategies in Microgrids // Energies. – 2021. – Vol. 14. –P. 1–25.</reference>
+          <reference>CORINALDESI C., SCHWABENEDER D., LETTNER G.,AUER H. A rolling horizon approach for real-time tradingand portfolio optimization of end-user flexibilities // SustainableEnergy, Grids and Networks. – 2020. – Vol. 24. – P. 1–10.</reference>
+          <reference>DESHMUKH M.K., DESHMUKH S.S. Modeling of hybridrenewable energy systems // Renewable and Sustainable EnergyReviews. – 2008. – Vol. 12. – P. 235–249.</reference>
+          <reference>DILEEP G. A survey on smart grid technologies andapplications // Renewable Energy. – 2020. – Vol. 146. –P. 2589–2625.</reference>
+          <reference>GILLES J. Empirical wavelet transform // IEEE Trans. onSignal Process. – 2013. – Vol. 61. – P. 3999–4010.</reference>
+          <reference>GitHub - oemof/feedinlib [Электронный ресурс]. –URL: https://github.com/oemof/feedinlib (дата обращения:10.08.2023).</reference>
+          <reference>HEMEIDA A.M., EL-AHMAR M.H., EL-SAYED A.M.,HASANIEN H.M. ET AL. Optimum design of hybrid wind/PVenergy system for remote area // Ain Shams EngineeringJournal. – 2020. – Vol. 11. – P. 11–23.</reference>
+          <reference>ILBEIGI M., GHOMEISHI M., DEHGHANBANADAKI A.Prediction and optimization of energy consumtion in anoffice building using artificial neural network and a geneticalgorithm // Sustainable Cities and Society. – 2020. – Vol. 61. –P. 1–15.</reference>
+          <reference>JIANG P., WANG Y., WANG J. Short-term wind speedforecasting using a hybrid model // Energy. – 2017. – Vol. 119. –P. 561–577.</reference>
+          <reference>KIM W.; JEON Y.; KIM Y. Simulation-based optimization ofan integrated daylighting and HVAC system using the designof experiments method // Applied Energy. – 2016. – Vol. 15. –P. 666–674.</reference>
+          <reference>LAGO J., DE RIDDER F., DE SCHUTTER B. Forecastingspot electricity prices: deep learning approaches and empiricalcomparison of traditional algorithms // Applied Energy. –2018. – Vol. 221. – P. 386–405.</reference>
+          <reference>LAMNATOU C., CHEMISANA D., CRISTOFARI C. Smartgrids and smart technologies in relation to photovoltaics,storage systems, buildings and the environment // RenewableEnergy. – 2022. – Vol. 185. – P. 1376–1391.</reference>
+          <reference>LEE J.Y., CHOI S.G. Linear programming based hourly peakload shaving method at home area // Int. Conf. on AdvancedCommunication Technology. – 2014. – P. 310–313.</reference>
+          <reference>MAHARJAN I.K. Demand Side Management: LoadManagement, Load Profiling, Load Shifting, Residentialand Industrial Consumer, Energy Audit, Reliability, Urban,Semi-Urban and Rural Setting. – LAP Lambert AcademicPublishing, – 2010. – 116 p.</reference>
+          <reference>MARYASIN O.YU., LUKASHOV A.I. Analyzing andForecasting Peak Load Hours // Int. Conf. on IndustrialEngineering, Applications and Manufacturing. – 2021. – P. 25–30.</reference>
+          <reference>MARYASIN O.YU., LUKASHOV A.I. Comparing NeuralNetworks in Forecasting Market Electricity Prices and RegionalEnergy Consumption // Int. Conf. on Industrial Engineering,Applications and Manufacturing. – 2022. – P. 40–45.</reference>
+          <reference>MARYASIN O.YU., LUKASHOV A.I. Developing a DigitalModel of an Electricity Consumer using Deep Learning // Int.Conf. on Control Systems, Mathematical Modeling, Automationand Energy Efficiency. – 2020. – P. 624–629.</reference>
+          <reference>MARYASIN O.YU., LUKASHOV A.I. Optimal EnergyConsumption Scheduling for Enterprises with Local EnergySources // Lecture Notes in Electrical Engineering. – 2023. –Vol. 986. – P. 282–293.</reference>
+          <reference>MARYASIN O.YU., LUKASHOV A.I. Optimizing the DailyEnergy Consumption of an Enterprise // Lecture Notes inElectrical Engineering. – 2022. – Vol. 857. – P. 370–382.</reference>
+          <reference>MARYASIN O.YU., PLOHOTNYUK A. Day-Ahead PowerForecasting of Renewable Energy Sources Using NeuralNetworks and Machine Learning // Int. Conf. on IndustrialEngineering, Applications and Manufacturing. – 2023. – P. 130–135.</reference>
+          <reference>RAJA S.C., DHARSSINI A.C.V., NESMALAR J.J.D.,KARTHICK T. Deployment of IoT-Based Smart Demand-SideManagement System with an Enhanced Degree of User Comfortat an Educational Institution // Energies. – 2023. – Vol. 16. –P. 1–24.</reference>
+          <reference>REZAEI N., AHMADI A., DEIHIMI M.A. ComprehensiveReview of Demand-Side Management Based on Analysis ofProductivity: Techniques and Applications // Energies. – 2022. –Vol. 15. – P. 1–28.</reference>
+          <reference>SANDHU H.S., FANG L., GUAN L. Forecasting day-aheadprice spikes for the Ontario electricity market // Electric PowerSystems Research. – 2016. – Vol. 141. – P. 450–459.</reference>
+          <reference>SHAH A.S., NASIR H., FAYAZ M., LAJIS A. ET AL. AReview on Energy Consumption Optimization Techniques in IoTBased Smart Building Environments // Information. – 2019. –Vol. 10. – P. 1–34.</reference>
+          <reference>SILVENTE J., KOPANOS G.M., PISTIKOPOULOS E.N.,ESPUNA A. A rolling horizon optimization framework forthe simultaneous energy supply and demand planning inmicrogrids // Applied Energy. – 2015. – Vol. 155. – P. 485–501.</reference>
+          <reference>SINGH N., MOHANTY S.R., MISHRA K.K., NERI F.A Review of Electricity Price Forecasting Problem andTechniques in Deregulated Markets // Int. Journal of Economicsand Statistics. – 2017. – Vol. 5 – P. 101–112.</reference>
+          <reference>TIAN C., MA J., ZHANG C., ZHAN P.A. Deep NeuralNetwork Model for Short-Term Load Forecast Based onLong Short-Term Memory Network and Convolutional NeuralNetwork // Energies. – 2018. – Vol. 11. – P. 1–13.</reference>
+          <reference>UGURLU U., OKSUZ I., TAS O. Electricity Price ForecastingUsing Recurrent Neural Networks // Energies. – 2018. –Vol. 11. – P. 1–23.</reference>
+          <reference>VORONIN V., NEPSHA F., KRASILNIKOV M. Short termforecasting peak load hours of regional power systems usingmachine learning methods // Cigre science &amp; Engineering. –2023. – Vol. 29. – P. 1–18.</reference>
+          <reference>WANG Y., WU L. On practical challenges of decomposition-based hybrid forecasting algorithms for wind speed and solarirradiation // Energy. – 2016. – Vol. 112. – P. 208–220.</reference>
+          <reference>WERON R. Electricity price forecasting: A review of thestate-of-the-art with a look into the future // Int. Journal ofForecasting. – 2014. – Vol. 30. – P. 1030–1081.</reference>
+          <reference>YADAV A.K., CHANDEL S. Solar radiation prediction usingArtificial Neural Network techniques: a review // Renewableand Sustainable Energy Reviews. – 2014. – Vol. 33. – P. 772–781.</reference>
+          <reference>YANG F., LI W., LI C., MIAO Q. State-of-charge estimation oflithium-ion batteries based on gated recurrent neural network //Energy. – 2019. – Vol. 175. – P. 66–75.</reference>
+          <reference>ZHANG Q., LIU B., ZHOU F., WANG Q. ET AL. State-of-charge estimation method of lithium-ion batteries based onlong-short term memory network // IOP Conf. Series: Earth andEnvironmental Science. – 2018. – P. 1–7.</reference>
+        </references>
+        <files>
+          <furl>http://ubs.mtas.ru/archive/search_results_new.php?publication_id=23170</furl>
+          <file>UBS10607.pdf</file>
+        </files>
+        <dates>
+          <dateReceived>21.09.2023.</dateReceived>
+        </dates>
+      </article>
+      <article>
+        <pages>218-245</pages>
+        <artType>RAR</artType>
+        <authors>
+          <author num="1">
+            <individInfo lang="RUS">
+              <surname>Рослякова</surname>
+              <initials>Наталья Андреевна</initials>
+              <orgName>ФГБУН Институт проблем управления им. В.А. Трапезникова РАН</orgName>
+              <email>na@roslyakova24.ru</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Roslyakova</surname>
+              <initials>Natalya</initials>
+              <orgName>V.A. Trapeznikov Institute of Control Sciences of RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+          <author num="2">
+            <individInfo lang="RUS">
+              <surname>Волков</surname>
+              <initials>Александр Дмитриевич</initials>
+              <orgName>Институт экономики Карельского научного центра РАН</orgName>
+              <email>kov8vol@gmail.com</email>
+              <address>Петрозаводск</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Volkov</surname>
+              <initials>Alexander</initials>
+              <orgName>Institute of Economics of the Karelian Scientific Center of RAS</orgName>
+              <address>Petrozavodsk</address>
+            </individInfo>
+          </author>
+          <author num="3">
+            <individInfo lang="RUS">
+              <surname>Тишков</surname>
+              <initials>Сергей Вячеславович</initials>
+              <orgName>Институт экономики Карельского научного центра РАН</orgName>
+              <email>insteco_85@mail.ru</email>
+              <address>Петрозаводск</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Tishkov</surname>
+              <initials>Sergey</initials>
+              <orgName>Institute of Economics of the Karelian Scientific Center of RAS</orgName>
+              <address>Petrozavodsk</address>
+            </individInfo>
+          </author>
+        </authors>
+        <artTitles>
+          <artTitle lang="RUS">Инновационные системы регионов российской арктики: структурные особенности, сценарии развития и аспекты управления (применение методики dea-анализа)</artTitle>
+          <artTitle lang="ENG">Innovative systems of the russian arctic regions: structural features, development scenarios and aspects of management (application of the dea methodology)</artTitle>
+        </artTitles>
+        <abstracts>
+          <abstract lang="RUS">Целью настоящей работы является выявление особенностей структурных взаимосвязей между элементами инновационных систем, актуальных для формирования эффективных моделей управления инновационным развитием арктических регионов. В исследовании применялась методика DEA-анализа (Data Envelopment Analysis). Объектом исследования выбраны регионы, полностью или частично входящие в европейскую часть Арктической зоны Российской Федерации (АЗРФ). В Модели 1 в качестве затратных (входных) параметров рассмотрены «затраты на исследования» и «затраты на технологические инновации», в качестве результирующих (выходных) параметров – «выбросы загрязняющих веществ в воздух», «производительность труда», «количество разработанных технологий», «количество используемых технологий». В Модели 2 затратными (входными) параметрами являются: «затраты на исследования», «затраты на технологические инновации», «выбросы загрязняющих веществ в воздух», в качестве результирующих (выходных) параметров приняты «производительность труда», «количество разработанных технологий», «количество используемых технологий», «объем инновационной продукции». В рамках полученных результатов предложен методический подход выявления типов структурных взаимосвязей между элементами региональной инновационной системы (РИС) с использованием инструментария DEA. Осуществлены оценки эффективности сложившихся в рассматриваемых регионах структур взаимосвязи между элементами РИС. Разработаны сценарии перехода от фактических к оптимальным значениям параметров РИС.</abstract>
+          <abstract lang="ENG">The purpose of this work is to identify the features of structural relationships between elements of innovation systems that are relevant for the formation of effective models for managing the innovative development of the Arctic regions. The study used the DEA analysis (Data Envelopment Analysis) tools. The objects of the study are regions that are fully or partially included in the European part of the Arctic zone of the Russian Federation (AZRF). Model 1 considers “research costs” and “technological innovation costs” as cost (input) parameters, and “emissions of pollutants into the air”, “labor productivity”, “number of developed technologies”, “number of technologies used” as resulting (output) parameters. In Model 2, the cost (input) parameters are: “research costs”, “technological innovation costs”, “emissions of pollutants into the air”; the resulting (output) parameters “labor productivity”, “number of developed technologies”, “number of technologies used”, “volume of innovative products”. As part of the results obtained, a methodological approach is proposed to identify the types of structural relationships between elements of the regional innovation system (RIS) using DEA tools. The effectiveness of the interrelationship structures between the elements of the RIS that have developed in the regions under consideration has been assessed. Scenarios for transition from actual to optimal values of RIS parameters have been developed.</abstract>
+        </abstracts>
+        <text lang="RUS">NO TEXT</text>
+        <codes>
+          <udk>332.012.2</udk>
+          <bbk>65.050</bbk>
+          <doi>10.25728/ubs.2023.106.8</doi>
+        </codes>
+        <keywords>
+          <kwdGroup lang="ANY">
+            <keyword>региональные инновационные системы (РИС)</keyword>
+            <keyword>арктические регионы</keyword>
+            <keyword>DEA-анализ</keyword>
+            <keyword>структурные взаимосвязи элементов РИС</keyword>
+            <keyword>сценарии развития РИС</keyword>
+            <keyword>regional innovation systems (RIS)</keyword>
+            <keyword>Arctic regions</keyword>
+            <keyword>DEA-analysis</keyword>
+            <keyword>structural relationships of RIS elements</keyword>
+            <keyword>scenarios for the development of RIS</keyword>
+          </kwdGroup>
+        </keywords>
+        <references>
+          <reference>АГАРКОВ С.А. Особенности пространственной органи-зации инновационных процессов в арктическом регионе: вызовы и задачи современности // Вопросы инновацион-ной экономики. – 2022. – Т. 12, №3. – С. 1759–1786. </reference>
+          <reference>АРХИПОВА К. Оценка инновационного развития регио-нов Арктической зоны Российской Федерации // МИР (Модернизация. Инновации. Развитие). – 2019. – Т. 10, №2. – С. 261–274. </reference>
+          <reference>БОДРУНОВ С. Ноономика: монография. – М.: Культур-ная революция, 2018. – 432 с. </reference>
+          <reference>ВОЛКОВ А., ТИШКОВ С., НИКИТИНА А. Эволюция механизмов управления экономическим пространством российской Арктики: современный этап // ARS Adminis-trandi (Искусство управления). – 2022. – Т. 14, №2. – С. 174–201. </reference>
+          <reference>ГОЛИЧЕНКО О.Г. Российская инновационная система: проблемы развития // Вопросы экономики. – 2004. – №12. – С. 16–34.</reference>
+          <reference>ГОРЮНОВА Л. Инновационная система региона: Ин-струменты и механизмы управления: монография. – СПб.: Изд-во СПбГУЭФ, 2001. – 216 с. </reference>
+          <reference>ГОХБЕРГ Л. Национальная инновационная система Рос-сии в условиях «новой экономики» // Вопросы экономики. – 2003. – №3. – С. 26–38. </reference>
+          <reference>ЕГОРОВ Н., БАБКИН А., БАБКИН И., МАРТЫНУШ-КИН А. Оценка устойчивости и эффективности инно-вационного развития субъектов российской Арктики // Север и рынок: формирование экономического порядка. – 2022. – Т. 25, №2(76). – С. 35–44. </reference>
+          <reference>ЕГОРОВ Н., КОВРОВ Г. Сравнительная оценка иннова-ционного развития регионов крайнего севера // Арктика и Север. – 2020. – №41. – С. 62–74. </reference>
+          <reference>КАМЕНСКИХ М., ПОСТНИКОВ В. Исследование осо-бенностей и перспектив развития бизнес-акселератора как института сетевого взаимодействия (на примере Пермского края) // Региональная экономика: теория и практика. – 2019. – Т. 17, №2(461). – С. 369–382. </reference>
+          <reference>КУЗНЕЦОВА М., ВАСИЛЬЕВА А. Инновационный по-тенциал регионов Арктической зоны РФ: методика оценки, сравнительный анализ, перспективы развития // Экономические и социальные перемены: факты, тенден-ции, прогноз. – 2023. – Т. 16, №2. – С. 69–87. </reference>
+          <reference>ПЕТРОВ И., МЕРКУЛИНА И., ХАРИТОНОВА Т. Науч-но-методический подход к экологической оценке горно-добывающих и энергетических проектов Арктики // Уголь. – 2023. – №5. – С. 77–83.</reference>
+          <reference>ПРОЩИНА Ю.С., НАЗАРОВА Ю.А. Совершенствование форм государственной поддержки проектов освоения энергетических ресурсов арктического региона // Вест-ник РГГУ. Серия «Экономика. Управление. Право». – 2022. – №1. – С. 126–139. </reference>
+          <reference>ТОРЦЕВ А., ТОРЦЕВА Т. Экологические инновации в регионах Арктической зоны Российской Федерации // Ре-гиональная экономика: теория и практика. – 2019. – Т. 17, №8. – С. 1577–1592. </reference>
+          <reference>ФАДЕЕВ А., ЧЕРЕПОВИЦЫН А., ЛАРИЧКИН Ф. Устойчивое развитие нового добывающего региона при реализации нефтегазовых проектов на шельфе Арктики // Экономические и социальные перемены: факты, тен-денции, прогноз. – 2012. – №1(19). – С. 27–38. </reference>
+          <reference>ЦУКЕРМАН В., ГОРЯЧЕВСКАЯ Е. Инновационный по-тенциал арктических регионов России // Арктика и Се-вер. – 2022. – №49. – С. 70–85. </reference>
+          <reference>ЦУКЕРМАН В., ГОРЯЧЕВСКАЯ Е. О методологии оценки уровня инновационного развития регионов Севе-ра и Арктики // Север и рынок: формирование экономи-ческого порядка. – 2017. – №3(54). – С. 57–68. </reference>
+          <reference>ЦУКЕРМАН В., ГОРЯЧЕВСКАЯ Е. Оценка инновацион-ного развития арктических регионов // Север и Рынок: формирование экономического порядка. – 2018. – №2(58). – С. 138–146. </reference>
+          <reference>AVILÉS-SACOTO S., COOK W., GÜEMES-CASTO-RENA D., ZHU J. Modelling Efficiency in Regional Innova-tion Systems: A Two-Stage Data Envelopment Analysis Prob-lem with Shared Outputs within Groups of Decision-Making Units // European Journal of Operational Research. – 2020. – Vol. 287. – P. 572–582.</reference>
+          <reference>BEREZIKOV S. Structural changes and innovation econom-ic development of the Arctic regions of Russia // Journal of Mining Institute. – 2019. – Vol. 240. – P. 716–723. </reference>
+          <reference>CAMANHO A., SILVA M., PIRAN F., LACERDA D. A lit-erature review of economic efficiency assessments using Da-ta Envelopment Analysis // European Journal of Operational Research. – 2023. – DOI:10.1016/j.ejor.2023.07.027.</reference>
+          <reference>CHOU H., LU W., KWEH Q., TSAI C. Using hierarchical network data envelopment analysis to explore the perfor-mance of national research and development organizations // Expert Systems with Applications. – 2023. – Vol. 234. –121109.</reference>
+          <reference>EGOROV N., POSPELOVA T., YARYGINA A., KLOCHKOVA E. The Assessment of Innovation Develop-ment in the Arctic Regions of Russia Based on the Triple He-lix Model // Resources. – 2019. – No. 8(2). – P. 72.</reference>
+          <reference>ETZKOWITZ H. The Triple Helix: University-Industry-Government Innovation in Action. – New York and London: Routledge, 2008. – 176 p. </reference>
+          <reference>KARNAEVA A., KULIKOVA O., MAZLOVA E., BURYAK A. Aged diesel and heavy metal pollution in the Arctic tundra (Yamal Peninsula, Russia) // Science of The Total Environment. – 2021. – Vol. 792. – 148471.</reference>
+          <reference>LIFSHITS S., GLYAZNETSOVA Y., EROFEEVSKAYA L., CHALAYA O. et al. Effect of oil pollution on the ecological condition of soils and bottom sediments of the arctic region (Yakutia) // Environmental Pollution. – 2021. – Vol. 288. – 117680.</reference>
+          <reference>METCALFE S. The Economic Foundations of Technology Policy: Equilibrium and Evolutionary Perspectives // Hand-book of the Economics of Innovation and Technological Change. – Oxford, UK: Blackwell, 1995. – P. 409–513. </reference>
+          <reference>NORTH D.C. Institutions, Institutional Change and Econom-ic Performance: Economic performance. – Cambridge, UK: Cambridge University Press, 1990. – 152 p.</reference>
+          <reference>OTT H., RONDÉ P. Inside the Regional Innovation System Black Box: Evidence from French Data // Papers in Regional Science. – 2019. – No. 98. – P. 1993–2026.</reference>
+          <reference>SCHMIDT DE OLIVEIRA M., STEFFEN V., CARLOS DE FRANCISCO A., TROJAN F. Integrated data envelopment analysis, multi-criteria decision making, and cluster analysis methods: Trends and perspectives // Decision Analytics Journal. – 2023. – Vol.8. – 100271.</reference>
+          <reference>SHIKLOMANOV N., STRELETSKIY D., SUTER L., ORT-TUNG R. et al. Dealing with the bust in Vorkuta, Russia // Land Use Policy. – 2020. – No. 93. – 03908. </reference>
+          <reference>SKUF'INA T., BARANOV S., SAMARINA V., SA-MARIN A. The impact of the national Arctic policy on the socio-economic transformations of Russia’s polar regions // The North and the Market: Forming the Economic Order. – 2022. – No. 2. – P. 69–81. </reference>
+          <reference>STERNBERG R. Innovation networks and regional devel-opment—evidence from the European Regional Innovation Survey (ERIS): theoretical concepts, methodological ap-proach, empirical basis and introduction to the theme issue // European Planning Studies. – 2000. – No. 8. – P. 389–407. </reference>
+          <reference>XU K., MEI R., SUN W., ZHANG H. et al. Estimation of sustainable innovation performance in European Union countries: Based on the perspective of energy and environ-mental constraints // Energy Reports. – 2023. – Vol. 9. – P. 1919–1925.</reference>
+          <reference>ZEMTSOV S., KOTSEMIR M. An assessment of regional innovation system efficiency in Russia: the application of the DEA approach // Scientometrics. – 2019. – Vol. 120, No. 2. – P. 375–404.</reference>
+        </references>
+        <files>
+          <furl>http://ubs.mtas.ru/archive/search_results_new.php?publication_id=23171</furl>
+          <file>UBS10608.pdf</file>
+        </files>
+        <dates>
+          <dateReceived>26.09.2023.</dateReceived>
+        </dates>
+      </article>
+      <section>
+        <secTitle lang="RUS">Управление техническими системами и технологическими процессами</secTitle>
+      </section>
+      <article>
+        <pages>246-270</pages>
+        <artType>RAR</artType>
+        <authors>
+          <author num="1">
+            <individInfo lang="RUS">
+              <surname>Круглов</surname>
+              <initials>Сергей Петрович</initials>
+              <orgName>ФГБОУ ВО Иркутский государственный университет путей сообщения</orgName>
+              <email>kruglov_s_p@mail.ru</email>
+              <address>Иркутск</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Kruglov</surname>
+              <initials>Sergey</initials>
+              <orgName>Irkutsk State Transport University</orgName>
+              <address>Irkutsk</address>
+            </individInfo>
+          </author>
+        </authors>
+        <artTitles>
+          <artTitle lang="RUS">Скоростной пд-регулятор с широкими робастными свойствами для управления мостовым краном</artTitle>
+          <artTitle lang="ENG">Speed pd controller with wide robust propertiesfor overhead crane control</artTitle>
+        </artTitles>
+        <abstracts>
+          <abstract lang="RUS">Рассматривается управление тележкой мостового крана в задаче перемещения груза по одной горизонтальной оси в заданную точку с демпфированием угловых колебаний и возможностью парирования внешних возмущений, например, ветровых, с обеспечением заданных качественных характеристик. Предполагается, что кран оборудован сервоприводом, способным достаточно быстро отследить заданную скорость перемещения тележки. Это соответствует использованию современных асинхронных сервоприводов. Берется во внимание автоматизированная система управления, предполагающая наличие оператора крана. Предлагается построение ПД-регулятора, формирующего заданную скорость тележки. Он строится на основе линеаризованной одномаятниковой модели перемещения груза в зависимости от скорости тележки. Включает в себя пропорциональную часть по ошибке линейного перемещения тележки крана и дифференциальную часть по углу отклонения подвеса от вертикали с низкочастотной фильтрацией. Обоснование синтеза параметров ПД-регулятора предлагается поэтапно, путем рассмотрения четырех его вариантов. Особенностью выбора параметров ПД-регулятора является то, что все они основываются на паспортных данных крана и привода, на заданных качественных показателях переходного процесса, а также на расстоянии перемещения груза. Замкнутая система управления при фиксированной настройке обладает робастными свойствами в очень широкой области вариации параметров крана и груза, покрывающей возможные режимы использования крана на практике, способна парировать внешние возмущения. Приводятся результаты модельных исследований.</abstract>
+          <abstract lang="ENG">Control of overhead crane trolley is considered in task of cargo movement along one horizontal axis to specified point with damping of angular oscillations and possibility of parry of external disturbances, for example, wind ones with provision of specified quality characteristics. It is assumed that the crane is equipped with a servo motor capable of quickly tracking the specified speed of movement of the trolley. This corresponds to the use of modern asynchronous servo motors. An automated control system is considered, which assumes the presence of a crane operator. It is proposed to build a PD-regulator, which forms the specified speed of the trolley. It is built on the basis of a linearized single-pendulum model of cargo movement depending on the speed of the trolley. Includes proportional part by error of linear movement of crane bogie and differential part by angle of suspension deviation from vertical with low-frequency filtration. The justification of the synthesis of the parameters of the PD-regulator is proposed in stages, by considering four of its options. The peculiarity of the PD-regulator parameters selection is that all of them are based on the passport data of the crane and the drive, on the specified qualitative parameters of the transient process, as well as at the distance of cargo movement. The closed-loop control system at a fixed setting has robust properties in a very wide range of variations in crane and cargo parameters, covering the possible modes of crane use in practice, is able to counteract external disturbances. The results of model studies are presented.</abstract>
+        </abstracts>
+        <text lang="RUS">NO TEXT</text>
+        <codes>
+          <udk>621.874, 681.521.7</udk>
+          <bbk>30.2, 22.213</bbk>
+          <doi>10.25728/ubs.2023.106.9</doi>
+        </codes>
+        <keywords>
+          <kwdGroup lang="ANY">
+            <keyword>мостовой кран</keyword>
+            <keyword>система управления</keyword>
+            <keyword>ПД-регулятор</keyword>
+            <keyword>качественные показатели управления</keyword>
+            <keyword>робастность</keyword>
+            <keyword>overhead crane</keyword>
+            <keyword>control system</keyword>
+            <keyword>PD-regulator</keyword>
+            <keyword>qualitative indicators of control</keyword>
+            <keyword>robustness</keyword>
+          </kwdGroup>
+        </keywords>
+        <references>
+          <reference>ГЕРМАН-ГАЛКИН С.Г. Компьютерное моделирование полупроводниковых систем в MATLAB 6.0: Учебное по-собие. – СПб.: КОРОНА принт, 2010. – 320 с.</reference>
+          <reference>ГОСТ 1575-81. Краны грузоподъемные. Ряды основных параметров. − М.: Издательство стандартов, 1987.</reference>
+          <reference>ГОСТ 3332-54. Краны мостовые электрические общего назначения грузоподъёмностью от 5 до 50 т среднего и тяжелого режимов работы. Основные параметры и размеры. − М: Издательство стандартов, 1974.</reference>
+          <reference>ЕНИН С.С. Совершенствование системы управления электроприводами мостового крана для демпфирования колебаний подвешенного груза. Дисс. канд. техн. наук. – Магнитогорск: Магнитогорский ГТУ им. Г.И. Носова, 2020. – 150 с. – URL:  https://www.dissercat.com/content/sovershenstvovanie-sistemy-upravleniya-elektroprivodami-mostovogo-krana-dlya-dempfirovaniya (дата обращения 05.06.2023).</reference>
+          <reference>КРУГЛОВ С.П., АКСАМЕНТОВ Д.Н. Адаптивное управ-ление мостовым краном по скорости перемещения те-лежки // Доклады ТУСУР. – 2022. – Т. 25, № 1. – С. 86–92.</reference>
+          <reference>КРУГЛОВ С.П., КОВЫРШИН С.В. Идентификационное скоростное управление мостовым краном с сокращен-ной моделью переноса груза // Проблемы управления. – 2023. − №4. – С. 28–37.</reference>
+          <reference>ПАХОМОВ А.Н., ФЕДОРЕНКО А.А., ЧЕРТЫКОВ П.Н. Модальное управление асинхронным электроприводом тележки мостового крана с наблюдающим устрой-ством // Журн. Сиб. федер. ун-та. Техника и технологии. – 2022. − №15(5). − С. 583–592.</reference>
+          <reference>ПЕРВОЗВАНСКИЙ А.А. Курс теории автоматического управления. Учеб. пособие для вузов. − СПб: Лань, 2023. − 616 с.</reference>
+          <reference>РОГОВА Н.С., ЮРКЕВИЧ В.Д. Разработка алгоритмов управления для перемещения груза портальным краном // Сборник научных трудов НГТУ. – 2017. − №2 (88). − С. 7–18.</reference>
+          <reference>САБЛИНА Г.В., ХОДАКОВА Д.И. Разработка алго-ритма стабилизации системы «подвешенный груз» // Сборник научных трудов НГТУ. – 2009. − №3(57). − С. 33–40.</reference>
+          <reference>Сайт компании ООО «Зетек»: https://www.servosystem.ru/catalog/servotekhnika_i_servoprivod/ (дата обращения: 25.09.2023).</reference>
+          <reference>ТЕРЕХОВ В.М., ОСИПОВ О.И. Системы управления электроприводов. Учебник для студ. высш. учеб. заведе-ний / Под ред. В.М. Терехова. 2-е изд. − М.: Издатель-ский центр «Академия», 2006. − 304 с.</reference>
+          <reference>ФРАНЦУЗОВА Г.А., ВОСТРИКОВ А.С. Особенности синтеза ПИД-регулятора для нелинейного объекта вто-рого порядка // Автометрия. – 2019. – Т. 55, №4. − С. 57–64.</reference>
+          <reference>ENIN S. OMELCHENKO E., MAKSIMOV I. Crane Anti-Sway Control System Algorithm // IEEE Russian Workshop on Power Engineering and Automation of Metallurgy Indus-try: Research &amp; Practice – 2019 (PEAMI–2019), Magnito-gorsk, Russia. − 2019. − P. 54–58.</reference>
+          <reference>FADLALLA A.A.M., HASSAN M. Dynamic Modeling and Feedback Linearization Control of a 3-D Overhead Gantry Crane System // IEEE Int. IOT, Electronics and Mechatronics Conference – 2021 (IEMTRONICS–2021), Toronto, ON, Canada. – 2021. − P. 1–6.</reference>
+          <reference>HUANG W., ZHANG M., SUN F., ZHANG J. et al. Saturat-ed PD with sliding mode control method for 4-DOF tower crane systems // IEEE Int. Conf. on Real-time Computing and Robotics – 2021 (RCAR–2021), Xining, China. – 2021. – P. 96–100.</reference>
+          <reference>JAAFAR H.I., MOHAMED Z., MOHD SUBHA N.A., HU-SAIN A.R. et al. Efficient control of a nonlinear double-pendulum overhead crane with sensorless payload motion using an improved PSO-tuned PID controller // Journal of Vibration and Control. − 2018. − No 25(4). − P. 907–921.</reference>
+          <reference>KISS B., LEVINE J., MULLHAUPT P. A simple output feed-back PD controller for nonlinear cranes // Proc. of the 39th IEEE Conference on Decision and Control (Cat. No.00CH37187), Sydney, NSW, Australia. – 2000. − Vol. 5. − P. 5097–5101.</reference>
+          <reference>MOHAMED K.T., ABDEL-RAZAK M.H., HARAZ E.H., ATA A.A. Fine tuning of a PID controller with inlet deriva-tive filter using Pareto solution for gantry crane systems // Alexandria Engineering Journal. – 2021. – Vol. 61, No. 9. – P. 6659–6673.</reference>
+          <reference>PAPADOPOULOS A.-A.D., ROMPOKOS A.A., ALEXAN-DRIDIS A.T. Nonlinear and observer-based PD position and sway control of convey-crane systems // 24th Mediterra-nean Conference on Control and Automation – 2016 (MED–2016), Athens, Greece. – 2016. − P. 696–700.</reference>
+          <reference>RAMLI L., MOHAMED Z., ABDULLAHI A.M., JAAFAR H.I. et al. Control strategies for crane systems: A comprehensive review // Mechanical Systems and Signal Processing. – 2017. − Vol. 95. − P. 1–23.</reference>
+          <reference>YANG T., SUN N., CHEN H., FANG Y. Observer-Based Nonlinear Control for Tower Cranes Suffering From Uncer-tain Friction and Actuator Constraints with Experimental Verification // IEEE Trans. on Industrial Electronics. − 2021. − Vol. 68, No. 7. − P. 6192–6204.</reference>
+        </references>
+        <files>
+          <furl>http://ubs.mtas.ru/archive/search_results_new.php?publication_id=23172</furl>
+          <file>UBS10609.pdf</file>
+        </files>
+        <dates>
+          <dateReceived>27.09.2023.</dateReceived>
+        </dates>
+      </article>
+      <article>
+        <pages>271-299</pages>
+        <artType>RAR</artType>
+        <authors>
+          <author num="1">
+            <individInfo lang="RUS">
+              <surname>Крыгин</surname>
+              <initials>Андрей Александрович</initials>
+              <orgName>ФГБУН Институт проблем управления им. В.А. Трапезникова РАН</orgName>
+              <email>andreyakr@yandex.ru</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Krygin</surname>
+              <initials>Andrey</initials>
+              <orgName>V.A. Trapeznikov Institute of Control Sciences of RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+          <author num="2">
+            <individInfo lang="RUS">
+              <surname>Куприянов</surname>
+              <initials>Борис Васильевич</initials>
+              <orgName>ФГБУН Институт проблем управления им. В.А. Трапезникова РАН</orgName>
+              <email>kuprianovb@mail.ru</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Kupriyanov</surname>
+              <initials>Boris</initials>
+              <orgName>V.A. Trapeznikov Institute of Control Sciences of RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+        </authors>
+        <artTitles>
+          <artTitle lang="RUS">Нахождение критических узлов транспортной сети на основе построения замкнутой области</artTitle>
+          <artTitle lang="ENG">Finding critical nodes in a transportation network based on constructing a closed region</artTitle>
+        </artTitles>
+        <abstracts>
+          <abstract lang="RUS">Рассматривается задача поиска критических узлов транспортной сети, решаемая с помощью максимизации обобщенной стоимости проезда, которая зависит от потребности в движении и стоимости поездки между каждой парой узлов сети.  Предлагаемый в работе метод является улучшением полного перебора, основная сложность которого состоит в многократном вычислении матрицы минимальных стоимостей поездок.  Метод заключается в выделении замкнутого в определенном смысле множества вершин исходного графа. Выделение замкнутого множества вершин графа позволяет осуществить  редуцирование графа, декомпозицию соответствующих ему матриц и раздельные вычисления подматриц. Данные преобразования позволили сократить вычисления при переборе вариантов. Построен общий алгоритм нахождения критических узлов и проведена его оптимизация.  Замкнутое множество разделено на внутреннее и граничное подмножества. Показано, что алгоритм работает наиболее быстро при минимальной мощности граничного подмножества и оптимальной мощности внутреннего подмножества, для определения которой предложен соответствующий алгоритм. Также предложен алгоритм построения и расширения замкнутого множества. на его основе построен приближенный алгоритм нахождения оптимального замкнутого множества. Показано, что сложность нахождения оптимального замкнутого множества во много раз меньше сложности улучшенного метода полного перебора.</abstract>
+          <abstract lang="ENG">The problem of finding critical nodes in a transportation network is considered, which is solved by maximizing the generalized cost of travel, which depends on the demand for movement and the cost of travel between each pair of network nodes. The proposed method in the paper is an improvement of exhaustive search, the main difficulty of which lies in the repeated computation of the matrix of minimum travel costs. The method consists of extracting a closed set of vertices from the original graph. The extraction of a closed set of vertices allows for graph reduction, decomposition of the corresponding matrices, and separate computations of sub-matrices. These transformations have helped reduce computations during the search for options. A general algorithm for finding critical nodes has been constructed and optimized. The closed set is divided into an internal and boundary subset. It has been shown that the algorithm works fastest with a minimum size of the boundary subset and an optimal size of the internal subset, for which a corresponding algorithm has been proposed to determine. An algorithm for constructing and expanding the closed set is also proposed, based on which an approximate algorithm for finding the optimal closed set is constructed. It has been shown that the complexity of finding the optimal closed set is much lower than the complexity of the improved exhaustive search method.</abstract>
+        </abstracts>
+        <text lang="RUS">NO TEXT</text>
+        <codes>
+          <udk>338.49</udk>
+          <bbk>39.311</bbk>
+          <doi>10.25728/ubs.2023.106.10</doi>
+        </codes>
+        <keywords>
+          <kwdGroup lang="ANY">
+            <keyword>транспортные сети</keyword>
+            <keyword>поиск критических узлов</keyword>
+            <keyword>transport networks</keyword>
+            <keyword>critical object search</keyword>
+          </kwdGroup>
+        </keywords>
+        <references>
+          <reference>КРЫГИН А.А., КУПРИЯНОВ Б.В. Определение крити-ческих узлов транспортной сети. – М.: Изд-во «УБС»,2023. – 24 c.</reference>
+          <reference>ЛИПСКИЙ В. Комбинаторика для программистов. – М.:«Мир», 1988.</reference>
+          <reference>ПАПАДИМИТРИУ Х.X., СТАЙГЛИЦ К. Комбинаторнаяоптимизация. Алгоритмы и сложность. – М.: «Мир»,1982. –512 с.</reference>
+          <reference>BELL M.G.H., CASSIR C. Reliability of Transport Networks. –Baldock, Herts: Research Studies Press, 2000.</reference>
+          <reference>BELL M.G.H., IIDA Y. Transportation Network Analysis. –Chichester: John Wiley and Sons, 1997.</reference>
+          <reference>BI Y.C., WILLIAM H.K., LAM A.S., QINGQUAN L. ETAL. Vulnerability analysis for large-scale and congested roadnetworks with demand uncertainty // Transportation ResearchPart A: Policy and Practice. – 2012. – Vol. 46, Iss. 3. – P.501–516. – DOI: https://doi.org/10.1016/j.tra.2011.11.018. –URL: https://www.sciencedirect.com/science/article/pii/S096585641100187X).</reference>
+          <reference>D’ESTE G.M., TAYLOR M.A.P. Modelling networkvulnerability at the level of the national strategic transportnetwork // Journal of the Eastern Asia Society forTransportation Studies. –2001. Vol. 4(2). – P. 1–14.</reference>
+          <reference>D’ESTE G.M., TAYLOR M.A.P. Network vulnerability: anapproach to reliability analysis at the level of national strategictransport networks // In: The Network Reliability of Transport /Eds.: Y. Iida, M.G.H. Bell. – Oxford: Pergamon-Elsevier,2003. – P. 23–44.</reference>
+          <reference>ESFEH M.A., KATTAN L., WILLIAM H.K., LAM M.S.ET AL. Road network vulnerability analysis consideringthe probability and consequence of disruptive events:A spatiotemporal incident impact approach // TransportationResearch Part C: Emerging Technologies. – 2021. – Vol. 136. –297Управление большими системами. Выпуск 106103549 – DOI: https://doi.org/10.1016/j.trc.2021.103549. –URL: https://www.sciencedirect.com/science/article/pii/S0968090X21005313.</reference>
+          <reference>GUZE S. Graph Theory Approach to the Vulnerability ofTransportation Networks // Algorithms. – 2019. – Vol. 12(12). –P. 270.</reference>
+          <reference>JENELIUS E., PETERSEN T., MATTSSON L.G.Importance and exposure in road network vulnerabilityanalysis // Transportation Research Part A: Policy andPractice. – 2006. – Vol. 40, Iss. 7. – P. 537–560. –DOI: https://doi.org/10.1016/j.tra.2005.11.003. – URL: https://www.sciencedirect.com/science/article/pii/ S096585640500162X .</reference>
+          <reference>JENELIUS E., PETERSEN T., MATTSSON L-G. Importanceand exposure in road network vulnerability analysis //Transportation Research Part A Policy and Practice. – February2006. – Vol. 40(7). – P. 537–560.</reference>
+          <reference>NEUMANN T., BEHRISCH M. Terminal reliability of roadnetworks with multiple destination options // Int. J. of Safetyand Security Eng. – 2018. – Vol. 8, No. 3. – P. 426–437.</reference>
+          <reference>SUGIURA S., KURAUCHI F. Isolation vulnerabilityanalysis in road network: Edge connectivity andcritical link sets // Transportation Research Part D:Transport and Environment. – 2023. – Vol. 119. –P. 103768. – DOI: https://doi.org/10.1016/j.trd.2023.103768. –URL: https://www.sciencedirect.com/science/article/pii/S1361920923001657.</reference>
+          <reference>VIVEK S., CONNER H. Urban road networkvulnerability and resilience to large-scale attacks //Safety Science. – 2022. – Vol. 147. – P. 105575. – DOI:https://doi.org/10.1016/j.ssci.2021.105575. – URL: https://www.sciencedirect.com/science/article/pii/S0925753521004173.</reference>
+          <reference>WANG S., CHEN C., ZHANG J., GU X., HUANG X.Vulnerability assessment of urban road traffic systems basedon traffic flow // Int. Journal of Critical Infrastructure298Управление техническими системами и технологическими процессамиProtection. – 2022. – Vol. 38. – P. 100536. – DOI:https://doi.org/10.1016/j.ijcip.2022.100536. – URL: https://www.sciencedirect.com/science/article/pii/S1874548222000269.</reference>
+        </references>
+        <files>
+          <furl>http://ubs.mtas.ru/archive/search_results_new.php?publication_id=23173</furl>
+          <file>UBS10610.pdf</file>
+        </files>
+        <dates>
+          <dateReceived>27.07.2023.</dateReceived>
+        </dates>
+      </article>
+      <article>
+        <pages>300-313</pages>
+        <artType>RAR</artType>
+        <authors>
+          <author num="1">
+            <individInfo lang="RUS">
+              <surname>Матюшенко</surname>
+              <initials>Сергей Иванович</initials>
+              <orgName>Российский университет дружбы народов</orgName>
+              <email>matyushenko-si@rudn.ru</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Matyushenko</surname>
+              <initials>Sergey</initials>
+              <orgName>Peoples’ Friendship University of Russia (RUDN University)</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+          <author num="2">
+            <individInfo lang="RUS">
+              <surname>Самуйлов</surname>
+              <initials>Константин Евгеньевич</initials>
+              <orgName>Российский университет дружбы народов, Москва; Институт проблем информатики Федерального исследовательского центра "Информатика и управление" РАН</orgName>
+              <email>samuylov-ke@rudn.ru</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Samouylov</surname>
+              <initials>Konstantin</initials>
+              <orgName>Peoples’ Friendship University of Russia (RUDN University), Moscow; Federal Research Center “Computer Science and Control” of the RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+        </authors>
+        <artTitles>
+          <artTitle lang="RUS">Преобразование лапласа – стилтьеса пикового возраста информации для случая, когда передача пакетов моделируется смо ph|ph|1|r с дисциплиной fcfs</artTitle>
+          <artTitle lang="ENG">Laplace -- stieltjes transform of the peak age of information for the case when packet transmission is modeled by a ph|ph|1|r queueing system with fcfs discipline</artTitle>
+        </artTitles>
+        <abstracts>
+          <abstract lang="RUS">На примере системы массового обслуживания PH|PH|1|r получено преобразование Лапласа -- Стилтьеса пикового возраста информации (Peak Age of Information, PAoI) -- метрики, используемой в системах сотовой связи пятого поколения (5G) для мониторинга и управления удаленными системами со стороны центра управления. Метрика является функцией времени между генерациями обновлений в источнике и задержкой при доставке их по сети и предполагает, что только своевременно полученные обновления могут отражать текущее состояние системы. При теоретическом анализе технических систем передачи информации приходится учитывать, что метрика возраста информации значительно отличается от задержки, оцениваемой в моменты времени, когда пакет достигает пункта назначения, в то время как новая метрика PAoI определена для произвольного момента времени, что существенно усложняет ее анализ. Для проверки корректности полученных аналитических выражений проведено их сравнение с частным случаем СМО M|M|1|1, а также с результатами имитационного моделирования СМО с распределением фазового типа.</abstract>
+          <abstract lang="ENG">This work is devoted to the analysis of Peak Age of Information (PAoI) -- the metric used in 5G mobile cellular communications for remote groups monitoring and mamgement at the control center. Currently, in the operation of the queuing system PH|PH|1|r, the Laplace -- Stieltjes transform of the PAoI has been obtained. The PAoI presents the time between the generation of updates at the source and the delay in their delivery across the network and assumes that only timely received updates can reflect the current state of the system. When analyzing technical information transmission systems, it should be taken into account that the PAoI metric is significantly different from the delay measured at the time instants when the packet reaches its destination. The new PAoI metric is defined for an alternative time, that complicates its analysis. To check the correctness of the analytical results, they were compared with special cases of the queueing system M|M|1|1, as well as with the results of a simulation analysis of the queueing system with distributed cases of phase type.</abstract>
+        </abstracts>
+        <text lang="RUS">NO TEXT</text>
+        <codes>
+          <udk>519.872</udk>
+          <bbk>22.18</bbk>
+          <doi>10.25728/ubs.2023.106.11</doi>
+        </codes>
+        <keywords>
+          <kwdGroup lang="ANY">
+            <keyword>возраст информации</keyword>
+            <keyword>пиковый возраст информации</keyword>
+            <keyword>распределение фазового типа</keyword>
+            <keyword>AoI</keyword>
+            <keyword>age of information</keyword>
+            <keyword>peak age of information</keyword>
+            <keyword>PH-distribution</keyword>
+          </kwdGroup>
+        </keywords>
+        <references>
+          <reference>БОЧАРОВ П.П., ПЕЧИНКИН А.В. Теория массового обслу-живания. – М.: Изд-во РУДН, 1995. – 529 c.</reference>
+          <reference>ВИШНЕВСКИЙ В.М., КЛИМЕНОК В.И., ЛАРИО-НОВ А.А., МУХТАРОВ А.А., СОКОЛОВ А.М. Иссле-дование характеристик приоритетной мультисервиснойсистемы MMAP/PH/M/N с использованием методаМонте-Карло // Управление большими системами. – 2023. –№103. – С. 6–39.</reference>
+          <reference>ВИШНЕВСКИЙ В.М., СЕМЁНОВА О.В. Системы поллин-га: теория и применение в широкополосных беспроводныхсетях. – М.: Техносфера, 2007. – 312 c.</reference>
+          <reference>ГУБАНОВ Д.А., НОВИКОВ Д.А. Модели совместной дина-мики мнений и действий в онлайновых социальных сетях.Ч. 1. Исходные данные и первичный анализ // Проблемыуправления. – 2023. – №2. – С. 37–53.</reference>
+          <reference>KAUL S., GRUTESER M., RAI V., KENNEY J. Minimizingage of information in vehicular networks // Proc. of the 20118th Annual IEEE communications society conference on sensor,mesh and ad hoc communications and networks. IEEE. –2011. – P. 350–358.</reference>
+          <reference>KOSTA A., PAPPAS N., AGELAKIS V. Age of Information:A New Concept, Metrics and Tools // Foundations and Trendsin Networking. – 2017. – Vol. 12, No. 3. – P. 162–259. – DOI:10.1561/1300000060.</reference>
+          <reference>SULTAN A.Ultra Reliable and Low Latency Communications /3GPP, 2023. – URL: https://www.3gpp.org/technologies/urlcc-2022 (дата обращения: 18.10.2023).</reference>
+          <reference>ZHBANKOVA E., MANAEVA V., MARKOVA E.,GAIDAMAKA YU. The Age of Information in WirelessCellular Systems: Gaps, Open Problems, and ResearchChallenges // Sensors. – 2023. – Vol. 23, No. 19. – P. 8238. –DOI: 10.3390/s23198238.</reference>
+        </references>
+        <files>
+          <furl>http://ubs.mtas.ru/archive/search_results_new.php?publication_id=23174</furl>
+          <file>UBS10611.pdf</file>
+        </files>
+        <dates>
+          <dateReceived>22.11.2023.</dateReceived>
+        </dates>
+      </article>
+    </articles>
+  </issue>
+</journal>

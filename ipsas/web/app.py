@@ -37,10 +37,12 @@ def create_app() -> Flask:
     from ipsas.web.routes import main_bp, admin_bp
     from ipsas.web.auth import auth_bp
     from ipsas.web.xml_validation import xml_validation_bp
+    from ipsas.web.reference_processing import reference_processing_bp
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(admin_bp, url_prefix="/admin")
     app.register_blueprint(xml_validation_bp, url_prefix="/services")
+    app.register_blueprint(reference_processing_bp, url_prefix="/services")
 
     # Инициализация базы данных
     from ipsas.models.user import init_db

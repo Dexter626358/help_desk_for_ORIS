@@ -90,6 +90,50 @@
             color: #fff;
         }
 
+        .sidebar-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar-group-title {
+            color: var(--muted);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+            padding: 0 1rem;
+        }
+
+        .sidebar-group-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-group-menu li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-group-menu a {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: var(--text);
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .sidebar-group-menu a:hover {
+            background-color: #f0f0f0;
+            color: var(--primary);
+        }
+
+        .sidebar-group-menu a.active,
+        .sidebar-group-menu a[aria-current="page"] {
+            background-color: var(--primary);
+            color: #fff;
+        }
+
         .content-wrapper {
             flex: 1;
             overflow-y: auto;
@@ -324,19 +368,47 @@
         {% if current_user.is_authenticated %}
             <aside class="sidebar" role="complementary" aria-label="Сервисы">
                 <h3>Сервисы</h3>
-                <ul class="sidebar-menu">
-                    {% set xml_active = request.endpoint in [
-                        'xml_validation.xml_validator_page',
-                        'xml_validation.validate_xml'
-                    ] %}
-                    <li>
-                        <a href="{{ url_for('xml_validation.xml_validator_page') }}"
-                           class="{{ 'active' if xml_active else '' }}"
-                           {{ 'aria-current="page"' if xml_active else '' }}>
-                            Валидация XML
-                        </a>
-                    </li>
-                </ul>
+                
+                <div class="sidebar-group">
+                    <div class="sidebar-group-title">Обработка XML</div>
+                    <ul class="sidebar-group-menu">
+                        {% set xml_active = request.endpoint in [
+                            'xml_validation.xml_validator_page',
+                            'xml_validation.validate_xml'
+                        ] %}
+                        <li>
+                            <a href="{{ url_for('xml_validation.xml_validator_page') }}"
+                               class="{{ 'active' if xml_active else '' }}"
+                               {{ 'aria-current="page"' if xml_active else '' }}>
+                                Валидация XML
+                            </a>
+                        </li>
+                        {% set ref_active = request.endpoint in [
+                            'reference_processing.reference_processing_page',
+                            'reference_processing.process_references',
+                            'reference_processing.download_processed_file'
+                        ] %}
+                        <li>
+                            <a href="{{ url_for('reference_processing.reference_processing_page') }}"
+                               class="{{ 'active' if ref_active else '' }}"
+                               {{ 'aria-current="page"' if ref_active else '' }}>
+                                Удаление нумерации источников
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="sidebar-group">
+                    <ul class="sidebar-group-menu">
+                        <li>
+                            <a href="https://parseeditorialboard-production.up.railway.app"
+                               target="_blank"
+                               rel="noopener noreferrer">
+                                Обработка ред коллегии
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </aside>
         {% endif %}
 

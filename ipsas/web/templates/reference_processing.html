@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Удаление нумерации источников - IPSAS{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="margin-bottom: 2rem; color: #667eea;">Удаление нумерации источников</h1>
+    
+    <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem;">
+        <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.2rem;">Описание сервиса</h2>
+        <p style="color: #666; line-height: 1.6;">
+            Этот сервис обрабатывает XML файл и удаляет нумерацию из элементов <code>&lt;reference&gt;</code>.
+            Если источники литературы пронумерованы (например, "1. АНТИПОВ..."), нумерация будет удалена,
+            а сами источники останутся без изменений.
+        </p>
+        <div style="margin-top: 1rem; padding: 1rem; background-color: #e7f3ff; border-left: 4px solid #2196F3; border-radius: 4px;">
+            <strong>Пример:</strong>
+            <pre style="margin: 0.5rem 0; font-size: 0.9rem; color: #333;">
+&lt;reference&gt;1. АНТИПОВ А.С., КРАСНОВ Д.В. Синтез системы...&lt;/reference&gt;
+            </pre>
+            <p style="margin: 0.5rem 0 0 0; color: #666; font-size: 0.9rem;">
+                Будет преобразовано в:
+            </p>
+            <pre style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: #333;">
+&lt;reference&gt;АНТИПОВ А.С., КРАСНОВ Д.В. Синтез системы...&lt;/reference&gt;
+            </pre>
+        </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('reference_processing.process_references') }}" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="xml_file">Выберите XML файл *</label>
+            <input 
+                type="file" 
+                id="xml_file" 
+                name="xml_file" 
+                accept=".xml"
+                required
+                style="padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px; width: 100%;"
+            >
+            <small style="color: #666; display: block; margin-top: 0.5rem;">
+                Поддерживаются только файлы с расширением .xml
+            </small>
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary">
+                Обработать файл
+            </button>
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">
+                Назад
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

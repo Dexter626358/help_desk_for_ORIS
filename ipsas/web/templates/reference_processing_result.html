@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Результат обработки - IPSAS{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="margin-bottom: 2rem; color: #667eea;">Результат обработки файла</h1>
+    
+    {% if result.success %}
+    <div style="background-color: #d4edda; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem; border-left: 4px solid #28a745;">
+        <h2 style="margin-bottom: 1rem; color: #155724; font-size: 1.2rem;">
+            ✓ Обработка завершена успешно
+        </h2>
+        <div style="color: #155724;">
+            <p style="margin-bottom: 0.5rem;"><strong>Исходный файл:</strong> {{ filename }}</p>
+            <p style="margin-bottom: 0.5rem;"><strong>Обработано элементов:</strong> {{ processed_count }}</p>
+            {% if processed_count > 0 %}
+            <p style="margin-bottom: 0.5rem; color: #0c5460;">
+                Из элементов <code>&lt;reference&gt;</code> была удалена нумерация.
+            </p>
+            {% else %}
+            <p style="margin-bottom: 0.5rem; color: #0c5460;">
+                В файле не найдено элементов <code>&lt;reference&gt;</code> с нумерацией.
+            </p>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if result.output_path %}
+    <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem;">
+        <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.2rem;">Обработанный файл</h2>
+        <p style="color: #666; margin-bottom: 1rem;">
+            Обработанный файл сохранен. Вы можете скачать его по ссылке ниже.
+        </p>
+        <a href="{{ url_for('reference_processing.download_processed_file', filename=result.output_path.name) }}" 
+           class="btn btn-primary">
+            Скачать обработанный файл
+        </a>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div style="background-color: #f8d7da; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem; border-left: 4px solid #dc3545;">
+        <h2 style="margin-bottom: 1rem; color: #721c24; font-size: 1.2rem;">
+            ✗ Ошибка при обработке
+        </h2>
+        <p style="color: #721c24;">
+            {{ result.error }}
+        </p>
+    </div>
+    {% endif %}
+
+    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+        <a href="{{ url_for('reference_processing.reference_processing_page') }}" class="btn btn-primary">
+            Обработать другой файл
+        </a>
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">
+            На главную
+        </a>
+    </div>
+</div>
+{% endblock %}
+

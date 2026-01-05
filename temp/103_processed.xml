@@ -1,0 +1,814 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<journal>
+  <operCard>
+    <operator>ИПУ РАН|Губко М.В.</operator>
+    <date>2023-06-22 12:38:42</date>
+    <cntArticle>8</cntArticle>
+  </operCard>
+  <issn>1819-2440</issn>
+  <eissn>1819-2467</eissn>
+  <titleid>10618</titleid>
+  <journalInfo lang="RUS">
+    <title>Управление большими системами</title>
+    <abbrTitle>УБС</abbrTitle>
+    <publ>Институт проблем управления им. В.А. Трапезникова РАН</publ>
+    <placePubl>Москва</placePubl>
+    <address>117997, г. Москва, ул. Профсоюзная, д. 65.</address>
+  </journalInfo>
+  <journalInfo lang="ENG">
+    <title>Large-scale Systems Control</title>
+    <abbrTitle>LSSC</abbrTitle>
+  </journalInfo>
+  <issue>
+    <number>103</number>
+    <dateUni>202303</dateUni>
+    <pages>1–113</pages>
+    <articles>
+      <section>
+        <secTitle lang="RUS">Системный анализ</secTitle>
+      </section>
+      <article>
+        <pages>6-39</pages>
+        <artType>RAR</artType>
+        <authors>
+          <author num="1">
+            <individInfo lang="RUS">
+              <surname>Вишневский</surname>
+              <initials>Владимир Миронович</initials>
+              <orgName>ФГБУН Институт проблем управления им. В.А. Трапезникова РАН</orgName>
+              <email>vishn@inbox.ru</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Vishnevsky</surname>
+              <initials>Vladimir</initials>
+              <orgName>V.A. Trapeznikov Institute of Control Sciences of RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+          <author num="2">
+            <individInfo lang="RUS">
+              <surname>Клименок</surname>
+              <initials>Валентина Ивановна</initials>
+              <orgName>Белорусский государственный университет</orgName>
+              <email>klimenok@bsu.by</email>
+              <address>Минск</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Klimenok</surname>
+              <initials>Valentina</initials>
+              <orgName>Belarusian State University</orgName>
+              <address>Minsk</address>
+            </individInfo>
+          </author>
+          <author num="3">
+            <individInfo lang="RUS">
+              <surname>Ларионов</surname>
+              <initials>Андрей Алексеевич</initials>
+              <orgName>ФГБУН Институт проблем управления им. В.А. Трапезникова РАН</orgName>
+              <email>larioandr@gmail.com</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Larionov</surname>
+              <initials>Andrey</initials>
+              <orgName>V.A. Trapeznikov Institute of Control Sciences of RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+          <author num="4">
+            <individInfo lang="RUS">
+              <surname>Мухтаров</surname>
+              <initials>Амир Амангельдыевич</initials>
+              <orgName>ФГБУН Институт проблем управления им. В.А. Трапезникова РАН</orgName>
+              <email>mukhtarov.amir.a@gmail.com</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Mukhtarov</surname>
+              <initials>Amir</initials>
+              <orgName>V.A. Trapeznikov Institute of Control Sciences of RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+          <author num="5">
+            <individInfo lang="RUS">
+              <surname>Соколов</surname>
+              <initials>Александр Михайлович</initials>
+              <orgName>ФГБУН Институт проблем управления им. В.А. Трапезникова РАН</orgName>
+              <email>aleksandr.sokolov@phystech.edu</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Sokolov</surname>
+              <initials>Aleksandr</initials>
+              <orgName>V.A. Trapeznikov Institute of Control Sciences of RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+        </authors>
+        <artTitles>
+          <artTitle lang="RUS">Исследование характеристик приоритетной мультисервисной системы MMAP/PH/M/N с использованием метода Монте-Карло</artTitle>
+          <artTitle lang="ENG">Perforamnce evaluation of the priority multi-service system mmap/ph/m/n using the monte carlo method</artTitle>
+        </artTitles>
+        <abstracts>
+          <abstract lang="RUS">Представлены результаты исследования приоритетной многолинейной системы массового обслуживания (СМО) с маркированным марковским входным потоком (MMAP), обслуживанием фазового типа PH и очередью конечной ёмкости. Приоритетные классы трафика различаются вероятностью присоединения к очереди, зависящей от количества заявок в ней, и PH-распределением времени обслуживания. Если очередь заполнена, заявка не присоединяется к~системе. Для частного случая такой СМО с двумя классами трафика разработана и исследована аналитическая модель, а также предложен алгоритм вычисления стационарных вероятностей состояния системы, вероятностей потерь, среднего числа заявок в системе и других характеристик. Для общего случая системы с K-классами построена имитационная модель, исследованы характеристики системы.</abstract>
+          <abstract lang="ENG">In this paper, we present the results of a study of a priority multiline queuing system with a marked Markov arrival process (MMAP), phase-type service time (PH), and a buffer with finite capacity. Priority traffic classes differ in the probability of joining the queue, which depends on the number of customers in buffer, and in the service time PH distribution. If the buffer is full, customers don't join the system. An analytical model has been developed and studied for a particular case of a queueing system with two priority classes. We present an algorithm for calculating stationary probabilities of the system state, loss probabilities, the average number of customers in the queue, and other performance characteristics for this particular case. For the general case of a system with K-classes, a simulation model is constructed, with the help of which various characteristics of the system are studied.</abstract>
+        </abstracts>
+        <text lang="RUS">NO TEXT</text>
+        <codes>
+          <udk>519.6</udk>
+          <bbk>22.171</bbk>
+          <doi>10.25728/ubs.2023.103.1</doi>
+        </codes>
+        <keywords>
+          <kwdGroup lang="ANY">
+            <keyword>многолинейная система массового обслуживания</keyword>
+            <keyword>метод Монте-Карло</keyword>
+            <keyword>стационарный режим</keyword>
+            <keyword>multiservice queueing systems</keyword>
+            <keyword>Monte Carlo method</keyword>
+            <keyword>stationary mode</keyword>
+          </kwdGroup>
+        </keywords>
+        <references>
+          <reference>AKAN M. et al. A broader view of designing the liver allocationsystem // Oper. Res. – 2012. – Vol. 60, No. 4. – P. 757–770.</reference>
+          <reference>AWAN I., YOUNAS M., NAVEED W. Modelling QoS in IoTapplications // Proc. 2014 Int. Conf. Network-Based Inf. Syst.NBiS-2014. – 2014. – P. 99–105.</reference>
+          <reference>BOCHAROV P.P., D’APICE C., PECHINKIN A.V. QueueingTheory. – Berlin, Boston: De Gruyter, 2003.</reference>
+          <reference>DUDIN A.N., KLIMENOK V.I., VISHNEVSKY V.M. Thetheory of queuing systems with correlated flows. // SpringerPublishing Company, Inc., 2019. – Iss. 1. – P. 1–410.</reference>
+          <reference>DUDIN S. et al. Improvement of the fairness of non-preemptivepriorities in the transmission of heterogeneous traffic //Mathematics. – 2020. – Vol. 8, No. 6.</reference>
+          <reference>DUDINA O., KIM C., DUDIN S. Retrial queuing systemwith Markovian arrival flow and phase-type service timedistribution // Comput. Ind. Eng. – 2013. – Vol. 66, No. 2. –P. 360–373.</reference>
+          <reference>EMARA M., ELSAWY H., BAUCH G. PrioritizedMultistream Traffic in Uplink IoT Networks: SpatiallyInteracting Vacation Queues // IEEE Internet of ThingsJournal. – 2021. – Vol. 8(3). – P. 1477–1491. – DOI:https://doi.org/10.1109/JIOT.2020.3012515.</reference>
+          <reference>GRAHAM A. Kronecker Products and Matrix Calculus withApplications. – Courier Dover Publications, 2018.</reference>
+          <reference>HE Q.M., XIE J., ZHAO X. Priority queue with customerupgrades // Nav. Res. Logist. – 2012. – Vol. 59, No. 5. –P. 362–375.</reference>
+          <reference>HORVATH G. Efficient analysis of the queue length moments ofthe MMAP/MAP/1 preemptive priority queue // Perform. Eval. –2012. – Vol. 69, No. 12. – P. 684–700.</reference>
+          <reference>HEYMAN D.P., LUCANTONI D. Modeling Multiple IP TrafficStreams with Rate Limits // IEEE/ACM Trans. Netw. – 2003. –Vol. 11, No. 6. – P. 948–958.</reference>
+          <reference>JOHNSON M.A., TAAFFE M.R. Matching moments to phasedistributions: Mixtures of erlang distributions of commonorder // Commun. Stat. Stoch. Model. – 1989. – Vol. 5, No. 4. –P. 711–743.</reference>
+          <reference>KLIMENOK V. et al. Queuing system with two types ofcustomers and dynamic change of a priority // Mathematics. –2020. – Vol. 8, No. 5.</reference>
+          <reference>KLIMENOK V., DUDIN A., VISHNEVSKY V. Prioritymulti-server queueing system with heterogeneous customers //Mathematics. – 2020. – Vol. 8, No. 9.</reference>
+          <reference>KLIMENOK V. et al. Lack of invariant property of the erlangloss model in case of MAP input // Queueing Syst. – 2005. –Vol. 49, No. 2. – P. 187–213.</reference>
+          <reference>LUCANTONI D.M. New results on the single server queuewith a batch markovian arrival process // Commun. Stat. Stoch.Model. – 1991. – Vol. 7, No. 1. – P. 1–46.</reference>
+          <reference>NEUTS M.F. Matrix-Geometric Solutions to StochasticModels // DGOR / Eds: H. Steckhan et al. – Berlin, Heidelberg:Springer Berlin Heidelberg, 1984. – P. 425.</reference>
+          <reference>LUCANTONI D.M. Algorithms for the Multi-Server Queuewith Phase Type Service // Commun. Stat. Stoch. Model. –1985. – Vol. 1, No. 3. – P. 393–417.</reference>
+          <reference>MCWHERTER D.T. et al. Priority mechanisms for OLTP andtransactional Web applications // Proc. Int. Conf. Data Eng. –2004. – Vol. 20. – P. 535–546.</reference>
+          <reference>MURALIDHARAN S., ROY A., SAXENA N. MDP-IoT: MDPbased interest forwarding for heterogeneous traffic in IoT-NDNenvironment // Futur. Gener. Comput. Syst. – 2018. – Vol. 79. –P. 892–908.</reference>
+          <reference>RAMASWAMI V. Independent Markov Processes in Parallel //Commun. Stat. Stoch. Model. – 1985. – Vol. 1, No. 3. –P. 419–432.</reference>
+          <reference>TACHIBANA T., FURUICHI T., MINENO H. Implementingand evaluating priority control mechanism for heterogeneousremote monitoring IOT system // ACM Int. Conf. ProceedingSer. – 2016. – Vol. 28 – November. – P. 239–244.</reference>
+        </references>
+        <files>
+          <furl>http://ubs.mtas.ru/archive/search_results_new.php?publication_id=23099</furl>
+          <file>UBS10301.pdf</file>
+        </files>
+        <dates>
+          <dateReceived>17.04.2023.</dateReceived>
+        </dates>
+      </article>
+      <article>
+        <pages>40-77</pages>
+        <artType>RAR</artType>
+        <authors>
+          <author num="1">
+            <individInfo lang="RUS">
+              <surname>Корепанов</surname>
+              <initials>Всеволод Олегович</initials>
+              <orgName>ФГБУН Институт проблем управления им. В.А. Трапезникова РАН</orgName>
+              <email>vkorepanov@ipu.ru</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Korepanov</surname>
+              <initials>Vsevolod</initials>
+              <orgName>V.A. Trapeznikov Institute of Control Sciences of RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+          <author num="2">
+            <individInfo lang="RUS">
+              <surname>Чхартишвили</surname>
+              <initials>Александр Гедеванович</initials>
+              <orgName>ФГБУН Институт проблем управления им. В.А. Трапезникова РАН</orgName>
+              <email>sandro_ch@mail.ru</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Chkhartishvili</surname>
+              <initials>Alexander</initials>
+              <orgName>V.A. Trapeznikov Institute of Control Sciences of RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+          <author num="3">
+            <individInfo lang="RUS">
+              <surname>Шумов</surname>
+              <initials>Владислав Вячеславович</initials>
+              <orgName>Международный научно-исследовательский институт проблем управления</orgName>
+              <email>v.v.shumov@yandex.ru</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Shumov</surname>
+              <initials>Vladislav</initials>
+              <orgName>International Research Institute for Advanced Systems</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+        </authors>
+        <artTitles>
+          <artTitle lang="RUS">Базовые модели боевых действий</artTitle>
+          <artTitle lang="ENG">Basic combat models</artTitle>
+        </artTitles>
+        <abstracts>
+          <abstract lang="RUS">Представлены три подхода к описанию боевых действий и результаты их моделирования: теоретико-игровые модели оптимального распределения сил и средств сторон по направлениям и эшелонам (задачам) в тактических моделях встречного боя, наступления и обороны; расширение моделей динамики боевых действий Осипова – Ланчестера; имитационные модели боя подразделений. В качестве показателя эффективности боевых действий предложено использовать вероятностную функцию победы одной из сторон, зависящую от их численностей и боевого превосходства одной из сторон. Теоретико-игровые модели «наступление–оборона» (встречный бой) решаются в два этапа. На первом этапе по одному из трех критериев (прорыв слабейшего пункта, прорыв хотя бы одного пункта, средневзвешенная вероятность прорыва с учетом ценности пунктов) находятся оптимальные распределения сил и средств сторон по пунктам (по фронту) и значения игры. На втором этапе по двум критериям находятся оптимальные распределения сил и средств между тактическими задачами (эшелонами) в предположении, что при решении ближайшей задачи стороны руководствуются критерием прорыва слабейшего пункта обороны. Также приведена формулировка задачи маскировки с использованием подхода рефлексивных игр. В последнем разделе предложен алгоритм с дискретным временем для моделирования боя подразделений. Предложено учитывать характеристики места боя, динамику положения боевых единиц сторон, типы единиц (от которых зависит средняя скорость единиц, дальность обнаружения и эффективного поражения), БЛА, угол обстрела, влияние маскировки. Для проверки предложенного алгоритма построена имитационная модель встречного боя, с помощью которой получены зависимости победы одной стороны от параметра решительности. Обсуждаются перспективы подходов.</abstract>
+          <abstract lang="ENG">The paper presents three approaches to the description of combat operations and the modeling results: game-theoretic models of the optimal distribution of forces and means of the parties in directions and echelons (tasks) in tactical models of oncoming combat offensive and defense; expansion of the Osipov-Lanchester models of the dynamics of combat operations; simulation models of combat units. As an indicator of the effectiveness of combat operations, it is proposed to use the probability function of the victory of one of the parties, depending on their numbers and the combat superiority of one of the parties. Game-theoretic models of "offensive-defense" (oncoming combat) are solved in two stages. At the first stage, according to one of the three criteria (breakthrough of the weakest point, breakthrough of at least one point, weighted average probability of a breakthrough taking into account the value of the points), the optimal distribution of the forces and means of the parties by points (along the front) and the value of the game are found. At the second stage, according to two criteria, the optimal distribution of forces and means between tactical tasks (echelons) is found under the assumption that when solving the immediate task, the parties are guided by the criterion of breaking through the weakest point of defense. The formulation of the masking problem using the approach of reflexive games is also given. The last section proposes a discrete-time algorithm for simulating units combat. It is proposed to take into account the characteristics of the battlefield, the dynamics of the position of combat units of the parties, the types of units (which determine the average speed of units, the range of detection and effective defeat), UAVs, the angle of fire, the effect of camouflage. To test the proposed algorithm, a simulation model of an oncoming battle was built, with the help of which the dependencies of the victory of one side on the decisiveness parameter were obtained. The perspectives of the approaches are discussed.</abstract>
+        </abstracts>
+        <text lang="RUS">NO TEXT</text>
+        <codes>
+          <udk>519.8</udk>
+          <bbk>22.18</bbk>
+          <doi>10.25728/ubs.2023.103.2</doi>
+        </codes>
+        <keywords>
+          <kwdGroup lang="ANY">
+            <keyword>боевые действия</keyword>
+            <keyword>модели наступления-обороны</keyword>
+            <keyword>распределение сил и средств</keyword>
+            <keyword>теория игр</keyword>
+            <keyword>динамика боевых действий</keyword>
+            <keyword>имитационная модель</keyword>
+            <keyword>функция победы</keyword>
+            <keyword>бой подразделений</keyword>
+            <keyword>маскировка</keyword>
+            <keyword>рефлексивные игры.</keyword>
+            <keyword>combat operations</keyword>
+            <keyword>offensive-defense models</keyword>
+            <keyword>distribution of forces and resources</keyword>
+            <keyword>game theory</keyword>
+            <keyword>dynamics of combat operations</keyword>
+            <keyword>simulation model</keyword>
+            <keyword>victory function</keyword>
+            <keyword>units combat</keyword>
+            <keyword>camouflage</keyword>
+            <keyword>reflexive games</keyword>
+          </kwdGroup>
+        </keywords>
+        <references>
+          <reference>Боевая способность. – URL: https://encyclopedia.mil.ru/encyclopedia/dictionary/details.htm?id=3465@morfDictionary (дата обращения: 10.08.2022).</reference>
+          <reference>Боевые действия. –URL: https://encyclopedia.mil.ru/encyclopedia/dictionary/details.htm?id=3555@morfDictionary (дата обращения: 10.08.2022).</reference>
+          <reference>ВАСИН А.А., КРАСНОЩЕКОВ П.С., МОРОЗОВ В.В. Исследование операций : учебное пособие. – М.: Акаде-мия, 2008. – 464 с.</reference>
+          <reference>ВАСИН А.А., МОРОЗОВ В.В. Теория игр и модели ма-тематической экономики : учебное пособие. – М.: Макс-Пресс, 2005. – 272 с.</reference>
+          <reference>Великая Отечественная война 1941–1945 гг. Кампании и стратегические операции в цифрах. В 2 томах. – М.: Объединенная редакция МВД России, 2010. Том I. – 608 с.; Том II. – 784 с.</reference>
+          <reference>ГЕРМЕЙЕР Ю.Б. Введение в теорию исследования опе-раций. – М.: Наука, 1971. – 384 с.</reference>
+          <reference>ГОЛОВИН Н.Н. Исследование боя. Исследование дея-тельности и свойств человека как бойца. Книга 2. Ста-тьи и письма. – М.: ВАГШ, 1995. – 303 с.</reference>
+          <reference>Закон поражения объекта (цели). – URL: https://encyclopedia.mil.ru/encyclopedia/dictionary/details.htm?id=13098@morfDictionary (дата обраще-ния: 10.08.2022).</reference>
+          <reference>КОЛМОГОРОВ А.Н. Число попаданий при нескольких выстрелах и общие принципы оценки эффективности системы стрельбы // Тр. Матем. ин-та им. В. А. Стекло-ва. – 1945. – Т. 12. – С. 7–25.</reference>
+          <reference>КОРЕПАНОВ В.О., НОВИКОВ Д.А. Задача о диффузной бомбе // Проблемы управления. – 2011. – №5. – С. 66–73.</reference>
+          <reference>КОРЕПАНОВ В.О., ЧХАРТИШВИЛИ А.Г., ШУМОВ В.В. Теоретико-игровые и рефлексивные модели боевых дей-ствий // Компьютерные исследования и моделирование. – 2022. – Т. 14, №1. – С. 179–203.</reference>
+          <reference>КОРОЛЁВ А.Ю., КОРОЛЁВА А.А., ЯКОВЛЕВ А.Д. Мас-кировка вооружения, техники и объектов. – СПб: Уни-верситет ИТМО, 2015. – 155 с.</reference>
+          <reference>НОВИКОВ Д.А. Иерархические модели военных дей-ствий // Управление большими системами. – 2012. – Вып.37. – С. 25–62.</reference>
+          <reference>НОВИКОВ Д.А., ЧХАРТИШВИЛИ А.Г. Рефлексия и управление: математические модели. – М.: Изд-во физ.-мат. лит-ры, 2012. – 412 с.</reference>
+          <reference>ОСИПОВ М.П. Влияние численности сражающихся сторон на их потери // Военный сборник. – 1915. – №6. – С. 59–74; №7. – С. 25–36; №8. – С. 31–40; №9. – С. 25–37.</reference>
+          <reference>Правила стрельбы и управления огнем артиллерии. Ди-визион, батарея, взвод, орудие (ПСиУО-96). – Ч. 1. – М.: Воениздат, 1996.</reference>
+          <reference>Речь Г.К. Жукова на военно-научной конференции, де-кабрь 1945 г. // Военная мысль. – 1985. – Спец. выпуск (февраль). – С. 3, 17–33.</reference>
+          <reference>СМИРНОВ В.П., КАЛАШНИКОВА Н.М., СМОЛИН С.И. Маскировка подвижных наземных объектов в современ-ных условиях. – М.: РадиоСофт, 2015. – 80 с.</reference>
+          <reference>Таблицы стрельбы 122-мм гаубицы Д-30. ТС № 145. 4-е изд. – М.: Воениздат, 1984. – 224 с.</reference>
+          <reference>Таблицы стрельбы по наземным целям из стрелкового оружия калибров 5,45 и 7,62 мм. 2-е изд., доп. – М.: Во-ениздат, 1977. – 262 с.</reference>
+          <reference>ШУМОВ В.В. Иерархия моделей боевых действий и по-граничных конфликтов // Управление большими систе-мами. – 2019. – Вып. 79. – С. 86–111.</reference>
+          <reference>ШУМОВ В.В. Исследование функции победы в бою (сражении, операции) // Проблемы управления. – 2020. – №6. – С. 19–30.</reference>
+          <reference>ШУМОВ В.В., КОРЕПАНОВ В.О. Математические мо-дели боевых и военных действий // Компьютерные ис-следования и моделирование. – 2020. – Т. 12, №1. – С. 217–242.</reference>
+          <reference>ШУМОВ В.В., КОРЕПАНОВ В.О. Исследование теоре-тико-игровых моделей боевых действий // Математиче-ская теория игр и ее приложения. – 2021. – Т. 13, Вып. 2. – С. 80–117.</reference>
+          <reference>BONDER S. Army operations research – historical perspec-tives and lessons learned // Operation Research. – 2002. – Vol. 50, No. 1. – P. 25–34.</reference>
+          <reference>FREDLAKE C.P., WANG K. EINSTein Goes to War a Pri-mer on Ground Combat Models. – CNA, 2008. – 72 p.</reference>
+          <reference>KRESS M. Lanchester Models for Irregular Warfare // Mathematics, MDPI. – 2020. – Vol. 8(5). – P. 1–14.</reference>
+          <reference>LUCAS T.W., TURKES T. Fitting Lanchester Equations to the Battles of Kursk and Ardennes // Naval Research Logis-tics. – 2004. – Vol. 51. – P. 95–116.</reference>
+          <reference>MACKAY N. Lanchester combat models // Department of Mathematics, University of York. – 2005. – 8 p.</reference>
+        </references>
+        <files>
+          <furl>http://ubs.mtas.ru/archive/search_results_new.php?publication_id=23100</furl>
+          <file>UBS10302.pdf</file>
+        </files>
+        <dates>
+          <dateReceived>08.09.2022.</dateReceived>
+        </dates>
+      </article>
+      <section>
+        <secTitle lang="RUS">Математическая теория управления</secTitle>
+      </section>
+      <article>
+        <pages>78-93</pages>
+        <artType>RAR</artType>
+        <authors>
+          <author num="1">
+            <individInfo lang="RUS">
+              <surname>Бубнова</surname>
+              <initials>Елена Сергеевна</initials>
+              <orgName>Нижегородский государственный университет им. Н.И. Лобачевского</orgName>
+              <email>bubnova@itmm.unn.ru</email>
+              <address>Нижний Новгород</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Bubnova</surname>
+              <initials>Elena</initials>
+              <orgName>Lobachevsky State University of Nizhny Novgorod</orgName>
+              <address>Nizhny Novgorod</address>
+            </individInfo>
+          </author>
+        </authors>
+        <artTitles>
+          <artTitle lang="RUS">Множества достижимости и обобщённая h2-норма линейной дискретной дескрипторной системы</artTitle>
+          <artTitle lang="ENG">Reachability sets and the generalized h_2-norm of a linear discrete descriptor system</artTitle>
+        </artTitles>
+        <abstracts>
+          <abstract lang="RUS">Рассматривается линейная дискретная дескрипторная система, не обладающая свойством причинности, на конечном горизонте при допустимых начальных условиях и возмущении ограниченной энергии, т.е. ограниченной l_2-нормы. Вводится понятие обобщённой H_2-нормы как нормы линейного оператора, порождённого этой системой. Приводится метод вычисления обобщённой H_2-нормы с помощью решения разностных проекционных уравнений Ляпунова. Показано, что если сумма квадратичных форм начального и конечного состояний и суммы квадратичных форм возмущения на конечном интервале времени ограничена сверху заданной величиной, то множеством достижимости данной системы является изменяющийся во времени эллипсоид, матрица которого удовлетворяет разностному проекционному уравнению Ляпунова. Установлено, что обобщённая H_2-норма системы при ненулевых начальных условиях  совпадает с величиной максимальной на заданном интервале времени полуоси эллипсоидального множества достижимости для данного выхода системы. В~качестве иллюстрации полученных результатов приводится пример дескрипторной системы четвёртого порядка, для которой вычислена обобщённая H_2-норма и построены множества достижимости. Приводятся графики результатов численного моделирования и проекций множеств достижимости на плоскости, соответствующие прямой и обратной подсистемам.</abstract>
+          <abstract lang="ENG">The paper focuses on a linear discrete noncausal descriptor system on a finite horizon under consistent initial conditions and bounded external disturbances, i.e. a bounded l_2 norm. The notion of the generalized H_2-norm for a linear discrete descriptor system is  introduced as the induced norm of the linear operator generated by the system under consideration. This norm is characterized in terms of difference projected generalized Lyapunov equation solutions. It is demonstrated that if the sum of the quadratic forms of the initial and final states and the sum of the quadratic forms of the disturbance over a finite time interval is bounded by a given value from above, the reachability set of this system is a time-varying ellipsoid whose matrix satisfies the difference projected generalized Lyapunov equation. It is established that the generalized H_2-norm of the system under non-zero initial conditions coincides with the value of the maximum half-axis of the reachability ellipsoidal set for a given output of the system. An example of a fourth-order descriptor system is provided as an illustration of the results. For this system a generalized H_2-norm is calculated and reachability sets are constructed. The paper demonstrates the results of numerical simulations and projections of reachability sets on the plane corresponding to the forward and backward subsystems.</abstract>
+        </abstracts>
+        <text lang="RUS">NO TEXT</text>
+        <codes>
+          <udk>519.7</udk>
+          <bbk>22.18</bbk>
+          <doi>10.25728/ubs.2023.103.3</doi>
+        </codes>
+        <keywords>
+          <kwdGroup lang="ANY">
+            <keyword>дескрипторная система</keyword>
+            <keyword>обобщённая H_2-норма</keyword>
+            <keyword>множество достижимости</keyword>
+            <keyword>проекционное уравнение Ляпунова</keyword>
+            <keyword>descriptor system</keyword>
+            <keyword>generalized H_2-norm</keyword>
+            <keyword>reachability set</keyword>
+            <keyword>projected Lyapunov equation</keyword>
+          </kwdGroup>
+        </keywords>
+        <references>
+          <reference>БАЛАНДИН Д.В., БИРЮКОВ Р.С., КОГАН М.М. Мини-максное управление уклонениями выходов линейной дис-кретной нестационарной системы // Автоматика и телеме-ханика – 2019. – №12. – С. 3–23.</reference>
+          <reference>БАЛАНДИН Д.В., БИРЮКОВ Р.С., КОГАН М.М. Опти-мальное управление максимальными уклонениями выходовлинейной нестационарной системы // Автоматика и теле-механика. – 2019. – №10. – С. 37–61.</reference>
+          <reference>БАЛАНДИН Д.В., БИРЮКОВ Р.С., КОГАН М.М. Эллип-соидальные множества достижимости линейных неста-ционарных систем в задачах управления и оценивания //Дифференциальные уравнения. – 2019. – Т. 55, №11. –С. 1485–1498.</reference>
+          <reference>БАЛАНДИН Д.В., КОГАН М.М. Управление и оцениваниев линейных нестационарных системах на основе эллипсои-дальных множеств достижимости // Автоматика и теле-механика. – 2020. – №8. – C. 8–28.</reference>
+          <reference>БЕЛОВ А.А., АНДРИАНОВА О.Г. Синтез субоптималь-ных анизотропийных регуляторов по состоянию для де-скрипторных систем на основе линейных матричных нера-венств // Автоматика и телемеханика. – 2016. – №10. –C. 40–56.</reference>
+          <reference>БЕЛОВ А.А., КУРДЮКОВ А.П. Дескрипторные системы изадачи управления. – М.: Физматлит, 2015. – 270 с.</reference>
+          <reference>БУБНОВА Е.С., БИРЮКОВ Р.С. Обобщённая ℋ 2 -норма де-скрипторных систем // Тезисы научной конференции «Лет-няя школа робототехники в Сириусе–2022». – C. 11–12.</reference>
+          <reference>ANDRIANOVA O.G., BELOV A.A. Robust Anisotropy-BasedControl for Uncertain Descriptor Systems with TransientResponse Constraints // IFAC-PapersOnLine. – 2018. – Vol. 51,No. 32. – P. 515–520.</reference>
+          <reference>BELOV A.A., ANDRIANOVA O.G. Robust state-feedbackH ∞ control for discrete-time descriptor systems with norm-bounded parametric uncertainties // Int. Journal of SystemsScience. – 2019. – Vol. 50, No. 6. – P. 1303–1312.</reference>
+          <reference>CAO Y., FENG Z., LIU Y. Real-time Reachable Set Estimationof Discrete-time Singular Systems // Int. Conf. on Information,Cybernetics, and Computational Social Systems. – 2021. –P. 127–130.</reference>
+          <reference>DUAN G. Analysis and Design of Descriptor Linear Systems. –Springer, 2010.</reference>
+          <reference>FENG Z., LAM. J. On reachable set estimation of singularsystems // Automatica. – 2015. – Vol. 52. – P. 146–153.</reference>
+          <reference>FENG Y., YAGOUBI M. On State Feedback H ∞ Control forDiscrete-Time Singular Systems // IEEE Trans. on AutomaticControl. – 2013. – Vol. 58, No. 10. – P. 2674–2679.</reference>
+          <reference>ISHIHARA J.Y., TERRA M.H., SALES R.M. The fullinformation and state feedback H 2 optimal controllers fordescriptor systems // Automatica – 2003. – Vol. 39. –P. 391–402.</reference>
+          <reference>LEE L., CHEN J.L. Strictly positive real lemma andabsolute stability for discrete-time descriptor systems // IEEETrans. on Circuits and Systems I: Fundamental Theory andApplications. – 2003. – Vol. 50, No. 6. – P. 788–794.</reference>
+          <reference>LI J., FENG Z., ZHANG C. Reachable SetEstimation for Discrete-Time Singular Systems //Asian Journal of Control. – 2017. – Vol. 19. –P. 1862–1870.</reference>
+          <reference>STYKEL T. Analysis and numerical solution of generalizedLyapunov equations: Ph.D. thesis, Institut fur Mathematik,Techische Universitat Berlin. – Berlin, 2002.</reference>
+          <reference>STYKEL T. On some norms for descriptor systems // IEEETrans. on Automatic Control. – 2006. – Vol. 51, No. 5. –P. 842–847.</reference>
+          <reference>WILSON D.A. Convolution and Hankel Operator Norms forLinear Systems // IEEE Trans. Autom. Control. – 1989. –Vol. 34. – P. 94–97.</reference>
+          <reference>ZHANG Z., FENG Z. Enclosing ellipsoid-based reachable setestimation for discrete-time singular systems // Int. Journalof Robust and Nonlinear Control. – 2022. – Vol. 32. –P. 9294–9306.</reference>
+          <reference>ZHAO Y., LIU Y., MA Y. Robust finite-time sliding modecontrol for discrete-time singular system with time-varyingdelays // Journal of the Franklin Institute. – 2021. – Vol. 358. –P. 4848–4863.</reference>
+        </references>
+        <files>
+          <furl>http://ubs.mtas.ru/archive/search_results_new.php?publication_id=23101</furl>
+          <file>UBS10303.pdf</file>
+        </files>
+        <dates>
+          <dateReceived> 21.02.2023.</dateReceived>
+        </dates>
+      </article>
+      <section>
+        <secTitle lang="RUS">Анализ и синтез систем управления</secTitle>
+      </section>
+      <article>
+        <pages>94-120</pages>
+        <artType>RAR</artType>
+        <authors>
+          <author num="1">
+            <individInfo lang="RUS">
+              <surname>Белов</surname>
+              <initials>Иван Романович</initials>
+              <orgName>ФГБУН Институт проблем управления им. В.А. Трапезникова РАН</orgName>
+              <email>ivanb1993@mail.ru</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Belov</surname>
+              <initials>Ivan</initials>
+              <orgName>V.A. Trapeznikov Institute of Control Sciences of RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+          <author num="2">
+            <individInfo lang="RUS">
+              <surname>Кустов</surname>
+              <initials>Аркадий Юрьевич</initials>
+              <orgName>ФГБУН Институт проблем управления им. В.А. Трапезникова РАН</orgName>
+              <email>arkadiykustov@yandex.ru</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Kustov</surname>
+              <initials>Arkadiy</initials>
+              <orgName>V.A. Trapeznikov Institute of Control Sciences of RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+        </authors>
+        <artTitles>
+          <artTitle lang="RUS">О применении фильтра калмана в задаче оценивания при слабо окрашенных входных шумах</artTitle>
+          <artTitle lang="ENG">The anisotropy-based estimation problem for time invariant systems: the left asymptotics</artTitle>
+        </artTitles>
+        <abstracts>
+          <abstract lang="RUS">Рассматриваются задачи асимптотического представления анизотропийной нормы ЛДСС и приближенного вычисления матриц оценивателя при малых значениях средней анизотропии. Также представлено решение задачи определения предельного порога средней анизотропии внешнего возмущения, при котором фильтр Калмана с заданной точностью аппроксимирует анизотропийный оцениватель. Приведен численный пример решения задачи определения максимального порога средней анизотропии входного возмущения для линейной дискретной стационарной системы.</abstract>
+          <abstract lang="ENG">The anisotropy-based estimation problem for linear discrete time invariant system is considered in the paper. The asymptotic formulas for estimator matrices, estimation error covariance matrice and anisotropic norm of estimation error system under the condition of small values of mean anisotropy of input disturbance are demonstrated. Also the maximum edge of external disturbance anisotropy, providing the prescribed accuracy of anisotropy-based estimator approximation by Kalman filter, is determined in the article. The stated problems solution is demonstrated in the graphical results of numerical modelling for linear discrete time invariant stable system.</abstract>
+        </abstracts>
+        <text lang="RUS">NO TEXT</text>
+        <codes>
+          <udk>681.518.22; 681.514; 681.516.75</udk>
+          <bbk>32.965.4; 32.965.6</bbk>
+          <doi>10.25728/ubs.2023.103.4</doi>
+        </codes>
+        <keywords>
+          <kwdGroup lang="ANY">
+            <keyword>анизотропийная теория</keyword>
+            <keyword>задача оценивания</keyword>
+            <keyword>линейные дискретные стационарные системы</keyword>
+            <keyword>фильтр Калмана</keyword>
+            <keyword>H_2-оптимизация</keyword>
+            <keyword>anisotropy-based theory</keyword>
+            <keyword>estimation problem</keyword>
+            <keyword>linear discrete time invariant systems</keyword>
+            <keyword>Kalman filter</keyword>
+          </kwdGroup>
+        </keywords>
+        <references>
+          <reference>ВЛАДИМИРОВ И.Г., КУРДЮКОВ А.П., СЕМЕНОВ А.В.Асимптотика анизотропийной нормы линейных стацио-нарных систем // Автоматика и телемеханика. – 1999. –№3. – С. 78—87.</reference>
+          <reference>ТИМИН В.Н., КУРДЮКОВ А.П. Синтез робастной систе-мы управления на режиме посадки самолета в условияхсдвига ветра // Известия РАН. Техническая кибернетика. –1993. – №6. – C. 200—208.</reference>
+          <reference>ANDERSON B.D.O., MOORE J.B. Optimal Filtering. – NewJersey: Prentice Hall. 1979.</reference>
+          <reference>BELOV I.R., YURCHENKOV A.V., KUSTOV A.YU.Anisotropy-Based Bounded Real Lemma for MultiplicativeNoise Systems: the Finite Horizon Case // Proc. of the27th Mediterranean Conference on Control and Automation(MED). – 2019.</reference>
+          <reference>DEY S., MOORE J.B. Risk-sensitive filtering and smoothingvia reference probability methods // IEEE Trans. on AutomaticControl. – 1997. – Vol. 42, No. 11. – P. 1587–1591.</reference>
+          <reference>HASSIBI B., SAYED A., KAILATH T. Indefinite QuadraticEstimation and Control: A Unified Approach to ℋ 2 and ℋ ∞Theories. – Philadelphia: SIAM. 1999.</reference>
+          <reference>KAILATH T. A view of three decades of linear filtering theory //IEEE Trans. on Information Theory. – 1974. – Vol. 20, No. 2. –P. 146–181.</reference>
+          <reference>KALMAN R.E. A New Approach to Linear Filtering andPrediction Problems // J. Basic Eng., Trans. ASME, Series D. –1960. – Vol. 82, No. 1. – P. 35–45.</reference>
+          <reference>KOROTINA M., ARANOVSKIY S., BOBTSOV A.Disturbance Frequency Estimation for an LTV System //IFAC-PapersOnLine. – 2022. – Vol. 55, Is. 12. – P. 318–323.</reference>
+          <reference>KUSTOV A.YU., TIMIN V.N., YURCHENKOV A.V.Anisotropic Norm Computation for Time-invariant RandomSystem // Proc. of the 15th Int. Conf. on Stability andOscillations of Nonlinear Control Systems (Pyatnitskiy’sConference) (STAB). 2020.</reference>
+          <reference>KUSTOV A.YU., YURCHENKOV A.V. Anisotropic EstimatorDesign for Time Varying System with Measurement Dropouts //Proc. of the 15th Int. Conf. on Stability and Oscillations ofNonlinear Control Systems (Pyatnitskiy’s Conference) (STAB).2020.</reference>
+          <reference>KWON O.-K., DE SOUZA C.E., RYU H.-S. Robust ℋ ∞FIR filter for discrete-time uncertain systems // Proc. of 35thIEEE Conf. on Decision and Control. – 1996. – Vol. 4. –P. 4819–4824.</reference>
+          <reference>OPPENHEIM A.V., SCHAFER R.W. Digital SignalProcessing. – PrenticeHall, Inc., Englewood Cliffs, N.J.,1975.</reference>
+          <reference>POLYAK B.T., KHLEBNIKOV M.V. Filtering with nonrandomnoise: invariant ellipsoids technique // IFAC Proc. Volumes(IFAC Papers-OnLine). – 2008. – Vol. 41.</reference>
+          <reference>PYRKIN A., BOBTSOV A., ORTEGA R., ISIDORI A. Anadaptive observer for uncertain linear time-varying systemswith unknown additive perturbations // Automatica. – 2023. –Vol. 147.</reference>
+          <reference>SEMYONOV A.V., VLADIMIROV I.G., KURDJUKOV A.P.Stochastic approach to ℋ ∞ -optimization // Proc. of the 33rdConf. on Decision and Control, Florida, USA. – December 14–16, 1994. – Vol. 3. – P. 2249–2250.</reference>
+          <reference>SIMON D. Optimal State Estimation: Kalman, ℋ ∞ , andNonlinear Approaches. – New Jersey: Wiley, 2006.</reference>
+          <reference>TERMAN F.E. Electronic and Radio Engineering. – McGraw-Hill Book Company, New York, 1955.</reference>
+          <reference>THEODOR Y., SHAKED U. Robust discrete-time minimum-variance filtering // IEEE Trans. on Signal Processing. – 1996. –Vol. 44, No. 2. – P. 181–189.</reference>
+          <reference>VLADIMIROV I.G., KURDJUKOV A.P., SEMYONOV A.V.Anisotropy of Signals and the Entropy of Linear StationarySystems // Dokl. Math. – 1995. – Vol. 51. – P. 388–390.</reference>
+          <reference>VLADIMIROV I.G., KURDJUKOV A. P., SEMYONOV A.V.On Computing the Anisotropic Norm of Linear Discrete-Time-Invariant Systems // Proc. 13 IFAC World Congress. – 1996. –P. 179—184.</reference>
+          <reference>VLADIMIROV I.G., KURDJUKOV A.P., SEMYONOV A.V.State-space solution to anisotropy-based shochastic ℋ ∞ -optimization problem // Proc. of the 13th IFAC World Congress,San-Francisco, California, USA. – June 30-July 5, 1996. – V. H,Paper IFAC-3d-01.6. – P. 427–432.</reference>
+          <reference>XIE L., SOH Y.C., DE SOUZA C.E. Robust Kalman filteringfor uncertain discrete-time systems // IEEE Trans. Automat.Contr. – 1994. – Vol. 39. – P. 1310–1314.</reference>
+          <reference>YURCHENKOV A.V. Lemma on Boundedness of AnisotropicNorm for Systems with Multiplicative Noises undera Noncentered Disturbance // Automation and RemoteControl. – 2021. – P. 51–62.</reference>
+          <reference>YURCHENKOV A.V., KUSTOV A.YU. Anisotropy-BasedApproach to Communication Tuning for a Time-Varying SensorNetwork System // Dokl. Math. 2022. – Vol. 104. – P. 311–315.</reference>
+          <reference>YURCHENKOV A.V., KUSTOV A.YU., TIMIN V.N.Anisotropy-based Approach of Sensors Network Filtration:Nonzero Mean Disurbance Case // Proc. of the 16th Int. Conf.on Stability and Oscillations of Nonlinear Control Systems(Pyatnitskiy’s Conference) (STAB). 2022.</reference>
+          <reference>YURCHENKOV A.V., KUSTOV A.YU., TIMIN V.N. Thesensor network estimation with dropouts: Anisotropy-basedapproach // Automatica. – 2023. – Vol. 151.</reference>
+        </references>
+        <files>
+          <furl>http://ubs.mtas.ru/archive/search_results_new.php?publication_id=23102</furl>
+          <file>UBS10304.pdf</file>
+        </files>
+        <dates>
+          <dateReceived>22.03.2023.</dateReceived>
+        </dates>
+      </article>
+      <article>
+        <pages>121-134</pages>
+        <artType>RAR</artType>
+        <authors>
+          <author num="1">
+            <individInfo lang="RUS">
+              <surname>Мухин</surname>
+              <initials>Алексей Валерьевич</initials>
+              <orgName>Нижегородский государственный университет им. Н.И. Лобачевского</orgName>
+              <email>muhin-aleksei@yandex.ru</email>
+              <address>Нижний Новгород</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Mukhin</surname>
+              <initials>Aleksey</initials>
+              <orgName>Lobachevsky State University</orgName>
+              <address>Nizhny Novgorod</address>
+            </individInfo>
+          </author>
+        </authors>
+        <artTitles>
+          <artTitle lang="RUS">Критерий существования статического регулятора по выходу</artTitle>
+          <artTitle lang="ENG">The static output feedback existence criterion</artTitle>
+        </artTitles>
+        <abstracts>
+          <abstract lang="RUS">Рассматривается задача поиска критериев существования стабилизирующих статических регуляторов по выходу для линейных непрерывных стационарных систем. Дело в том, что имеющиеся ранговые критерии существования статических регуляторов применимы только в тех случаях, когда одна из матриц входа или выхода имеет полный ранг. Во всех остальных случаях, как правило, чаще всего встречающихся на практике, эти критерии оказываются неприменимыми. Для решения задачи введен класс линейных систем, для которого критерий для обратной связи по выходу также существует и может быть сформулирован в виде необходимых и достаточных условий. Основная идея состоит в приведении посредством невырожденного линейного преобразования матрицы выхода к определенному блочному виду.</abstract>
+          <abstract lang="ENG">The problem of finding criteria for the existence of stabilizing static output feedback for linear continuous stationary systems is considered. The fact is that the existing rank criteria for the existence of static state feedback are applicable only in cases where one of the input or output matrices has full rank. In all other cases, as a rule, frequent in practice, these criteria are not applicable. To solve the problem, a class of linear systems is introduced, for which a criterion for output feedback also exists and can be formulated as necessary and sufficient conditions. The main idea is to reduce the output matrix by means of a non-degenerate linear transformation to a certain block form.</abstract>
+        </abstracts>
+        <text lang="RUS">NO TEXT</text>
+        <codes>
+          <udk>517.977</udk>
+          <bbk>22.18</bbk>
+          <doi>10.25728/ubs.2023.103.5</doi>
+        </codes>
+        <keywords>
+          <kwdGroup lang="ANY">
+            <keyword>статический регулятор по выходу</keyword>
+            <keyword>гурвицева матрица</keyword>
+            <keyword>стабилизируемость</keyword>
+            <keyword>линейное преобразование</keyword>
+            <keyword>static output feedback</keyword>
+            <keyword>Hurvitz matrix</keyword>
+            <keyword>stabilizability</keyword>
+          </kwdGroup>
+        </keywords>
+        <references>
+          <reference>АНДРЕЕВ Ю.А. Управление конечномерными линейными объектами. – М.: Наука, 1976.</reference>
+          <reference>БАЛАНДИН Д.В., БИРЮКОВ Р.С., КОГАН М.М., ФЕ-ДЮКОВ А.А. Оптимальная стабилизация тела в элек-тромагнитном подвесе без изменения его положения // Известия РАН. ТиСУ. – 2017. – №3. – С. 12–24.</reference>
+          <reference>БАЛАНДИН Д.В., КОГАН М.М. Синтез законов управ-ления на основе линейных матричных неравенств. – М.: Физматлит, 2007.</reference>
+          <reference>КВАКЕРНААК Х, СИВАН Р. Линейные оптимальные системы управления. – М.: Мир, 1977.</reference>
+          <reference>МАЛКИН И.Г. Теория устойчивости движения. – М.: Наука, 1966.</reference>
+          <reference>МУХИН А.В. О существовании статических регулято-ров по выходу // Управление большими системами. – 2022. – Вып. 96. – С. 16–30.</reference>
+          <reference>МУХИН А.В. Пресечение множеств решений матрич-ных неравенств в задачах синтеза статических регуля-торов // Управление большими системами. – 2022. – Вып. 100. – С. 107–119.</reference>
+          <reference>ПЕРОВ А.И., КОСТРУБ И.Д. О спектральной абсциссе и логарифмической норме // Математические заметки. – 2017. – №101. – С. 562–575.</reference>
+          <reference>ПОЛЯК Б.Т., ЩЕРБАКОВ П.С. Трудные задачи линейной теории управления. Некоторые подходы к решению // Автоматика и телемеханика. – 2005. – №5. – С. 4–46.</reference>
+          <reference>ПОСТНИКОВ М.М. Устойчивые многочлены. – М.: Наука, 1981.</reference>
+          <reference>ХОРН Р., ДЖОНСОН Ч. Матричный анализ. – М.: Мир, 1989.</reference>
+          <reference>ASTOLFI A., COLANERI P. Static output feedback stabili-zation of linear and nonlinear systems // 39th Conf. on Deci-sion and Control, Sydney, Australia, 2000.</reference>
+          <reference>HAUTUS M.L.J. Controllability and observability conditions of linear autonomous systems // Nedert. Acad. Wetensch. – 1969. – Proc. Ser. A72. – P. 443–448.</reference>
+          <reference>NEMIROVSKII A.A. Several NP-hard problem arising in robust stability analysis // Math. Control, Signals, Systems. – 1994. – Vol. 6. – P. 99–105.</reference>
+          <reference>SADABADI M. S., PEAUCELLE D. From static output feedback to structured robust static output feedback: A sur-vey // Annual Reviews in Control. – 2016. –Vol. 42. – P. 11–26.</reference>
+          <reference>SYRMOS V.L, ABDALLAH C.T., DORATO P., GRIGORI-ADIS K. Static Output Feedback. A Survey // Automatica. – 1997. – Vol. 33, No. 2. – P. 125–137.</reference>
+        </references>
+        <files>
+          <furl>http://ubs.mtas.ru/archive/search_results_new.php?publication_id=23103</furl>
+          <file>UBS10305.pdf</file>
+        </files>
+        <dates>
+          <dateReceived>02.04.2023.</dateReceived>
+        </dates>
+      </article>
+      <section>
+        <secTitle lang="RUS">Управление в социально-экономических системах</secTitle>
+      </section>
+      <article>
+        <pages>135-170</pages>
+        <artType>RAR</artType>
+        <authors>
+          <author num="1">
+            <individInfo lang="RUS">
+              <surname>Корнеенко</surname>
+              <initials>Виктор Павлович</initials>
+              <orgName>ФГБУН Институт проблем управления им. В.А. Трапезникова РАН</orgName>
+              <email>vkorn@ipu.ru</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Korneenko</surname>
+              <initials>Viktor</initials>
+              <orgName>V.A. Trapeznikov Institute of Control Sciences of RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+        </authors>
+        <artTitles>
+          <artTitle lang="RUS">Методы выбора медианы ранжирования согласованности экспертных оценок по критерию близости в ранговой шкале</artTitle>
+          <artTitle lang="ENG">Methods for selecting the median ranking and evaluating the consistency of expert assessments by the proximity criterion</artTitle>
+        </artTitles>
+        <abstracts>
+          <abstract lang="RUS">В развитии теории экспертных оценок выявлена исключительная роль расстояния и медианы ранжирования, известной как медиана Кемени. Однако для нахождения медианы ранжирований, представленных матрицами бинарных отношений по матричному критерию расстояния, не существует оптимального метода решения. Обоснованность оптимального решения задачи выбора медианы в пространстве ранговой шкалы измерения связана с тем, что между ранжированиями, представленными матрицами бинарных отношений на множестве пар объектов, и ранжированиями в ранговой шкале существует взаимнооднозначное соответствие. После нахождения медианы ранжирований важной задачей становится проверка согласованности мнений группы экспертов. Существующие статистические методы и методы ранговой корреляции не измеряют согласованность мнений экспертов, если под ней понимать меру близости между экспертными оценками объектов. В статье на конкретных примерах показано, что коэффициент конкордации Кендэла, до сих встречающийся в работах некоторых авторов, не позволяет реально оценивать согласованность ранжирований экспертов, что может приводить к ошибочным управленческим решениям. Предлагается метод оценки мнений как пары экспертов, так и группы экспертов в виде усреднённой согласованности экспертов относительно медианы ранжирований, представленной в ранговой шкале.</abstract>
+          <abstract lang="ENG">In the development of the theory of expert assessments, the exceptional role of the position and the median of ranking, known as the Kemeny median, has been revealed. However, there is no optimal solution method for finding the median of the rankings represented by the matrices of binary relations according to the distance matrix criterion. The validity of the optimal solution to the problem of choosing the median in the space of the rank scale of measurement is due to the fact that there is a one-to-one correspondence between the rankings represented by binary relation matrices on a set of pairs of objects and the rankings in the rank scale. It is also an important task to check the consistency of the opinions of the expert group. The existing statistical methods and methods of rank correlation do not measure the consistency of expert opinions, if by which we mean the measure of proximity between expert assessments of objects.. The article shows by concrete examples that the Kendal concordance coefficient, which is still found in the works of some authors, does not allow for a realistic assessment of the consistency of expert rankings, which can lead to erroneous management decisions. A method is proposed for evaluating the opinions of both a pair of experts and a group of experts, in the form of an average agreement of experts with respect to the median of rankings presented in the ranking scale.</abstract>
+        </abstracts>
+        <text lang="RUS">NO TEXT</text>
+        <codes>
+          <udk>519.8</udk>
+          <bbk>22.18</bbk>
+          <doi>10.25728/ubs.2023.103.6</doi>
+        </codes>
+        <keywords>
+          <kwdGroup lang="ANY">
+            <keyword>ранговая шкала</keyword>
+            <keyword>связанные (рациональные) ранги</keyword>
+            <keyword>медиана ранжирования объектов</keyword>
+            <keyword>матричный критерий</keyword>
+            <keyword>согласованность мнений экспертов</keyword>
+            <keyword>rank scale</keyword>
+            <keyword>related (rational) ranks</keyword>
+            <keyword>median ranking of objects</keyword>
+            <keyword>matrix criterion</keyword>
+            <keyword>consistency of expert opinions</keyword>
+          </kwdGroup>
+        </keywords>
+        <references>
+          <reference>АЛЕСКЕРОВ Ф.Т., БАУМАН Е.В., ВОЛЬСКИЙ В.И. Методы обработки интервальных экспертных оценок // Автоматика и телемеханика. – 1984. – Вып. 3. – С. 127–133. </reference>
+          <reference>АВЧУХОВА Е.В. Оценка согласованности экспертов при отборе персонала // Вестник Самарской гуманитар-ной академии. Серия «Психология». – 2018. – №1(23). – С. 136–150.</reference>
+          <reference>АНОХИН А.Н. Методы экспертных оценок. – Обнинск: ИАТЭ, 1996. – 148 с.</reference>
+          <reference>БЕЛОУС В.В., СПИРИДОНОВ С.Б., ПОСТНИКОВ В.М. Подход к ранжированию контрольных мероприятий по дисциплинам направления «Информатика и вычисли-тельная техника» и оценке вариантов их проведения // Интернет-журнал «НАУКОВЕДЕНИЕ». – 2017. – Т. 9, №2. – URL: http://naukovedenie.ru/PDF/102TVN217.pdf.</reference>
+          <reference>БЕШЕЛЕВ С.Д., ГУРВИЧ Ф.Г. Математико-статистические методы экспертных оценок. – М.: Ста-тистика, 1980. – 263 с.</reference>
+          <reference>ГОРСКИЙ В.Г., ГРИЦЕНКО А.А., ОРЛОВ А.И. Метод согласования кластеризованных ранжировок // Автома-тика и телемеханика. – 2000. – № 3. – С. 159–167. </reference>
+          <reference>ГЛОТОВ В.А., ПАВЕЛЬЕВ В.В. Векторная стратифи-кация. – М.: Наука, 1984. – 95 с.</reference>
+          <reference>ГУЦЫКОВА С.В. К вопросу согласованности эксперт-ных оценок профессионально важных качеств // Знание. Понимание. Умение. – 2009. – №4. – С. 200–204.</reference>
+          <reference>ДАНЕЛЯН Т.Я. Формальные методы экспертных оценок // Прикладная информатика. – 2015.– № 1. – С. 183–187.</reference>
+          <reference>КАБАНОВ В.А., КОМАРОВА Е.С. Использование мето-да конкордации в оценке уровня согласованности экс-пертных мнений // Реакция региональной экономики на внешние вызовы: материалы межвузовской научно-практической конференции 18 ноября 2016 г. – Влади-мир: Владимирский филиал РАНХиГС, 2016. – C. 39–42.</reference>
+          <reference>КЕМЕНИ Д., СНЕЛЛ Д. Кибернетическое моделирова-ние: Некоторые приложения. – М.: Советское радио, 1972. – 192 с.</reference>
+          <reference>КЕНДЭЛ М. Ранговые корреляции. – М.: Мир, 1975. – 216 с. </reference>
+          <reference>КОЛМОГОРОВ А.Н., ФОМИН С.В. Элементы теории функции и функционального анализа. – М.: ФИЗМАТ-ЛИТ, 2004. – 572 с.</reference>
+          <reference>КОРНЕЕНКО В.П. Методы оптимизации. – М.: Высшая школа, 2007. – С. 271–274.</reference>
+          <reference>КОРНЕЕНКО В.П. Оптимизационный метод выбора ре-зультирующего ранжирования объектов, представлен-ных в ранговой шкале измерения // Управление больши-ми системами. – 2019. – Вып. 82. – С. 44–60.</reference>
+          <reference>ЛИТВАК Б.Г. Экспертная информация: Методы полу-чения и анализа. – М.: Радио и связь, 1982. – 184 с. </reference>
+          <reference>МАНУСОВ В.З., КРЮКОВ Д.О., АХЬЁЕВ ДЖ.С. Согла-сование экспертных оценок при диагностике текущего технического состояния высоковольтного электрообо-рудования // Доклады АН ВШ РФ. – 2017. – № 1(34). – С. 72–84. </reference>
+          <reference>МЕЛЬНИКОВА О.А., ПЕТРОВ А.Ю., ХАФИЗОВА А.В. Оценка согласованности мнений экспертов при прове-дении метода экспертной оценки в службе медицины катастроф // Успехи современного естествознания. – 2013. – №6. – С. 54–57.</reference>
+          <reference>МАГНУС Я.Р., КАТЫШЕВ П.К., ПЕРЕСЕЦКИЙ А.А. Эконометрика. Начальный курс. – М.: Дело, 2007. – 504 с.</reference>
+          <reference>МИРКИН Б.Г. Проблема группового выбора. – М.: Наука, 1974. – 256 с.</reference>
+          <reference>НОВИКОВ Д.А., ОРЛОВ А.И. Экспертные оценки – ин-струменты аналитика // Заводская лаборатория. – 2013. – Т. 79, №4. – С.3–4.</reference>
+          <reference>ОРЛОВ А.И. Роль медиан Кемени в экспертных оценках и статистическом анализе данных // Труды междуна-родной научно-практической конференции «Теория ак-тивных систем» (14–16 ноября 2011 г., Москва, Россия). Том I. / Под общ. ред. В.Н. Буркова, Д.А. Новикова. – М.: ИПУ РАН, 2011. – С. 172–176. – URL: http://ej.kubagro.ru/2013/09/pdf/114.pdf.</reference>
+          <reference>ОРЛОВ А.И. Организационно-экономическое модели-рование. Ч. 2 : Экспертные оценки. – М.: Изд-во МГТУ им. Н.Э. Баумана. – 2011. – 486 с.</reference>
+          <reference>ОРЛОВ А.И. Анализ экспертных упорядочений // Науч-ный журнал КубГАУ. – 2015. – №112 (08).– С. 1–31. – URL: http://ej.kubagro.ru/2015/08/pdf/02.pdf.</reference>
+          <reference>ОРЛОВ А.И. Средние величины и законы больших чисел в пространствах произвольной природы [Электронный ресурс] // Научный журнал КубГАУ. – 2013. – №89(05). – URL: http://www.mtas.ru/theory/orlov2011a.pdf.</reference>
+          <reference>ПАДЕРНО П.И., БУРКОВ Е.А., ЕВГРАФОВ В.Г. Крите-рий согласованности парных cравнений // Информаци-онно-управляющие системы. – 2011. – №3(52). – C. 57–60.</reference>
+          <reference>ПЕТРИЧЕНКО Г.С., ПЕТРИЧЕНКО В.Г. Экспертное оценивание при выборе эффективного мероприятия // Научные ведомости Белгородского университета. – 2015. – №13(210). – Вып. 35/1. – С. 122–127.</reference>
+          <reference>ПФАНЦАГЛЬ И. Теория измерений . – М.: Мир, 1976. – 247 с.</reference>
+          <reference>РУГОЛЬ Л.В., МЕНЬШИКОВА Л.И., СОН И.М. Приме-нение метода экспертных оценок для обоснования меро-приятий по совершенствованию организации работы центральных районных больниц // Профилактическая ме-дицина. – 2022. – №25(4). – С. 19–28.</reference>
+          <reference>СИДЕЛЬНИКОВ Ю.В. Экспертное прогнозирование (Expert prognosyication). – М.: Доброе слово, 2018. – 248 с.</reference>
+          <reference>ХОРН Р., ДЖОНСОН Ч. Матричный анализ. – М.: Мир, 1989. – 352 с.</reference>
+          <reference>ШМЕРЛИНГ Д.С., ДУБРОВСКИЙ С.А., АРЖАНО-ВА Т.Д., ФРЕНКЕЛЬ А.А. Экспертные оценки. Методы и применения // Статистические методы анализа эксперт-ных оценок. Ученые записки по статистике. Том 29 – М.: Наука, 1977. – С. 290–382.</reference>
+          <reference>ШМЕРЛИНГ Д.С., КУЗНЕЦОВА Т.Ю., ЧЕБОТА-РЕВ П.Ю., ЧУРКИН Э.П. Применение экспертных оце-нок для задач стратегического планирования. – М.: Московская школа экономики VUE, 2008. – 36 с.</reference>
+          <reference>ШМЕРЛИНГ Д.С. О проверке согласованности мнений экспертов // Статистические методы анализа экспертных оценок. – М.: Наука, 1977. – С. 77–83.</reference>
+          <reference>KEMENY J.G., SNELL J.L. Mathematical Models in the So-cial Sciences. – New York, University of Michigan. – 1962. – 168 p. </reference>
+          <reference>JACKSON B.N., SCHNABLE P.S., ALURU S. Consensus Genetic Maps as Median Orders from Inconsistent Sources // IEEE/ACM Trans. on Computational Biology and Bioin-formatics. – 2008. – Vol. 5, No. 2. – P. 161–171. </reference>
+          <reference>ISHIZAKA A., LABIB A. Analytic hierarchy process and Expert Choice: benefits and limitation // ORinsight. – 2009. – Vol. 24. – P. 201–220.</reference>
+        </references>
+        <files>
+          <furl>http://ubs.mtas.ru/archive/search_results_new.php?publication_id=23104</furl>
+          <file>UBS10306.pdf</file>
+        </files>
+        <dates>
+          <dateReceived>27.03.2023.</dateReceived>
+        </dates>
+      </article>
+      <section>
+        <secTitle lang="RUS">Управление техническими системами и технологическими процессами</secTitle>
+      </section>
+      <article>
+        <pages>171-189</pages>
+        <artType>RAR</artType>
+        <authors>
+          <author num="1">
+            <individInfo lang="RUS">
+              <surname>Георгиевич</surname>
+              <initials>Геннадий</initials>
+              <orgName>ФГБУН Институт проблем управления им. В.А. Трапезникова РАН</orgName>
+              <email>gstetsura@mail.ru</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Stetsyura</surname>
+              <initials>Gennady</initials>
+              <orgName>V.A. Trapeznikov Institute of Control Sciences of RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+        </authors>
+        <artTitles>
+          <artTitle lang="RUS">Синхронизация распределенного эксперимента с обратной связью (на базе ieee 1588 – ptp и white rabbit)</artTitle>
+          <artTitle lang="ENG">Synchronization of a distributed experiment with feedback (based on ieee 1588 – ptp and white rabbit)</artTitle>
+        </artTitles>
+        <abstracts>
+          <abstract lang="RUS">Предложен децентрализованно выполняемый способ синхронного запуска действий группы физических объектов – участников управляемого эксперимента. В нем объекты обнаруживают появление событий, требующих совместных действий всех объектов, и без участия управляющего центра создают общую команду для начала выполнения действий объектов одновременно или с заданными для каждого объекта дополнительными задержками. Для этого объекты обмениваются сообщениями через не содержащий вычислительных средств ретранслятор сигналов, формируют в нем общую команду и выполняют вспомогательные вычисления. Обеспечен необходимый для этих действий одновременный приход в ретранслятор сообщений объектов с совмещением их одноименных двоичных разрядов. В целом, в способе группа объектов функционирует как распределенная управляющая система, с минимальными задержками корректирующая выполнение эксперимента в ответ на появление непредвиденных или ожидаемых в неизвестные моменты времени событий.</abstract>
+          <abstract lang="ENG">We propose a method decentralized executed synchronous initiation of actions of a group of physical objects participants of a controlled experiment. Here, the objects detect the occurrence of events, which require joint actions of all objects, and without the participation of the control center create a common command to initiate the actions of the objects simultaneously or with additional delays prescribed for each object. For this purpose, objects exchange messages via a signal repeater that does not contain computational means, form a common command in it, and perform auxiliary calculations. Necessary for these actions the simultaneous arrival in the repeater messages objects with the alignment of their binary digits of the same name is provided. In general, in the method, a group of objects functions as a distributed control system, which corrects the execution of the experiment with minimum delays in response to the appearance of unforeseen or expected at unknown points in time events.</abstract>
+        </abstracts>
+        <text lang="RUS">NO TEXT</text>
+        <codes>
+          <udk>004.75</udk>
+          <bbk>16.292</bbk>
+          <doi>10.25728/ubs.2023.103.7</doi>
+        </codes>
+        <keywords>
+          <kwdGroup lang="ANY">
+            <keyword>синхронизация</keyword>
+            <keyword>распределенный управляемый эксперимент</keyword>
+            <keyword>Precision Time Protocol</keyword>
+            <keyword>White Rabbit</keyword>
+            <keyword>групповые операции</keyword>
+            <keyword>synchronization</keyword>
+            <keyword>distributed controlled experiment</keyword>
+            <keyword>Precision Time Protocol</keyword>
+            <keyword>White Rabbit</keyword>
+            <keyword>group operations</keyword>
+          </kwdGroup>
+        </keywords>
+        <references>
+          <reference>СТЕЦЮРА Г.Г. Децентрализованная автономная син-хронизация процессов взаимодействия мобильных объ-ектов // Проблемы управления. – 2020. – №6. – С. 47–56. – DOI: http://doi.org/10.25728/pu.2020.6.5.</reference>
+          <reference>СТЕЦЮРА Г.Г. Синхронное выполнение групповых опе-раций в распределенных компонентах суперкомпьюте-ров и компьютерных кластерах // Доклад на НСКФ 2022. – 2022. – URL: https://2022.nscf.ru/TesisAll/02_Apparatura/341_StetsuraGG.pdf</reference>
+          <reference>BOSILJEVAC M., Babić D., Sipus Z. Temperature-Stable LEDBased Light Source without Temperature Control // Proc. of SPIE OPTO, San Francisco, CA, USA, 2016. – Vol. 9754. – P. 1–6. – DOI: 10.1117/12.2211576.</reference>
+          <reference>GIRELA-LÓPEZ F., LÓPEZ-JIMÉNEZ J., JIMÉNEZ-LÓPEZ M., RODRÍGUEZ R., ROS E., DÍAZ J. IEEE 1588 High Accuracy Default Profile:Applications and Challenges // IEEEAccess. – 2020. – Vol. 8. – P.45211–45220. – DOI 10.1109/ACCESS.2020.297833.</reference>
+          <reference>GOETZ P.G., RABINOVICH W.S., MAHON R., MUR-PHY J. L. Modulating Retroreflector Lasercom Systems at the Naval Research Laboratory. 2010. – URL: https://ieeexplore.ieee.org/document/5680205/</reference>
+          <reference>GOMEZ A., SHI K., QUINTANA C., MAHER R. et al. De-sign and Demonstration of a 400 Gb/s Indoor Optical Wire-less Communications Link // Journal of Lightwave Technolo-gy. – 2016. – Vol. 34, Iss. 22. – P. 5332–5339. </reference>
+          <reference>GUTIÉRREZ-RIVAS J. L., TORRES-GONZÁLEZ F., Ros E. J., Díaz J. Enhancing Rabbit Synchronization Stability and Scalability Using P2P Transparent and Hybrid Clocks // IEEE Trans. on Industrial Informatics. – 2021. – Vol. 17, No. 11. – P. 7316-7324. - DOI:10.1109/TII.2021.3054365.</reference>
+          <reference>IDREES Z., GRANADOS J., SUN Y., LATIF S., GONG L., ZOU Z., ZHENG L. IEEE 1588 for Clock Synchronization in Industrial IoT and Related Applications: A Review on Con-tributing Technologies, Protocols and Enhancement Meth-odologies // IEEE Access. – 2020. – Vol 8. – P. 155660–155678. – URL: https://ieeexplore.ieee.org/ielx7/6287639/8948470/09154372.pdf.</reference>
+          <reference>IEEE 1588-2019 – IEEE Standard for a Precision Clock Synchronization Protocol for Networked Measurement and Control Systems // IEEE Instrumentation and Measurement Society. – 2020. – URL: https://standards.ieee.org/standard/1588-2019.html </reference>
+          <reference>ARGARIA D., VESCO A. Trusted GNSS-Based Time Syn-chronization for Industry 4.0 Applications // Appl. Sci. – 2021. – Vol. 11. – P. 8288. – URL: https://doi.org/10.3390/app11188288.  </reference>
+          <reference>MOREIRA P., DARWAZEH I. Digital femtosecond time dif-ference circuit for CERN’s timing system. – 2011. – URL: https://www.ee.ucl.ac.uk/lcs/previous/LCS2011/LCS1136.pdf.       </reference>
+          <reference>MOREIRA P. Timing Signals and Radio Frequency Distribu-tion Using Ethernet Networks for High Energy Physics Ap-plications // PhD thesis, 2015.</reference>
+          <reference>NEELAM RATHORE H., SHARMA L., ROY A. Clock Comparison with an ultra-stable optical fibre link utilizing White Rabbit Network. – URSI GASS, 2020. – URL: https://www.researchgate.net/publication/347449111.</reference>
+          <reference>RABINOVICH W.S., GOETZ P.G., MAHON R. et al. 45-Mbit/s cat’s-eye modulating retroreflectors // Optical Engi-neering. – 2007. – Vol. 46, No. 10. – P. 1–8.</reference>
+          <reference>RIZZI M. Digital Dual Mixer Time Difference: Phase noise &amp; stability. – CERN, 2017. – P. 38. – URL: https://white-rabbit.web.cern.ch/documents/DDMTD_for_Sub-ns_Synchronization.pdf  </reference>
+          <reference>RÖSEL K., HELM M., ZIRNGIBL J., STUBBE H. Current Developments of IEEE 1588 (Precision Time Protocol). – DOI: 10.2313/NET-2021-05-1_04.</reference>
+          <reference>SLIWCZYNSKI Ł., KREHLIK P., BUCZEK Ł., SCHNATZ H. Picoseconds-Accurate Fiber-Optic Time Transfer With Relative Stabilization of Lasers Wavelengths // Journal of Lightwave Technology. – 2020. –Vol. 38, No. 18. – P. 5056–5063.</reference>
+          <reference>The White Rabbit Project. – 2022. – URL: http://white-rabbit.web.cern.ch/.</reference>
+          <reference>WATERMAN E., HELM M, ZIRNGIBL J, STUBBE H. White Rabbit: High Precision PTP // Seminar IITM WS 20/21, Network Architectures and Services. – 2021. – DOI: 10.2313/NET-2021-05-1_14.</reference>
+          <reference>ZHU Y., WANG G. Research on Retro-reflecting Modula-tion in Space Optical Communication System // IOP Conf. Series: Earth and Environmental Science. – 2018. – Vol. 108, Iss. 3. – P. 1–7. – DOI:10.1088/1755-1315/108/3/032060.</reference>
+        </references>
+        <files>
+          <furl>http://ubs.mtas.ru/archive/search_results_new.php?publication_id=23105</furl>
+          <file>UBS10307.pdf</file>
+        </files>
+        <dates>
+          <dateReceived>20.10.2022.</dateReceived>
+        </dates>
+      </article>
+      <section>
+        <secTitle lang="RUS">Управление подвижными объектами и навигация</secTitle>
+      </section>
+      <article>
+        <pages>190-202</pages>
+        <artType>RAR</artType>
+        <authors>
+          <author num="1">
+            <individInfo lang="RUS">
+              <surname>Гаракоев</surname>
+              <initials>Амир Мусаевич</initials>
+              <orgName>ФГБУН Институт проблем управления им. В.А. Трапезникова РАН</orgName>
+              <email>garakoev.amir@mail.ru</email>
+              <address>Москва</address>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Garakoev</surname>
+              <initials>Amir</initials>
+              <orgName>V.A. Trapeznikov Institute of Control Sciences of RAS</orgName>
+              <address>Moscow</address>
+            </individInfo>
+          </author>
+          <author num="2">
+            <individInfo lang="RUS">
+              <surname>Гладышев</surname>
+              <initials>Анатолий Иванович</initials>
+              <orgName>Секция по оборонным проблемам Министерства обороны РФ (при президиуме РАН)</orgName>
+              <email>tolyagladyshev@yandex.ru</email>
+              <address/>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Gladyshev</surname>
+              <initials>Anatoliy</initials>
+              <orgName>Section on Defense Problems of the Ministry of Defense of the Russian Federation (at the Presidium of the Russian Academy of Sciences)</orgName>
+              <address/>
+            </individInfo>
+          </author>
+        </authors>
+        <artTitles>
+          <artTitle lang="RUS">Идентификация динамической системы «летательный аппарат + пилот» при выполнении аэрогеофизической съёмки</artTitle>
+          <artTitle lang="ENG">Identification of the dynamic system "aircraft + pilot" when performing airborne geophysical survey</artTitle>
+        </artTitles>
+        <abstracts>
+          <abstract lang="RUS">Решение задачи определения структуры управляемой динамической системы и формирование соответствующих законов управления требует детального анализа реальных экспериментальных данных, методов идентификиции. Методы идентификации моделей поведения систем &lt;&lt;летательный аппарат~+~пилот&gt;&gt; успешно развиваются с 60-х годов прошлого столетия. Пилотируемая авиация занимает лидирующие позиции по отношению к беспилотным системам, соответственно актуальность таких задач сохраняется и по сей день. При выполнении полетов пилот опирается на навигационную информацию, выводимую на различные индикаторы, расположенные в кабине летательного аппарата. Пример такого индикатора пилота -- индикатор типа &lt;&lt;Стрелка&gt;&gt;. Данная статья посвящена анализу реальных полетных данных четырех летательных аппаратов, пилоты которых выполняли полеты по информации с~индикатора &lt;&lt;Стрелка&gt;&gt;. По результатам анализа и с помощью компьютерного моделирования идентифицированы параметры четырех динамических моделей &lt;&lt;летательный аппарат~+~пилот&gt;&gt;. Модели являются линейными замкнутыми (пилот -- регулятор, замыкающий контур управления) динамическими системами 1-го порядка, описанными в виде передаточных функций. Приведены результаты экспериментов, выполненных на симуляторе с использованием каждой из моделей.</abstract>
+          <abstract lang="ENG">The solution of the problem of the structure determining of a controlled dynamic system and the formation of the corresponding control laws requires a detailed analysis of real experimental data, identification methods. Methods for identifying models of behavior of &lt;&lt;aircraft~+~pilot&gt;&gt; systems have been successfully developed since the 60s of the last century. Manned aviation occupies a leading position in relation to unmanned systems, respectively, the relevance of such tasks remains to this day. When performing flights, the pilot relies on navigation information displayed on various indicators located in the cockpit of the aircraft. An example of such a pilot indicator is an indicator of type &lt;&lt;Arrow&gt;&gt;. This article is devoted to the analysis of real flight data of four aircraft, the pilots of which flew according to information from the &lt;&lt;Arrow&gt;&gt; indicator. According to the results of the analysis and with the help of computer simulation, the parameters of four dynamic models &lt;&lt;aircraft~+~pilot&gt;&gt; were identified. The models are linear closed (pilot-regulator closing control loop) dynamic systems of the 1st order, described in the form of transfer functions. The results of experiments performed on the simulator using each of the models are presented.</abstract>
+        </abstracts>
+        <text lang="RUS">NO TEXT</text>
+        <codes>
+          <udk>681.5</udk>
+          <bbk>30в6</bbk>
+          <doi>10.25728/ubs.2023.103.8</doi>
+        </codes>
+        <keywords>
+          <kwdGroup lang="ANY">
+            <keyword>идентификация</keyword>
+            <keyword>динамические системы</keyword>
+            <keyword>индикатор &lt;&lt;Стрелка&gt;&gt;</keyword>
+            <keyword>поведение пилота</keyword>
+            <keyword>identification</keyword>
+            <keyword>dynamic systems</keyword>
+            <keyword>indicator &lt;&lt;Arrow&gt;&gt;</keyword>
+            <keyword>pilot behavior</keyword>
+          </kwdGroup>
+        </keywords>
+        <references>
+          <reference>ВОЛКОВИЦКИЙ А.К., КАРШАКОВ Е.В., ПАВЛОВ Б.В.Структура алгоритмов управления проводкой летательно-го аппарата // Известия ЮФУ. Технические науки. – 2013. –№3 (140). – С. 217–225.</reference>
+          <reference>ЖОДЗИШСКИЙ П.Ю., ПУХВАТОВ В.А. Повышение эф-фективности выполнения аэрогеофизических исследова-ний // Геопрофи. – 2010. – №2. – С. 23–25.</reference>
+          <reference>КАРШАКОВ Е.В. Особенности алгоритмов управления ле-тательным аппаратом при аэросъемке // Проблемы управ-ления. – 2012. – №3. – С. 71–76.</reference>
+          <reference>ТРИГУБОВИЧ Г.М., ШЕВЧУК С.О., КОСАРЕВ Н.С., НИ-КИТИН В.Н. Комплексная технология навигационного игеодезического обеспечения аэроэлектромагнитных иссле-дований // Гироскопия и навигация. – 2017. – Т. 25, №1(96).</reference>
+          <reference>ШЕВЧУК С.О., БАРСУКОВ С.В. Применение навигацион-ного комплекса на основе программы routenav для аэрогео-физических работ // Геопрофи. – 2018. – №2. – С. 40–43.</reference>
+          <reference>BARON S., KLEINMAN D. The Human as an OptimalController and Information Processor // IEEE Trans. on ManMachine Systems MMS–10 Mar. – 1969. – Vol. 1. – P. 9–17.</reference>
+          <reference>BARONS S., KLEINMAN D., LEVISON W. A OptimalControl Theory to Prediction of Human Performance in aComplex Task // Proc. of the Fifth NASA-University AnnualConference on Manual Control. – 1969. – NASA–SP 215. –P. 367–387.</reference>
+          <reference>CROWLEY W., SKAN S. A Simplified Analysis of the Stabilityof Aeroplanes // Aeronautical Research Committee R&amp;MNo. 1333, Mar. 1930.</reference>
+          <reference>CURRY R, ET AL. A Model for Simultaneous Monitoring andControl // The 11th NASA–University Annual Conference onManual Control, USA, 1975. – P. 144–150.</reference>
+          <reference>HESS R. Structural model of the adaptive human pilot // J. ofGuidance and Control. – 1979. – Vol. 3, № 5. – P. 416–423.</reference>
+          <reference>MCRUER D., KRENDEL E. Mathematical models of humanpilot behavior // AGARD AGD–188, 1974. – 72 p.</reference>
+          <reference>MCRUER D., GRAHAM D., KRENDEL E. AND W.REISNER JR. Human Pilot Dynamics in CompensatorySystems: Theory, Models and Experiments with ControlledElement and Forcing Function Variations // AFFDL–TR–65–15, July 1965.</reference>
+          <reference>https://geotechnologies.ru/ru/products/navdat_ru.html.</reference>
+        </references>
+        <files>
+          <furl>http://ubs.mtas.ru/archive/search_results_new.php?publication_id=23106</furl>
+          <file>UBS10308.pdf</file>
+        </files>
+        <dates>
+          <dateReceived>16.01.2023.</dateReceived>
+        </dates>
+      </article>
+    </articles>
+  </issue>
+</journal>
