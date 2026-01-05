@@ -26,16 +26,19 @@
         </div>
     </div>
 
-    {% if result.output_path %}
+    {% if processed_filename %}
     <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem;">
         <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.2rem;">Обработанный файл</h2>
         <p style="color: #666; margin-bottom: 1rem;">
-            Обработанный файл сохранен. Вы можете скачать его по ссылке ниже.
+            Обработанный файл готов к скачиванию. Файл будет автоматически удален после скачивания.
         </p>
-        <a href="{{ url_for('reference_processing.download_processed_file', filename=result.output_path.name) }}" 
+        <a href="{{ url_for('reference_processing.download_processed_file', filename=processed_filename) }}" 
            class="btn btn-primary">
             Скачать обработанный файл
         </a>
+        <small style="display: block; margin-top: 0.5rem; color: #999;">
+            ⚠️ Файл будет удален после скачивания. Убедитесь, что сохранили его на свой компьютер.
+        </small>
     </div>
     {% endif %}
 

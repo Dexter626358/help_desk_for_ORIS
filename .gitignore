@@ -127,3 +127,15 @@ secrets.json
 *.tmp
 *.temp
 *.bak
+
+# Временная директория для обработки файлов
+temp/
+
+# Обработанные файлы
+*_processed.xml
+*_processed.XML
+
+# Загруженные пользователями XML файлы (кроме схем)
+*.xml
+!schemas/**/*.xml
+!schemas_xml/**/*.xml
