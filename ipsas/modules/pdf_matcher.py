@@ -17,6 +17,7 @@
 import zipfile
 import re
 import math
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
@@ -1336,21 +1337,16 @@ class PDFMatcher:
         # save XML
         tree.write(str(xml_path), encoding="UTF-8", xml_declaration=True, pretty_print=True)
 
-        # repack ZIP with structure preserved
-        output_zip = extract_to / f"{zip_path.stem}_processed.zip"
-        with zipfile.ZipFile(output_zip, "w", zipfile.ZIP_DEFLATED) as zout:
-            # updated XML with original arcname
-            zout.write(xml_path, arcname=xml_arcname)
-
-            # PDFs with original arcnames
-            for pe in pdf_entries:
-                if pe.path.exists():
-                    zout.write(pe.path, arcname=pe.arcname)
+        # Создаем уникальное имя для обработанного XML файла
+        output_xml = extract_to / f"{zip_path.stem}_processed.xml"
+        # Копируем обработанный XML в файл с уникальным именем для скачивания
+        shutil.copy2(xml_path, output_xml)
 
         return {
             "success": True,
             "xml_path": xml_path,
-            "output_zip": output_zip,
+            "output_xml": output_xml,
+            "xml_arcname": xml_arcname,
             "matches": matches,
             "total_articles": len(articles_info),
             "matched_articles": sum(1 for m in matches if m["pdf_filename"]),

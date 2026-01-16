@@ -19,14 +19,14 @@
     </div>
     
     <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem;">
-        <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.2rem;">Обработанный архив</h2>
+        <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.2rem;">Обработанный XML файл</h2>
         <p style="color: #666; margin-bottom: 1rem;">
-            ZIP архив с обновленным XML файлом готов к скачиванию. 
+            XML файл с добавленными именами PDF файлов готов к скачиванию. 
             Файл будет автоматически удален после скачивания.
         </p>
-        <a href="{{ url_for('pdf_matching.download_processed_zip', filename=output_zip_filename) }}" 
+        <a href="{{ url_for('pdf_matching.download_processed_xml', filename=output_xml_filename) }}" 
            class="btn btn-primary">
-            Скачать обработанный архив
+            Скачать обработанный XML файл
         </a>
         <small style="display: block; margin-top: 0.5rem; color: #999;">
             ⚠️ Файл будет удален после скачивания. Убедитесь, что сохранили его на свой компьютер.

@@ -74,7 +74,7 @@ def process_pdf_matching():
             "pdf_matching_result.html",
             result=result,
             original_filename=original_filename,
-            output_zip_filename=result['output_zip'].name
+            output_xml_filename=result['output_xml'].name
         )
         
     except ValueError as e:
@@ -112,14 +112,14 @@ def process_pdf_matching():
 
 @pdf_matching_bp.route("/pdf-matching/download/<filename>")
 @login_required
-def download_processed_zip(filename):
-    """Скачивание обработанного ZIP архива."""
+def download_processed_xml(filename):
+    """Скачивание обработанного XML файла."""
     settings = get_settings()
     
     # Ищем файл в temp_dir и поддиректориях
     file_path = None
     for path in settings.temp_dir.rglob(filename):
-        if path.is_file() and path.suffix == '.zip':
+        if path.is_file() and path.suffix == '.xml':
             file_path = path
             break
     
@@ -128,8 +128,8 @@ def download_processed_zip(filename):
         return redirect(url_for("pdf_matching.pdf_matching_page"))
     
     # Определяем оригинальное имя для скачивания
-    if "_processed.zip" in filename:
-        original_name = filename.replace("_processed.zip", ".zip")
+    if "_processed.xml" in filename:
+        original_name = filename.replace("_processed.xml", ".xml")
     else:
         # Убираем timestamp и UUID из начала имени
         parts = filename.split("_", 2)
@@ -155,14 +155,14 @@ def download_processed_zip(filename):
                     if extract_dir.exists() and extract_dir.is_dir():
                         import shutil
                         shutil.rmtree(extract_dir)
-                    logger.info(f"Удален обработанный ZIP файл: {file_path.name}")
+                    logger.info(f"Удален обработанный XML файл: {file_path.name}")
                 except Exception as e:
                     logger.warning(f"Не удалось удалить файл {file_path}: {e}")
         
         from flask import Response
         return Response(
             generate(),
-            mimetype='application/zip',
+            mimetype='application/xml',
             headers={
                 'Content-Disposition': f'attachment; filename="{original_name}"'
             }
