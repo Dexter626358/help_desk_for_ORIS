@@ -81,21 +81,36 @@ def init_db(app):
         app: Flask приложение
     """
     with app.app_context():
-        # Удаляем все таблицы и пересоздаем их для гарантии правильной структуры
-        # Это безопасно, так как база данных только что пересоздана
-        db.drop_all()
+        # Создаем таблицы, если их нет (не удаляем существующие!)
+        # Это безопасно для production - не удаляет существующие данные
         db.create_all()
 
         # Создание администратора по умолчанию, если его нет
-        admin = User.query.filter_by(username="admin").first()
-        if not admin:
-            admin = User(
-                username="admin",
-                email="admin@ipsas.local",
-                is_admin=True,
-                is_active=True
-            )
-            admin.set_password("admin123")  # Пароль по умолчанию - нужно изменить!
-            db.session.add(admin)
-            db.session.commit()
+        try:
+            admin = User.query.filter_by(username="admin").first()
+            if not admin:
+                admin = User(
+                    username="admin",
+                    email="admin@ipsas.local",
+                    is_admin=True,
+                    is_active=True
+                )
+                admin.set_password("admin123")  # Пароль по умолчанию - нужно изменить!
+                db.session.add(admin)
+                db.session.commit()
+                app.logger.info("Создан администратор по умолчанию: admin/admin123")
+            else:
+                app.logger.info("Администратор уже существует в базе данных")
+        except Exception as e:
+            # Если произошла ошибка (например, пользователь уже существует),
+            # откатываем транзакцию и логируем
+            db.session.rollback()
+            app.logger.warning(f"Не удалось создать администратора (возможно, уже существует): {e}")
+            # Проверяем еще раз после rollback
+            try:
+                admin = User.query.filter_by(username="admin").first()
+                if admin:
+                    app.logger.info("Администратор существует в базе данных")
+            except Exception:
+                pass
 
