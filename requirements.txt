@@ -23,8 +23,14 @@ Flask-Login>=0.6.3
 # jsonschema>=4.17.0  # Для валидации JSON схем
 lxml>=5.0.0  # Для валидации XML по XSD схемам
 
+# Обработка PDF
+PyPDF2>=3.0.0  # Для извлечения метаданных из PDF файлов
+
 # Утилиты
 python-dotenv>=1.0.0  # Для работы с .env файлами
+
+# Production сервер
+gunicorn>=21.2.0  # WSGI HTTP сервер для production
 
 # Тестирование (dev зависимости)
 # pytest>=7.4.0

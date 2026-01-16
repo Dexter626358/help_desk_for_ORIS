@@ -395,6 +395,30 @@
                                 Удаление нумерации источников
                             </a>
                         </li>
+                        {% set ref_format_active = request.endpoint in [
+                            'reference_formatting.reference_formatting_page',
+                            'reference_formatting.process_reference_formatting',
+                            'reference_formatting.download_formatted_file'
+                        ] %}
+                        <li>
+                            <a href="{{ url_for('reference_formatting.reference_formatting_page') }}"
+                               class="{{ 'active' if ref_format_active else '' }}"
+                               {{ 'aria-current="page"' if ref_format_active else '' }}>
+                                Форматирование списков литературы  в xml файле
+                            </a>
+                        </li>
+                        {% set pdf_active = request.endpoint in [
+                            'pdf_matching.pdf_matching_page',
+                            'pdf_matching.process_pdf_matching',
+                            'pdf_matching.download_processed_zip'
+                        ] %}
+                        <li>
+                            <a href="{{ url_for('pdf_matching.pdf_matching_page') }}"
+                               class="{{ 'active' if pdf_active else '' }}"
+                               {{ 'aria-current="page"' if pdf_active else '' }}>
+                                Добавление названий PDF файлов в xml
+                            </a>
+                        </li>
                     </ul>
                 </div>
 

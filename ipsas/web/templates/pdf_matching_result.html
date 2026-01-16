@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Результаты обработки PDF файлов{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="margin-bottom: 2rem; color: #333;">Результаты обработки</h1>
+    
+    {% if result.success %}
+    <div style="background-color: #d4edda; padding: 1rem; border-radius: 5px; margin-bottom: 2rem; border: 1px solid #c3e6cb;">
+        <h2 style="margin: 0; color: #155724; font-size: 1.1rem;">
+            ✓ Обработка завершена успешно
+        </h2>
+        <p style="margin: 0.5rem 0 0 0; color: #155724;">
+            Обработано статей: {{ result.total_articles }} | 
+            Сопоставлено: {{ result.matched_articles }} | 
+            Не сопоставлено: {{ result.unmatched_articles }}
+        </p>
+    </div>
+    
+    <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem;">
+        <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.2rem;">Обработанный архив</h2>
+        <p style="color: #666; margin-bottom: 1rem;">
+            ZIP архив с обновленным XML файлом готов к скачиванию. 
+            Файл будет автоматически удален после скачивания.
+        </p>
+        <a href="{{ url_for('pdf_matching.download_processed_zip', filename=output_zip_filename) }}" 
+           class="btn btn-primary">
+            Скачать обработанный архив
+        </a>
+        <small style="display: block; margin-top: 0.5rem; color: #999;">
+            ⚠️ Файл будет удален после скачивания. Убедитесь, что сохранили его на свой компьютер.
+        </small>
+    </div>
+    
+    <div style="margin-top: 2rem;">
+        <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.2rem;">Детали сопоставления</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>ID статьи</th>
+                        <th>Название статьи</th>
+                        <th>PDF файл</th>
+                        <th>Оценка соответствия</th>
+                        <th>Метаданные PDF</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for match in result.matches %}
+                    <tr>
+                        <td>{{ match.article_index + 1 }}</td>
+                        <td>{{ match.article_id or '—' }}</td>
+                        <td>{{ match.article_title[:50] }}{% if match.article_title|length > 50 %}...{% endif %}</td>
+                        <td>
+                            {% if match.pdf_filename %}
+                                <span style="color: #28a745;">✓ {{ match.pdf_filename }}</span>
+                            {% else %}
+                                <span style="color: #dc3545;">✗ Не сопоставлено</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if match.pdf_filename %}
+                                <span style="color: #666;">{{ "%.0f"|format(match.score * 100) }}%</span>
+                            {% else %}
+                                <span style="color: #999;">—</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size: 0.85em;">
+                            {% if match.pdf_metadata %}
+                                {% if match.pdf_metadata.doi %}
+                                    {% set doi_text = match.pdf_metadata.doi %}
+                                    <div><strong>DOI:</strong> {{ doi_text[:30] }}{% if doi_text|length > 30 %}...{% endif %}</div>
+                                {% endif %}
+                                {% if match.pdf_metadata.title %}
+                                    {% set title_text = match.pdf_metadata.title %}
+                                    <div><strong>Название:</strong> {{ title_text[:40] }}{% if title_text|length > 40 %}...{% endif %}</div>
+                                {% endif %}
+                                {% if match.pdf_metadata.authors %}
+                                    {% set authors_text = match.pdf_metadata.authors|join(', ') %}
+                                    <div><strong>Авторы:</strong> {{ authors_text[:40] }}{% if authors_text|length > 40 %}...{% endif %}</div>
+                                {% endif %}
+                                {% if not match.pdf_metadata.doi and not match.pdf_metadata.title and not match.pdf_metadata.authors %}
+                                    <span style="color: #999;">Не извлечены</span>
+                                {% endif %}
+                            {% else %}
+                                <span style="color: #999;">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    {% if result.unmatched_articles > 0 %}
+    <div style="background-color: #fff3cd; padding: 1rem; border-radius: 5px; margin-top: 2rem; border-left: 4px solid #ffc107;">
+        <strong>Внимание:</strong> Некоторые статьи не были сопоставлены с PDF файлами. 
+        Возможно, потребуется ручная проверка и корректировка XML файла.
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <div style="background-color: #f8d7da; padding: 1rem; border-radius: 5px; border: 1px solid #f5c6cb;">
+        <h2 style="margin: 0; color: #721c24; font-size: 1.1rem;">
+            ✗ Ошибка при обработке
+        </h2>
+    </div>
+    {% endif %}
+    
+    <div style="margin-top: 2rem;">
+        <a href="{{ url_for('pdf_matching.pdf_matching_page') }}" class="btn btn-secondary">
+            Обработать другой архив
+        </a>
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">
+            Вернуться на главную
+        </a>
+    </div>
+</div>
+{% endblock %}

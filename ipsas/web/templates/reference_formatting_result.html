@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Результаты форматирования списка литературы{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="margin-bottom: 2rem; color: #333;">Результаты обработки</h1>
+    
+    {% if result.success %}
+    <div style="background-color: #d4edda; padding: 1rem; border-radius: 5px; margin-bottom: 2rem; border: 1px solid #c3e6cb;">
+        <h2 style="margin: 0; color: #155724; font-size: 1.1rem;">
+            ✓ Обработка завершена успешно
+        </h2>
+        <p style="margin: 0.5rem 0 0 0; color: #155724;">
+            Всего ссылок: {{ result.total_count }} | 
+            Обработано: {{ result.processed_count }}
+        </p>
+    </div>
+    
+    <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem;">
+        <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.2rem;">Отформатированный файл</h2>
+        <p style="color: #666; margin-bottom: 1rem;">
+            XML файл с отформатированным списком литературы готов к скачиванию. 
+            Файл будет автоматически удален после скачивания.
+        </p>
+        <a href="{{ url_for('reference_formatting.download_formatted_file', filename=output_filename) }}" 
+           class="btn btn-primary">
+            Скачать отформатированный файл
+        </a>
+        <small style="display: block; margin-top: 0.5rem; color: #999;">
+            ⚠️ Файл будет удален после скачивания. Убедитесь, что сохранили его на свой компьютер.
+        </small>
+    </div>
+    
+    {% else %}
+    <div style="background-color: #f8d7da; padding: 1rem; border-radius: 5px; border: 1px solid #f5c6cb;">
+        <h2 style="margin: 0; color: #721c24; font-size: 1.1rem;">
+            ✗ Ошибка при обработке
+        </h2>
+        <p style="margin: 0.5rem 0 0 0; color: #721c24;">
+            {{ result.get('error', 'Неизвестная ошибка') }}
+        </p>
+    </div>
+    {% endif %}
+    
+    <div style="margin-top: 2rem;">
+        <a href="{{ url_for('reference_formatting.reference_formatting_page') }}" class="btn btn-secondary">
+            Обработать другой файл
+        </a>
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">
+            Вернуться на главную
+        </a>
+    </div>
+</div>
+{% endblock %}

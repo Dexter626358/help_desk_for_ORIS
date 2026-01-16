@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Добавление PDF файлов в XML{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="margin-bottom: 2rem; color: #333;">Добавление PDF файлов в XML</h1>
+    
+    <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem;">
+        <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.2rem;">Инструкция</h2>
+        <ol style="color: #666; line-height: 1.8; margin-left: 1.5rem;">
+            <li>Подготовьте ZIP архив, содержащий:
+                <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                    <li>Один XML файл с описанием статей</li>
+                    <li>PDF файлы статей</li>
+                </ul>
+            </li>
+            <li>Загрузите архив через форму ниже</li>
+            <li>Система автоматически сопоставит PDF файлы со статьями в XML</li>
+            <li>Имена PDF файлов будут добавлены в элементы <code>&lt;files&gt;</code> каждой статьи</li>
+        </ol>
+        <div style="margin-top: 1rem; padding: 1rem; background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+            <strong>Примечание:</strong> Сопоставление происходит по следующим критериям:
+            <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                <li>Номер статьи в имени файла</li>
+                <li>Номера страниц статьи</li>
+                <li>Фамилия первого автора</li>
+            </ul>
+        </div>
+    </div>
+    
+    <form method="POST" action="{{ url_for('pdf_matching.process_pdf_matching') }}" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="zip_file">ZIP архив с XML и PDF файлами</label>
+            <input 
+                type="file" 
+                id="zip_file" 
+                name="zip_file"
+                accept=".zip"
+                required
+            >
+            <small style="color: #666; display: block; margin-top: 0.5rem;">
+                Максимальный размер файла: 100 МБ
+            </small>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary">
+                Обработать архив
+            </button>
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">
+                Отмена
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
