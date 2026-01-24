@@ -1,27 +1,24 @@
 """
-Модуль для сопоставления PDF файлов со статьями в XML и корректной записи имени PDF в <article>/<files>.
+Улучшенный модуль для сопоставления PDF файлов со статьями в XML.
 
-Ключевые улучшения по сравнению с исходной версией:
-- DOI статьи берётся строго из .//codes/doi (а не из .//doi, чтобы не цеплять литературу/прочие блоки).
-- DOI сравнивается через отдельную normalize_doi (без удаления "/" и ".").
-- Перед новым сопоставлением удаляются ранее добавленные/ошибочные <file desc="PDF"> (опционально).
-- Запись PDF в XML: всегда replace-or-create для <file desc="PDF">, без дублей.
-- Двухфазный матчинг:
-  1) точное совпадение DOI (гарантия),
-  2) fallback по названию + авторам (с margin-отсечением неоднозначных).
-- Title similarity улучшено: token-Jaccard + trigram-Jaccard.
-- Авторы из XML берутся по <individInfo lang="ENG/RUS"><surname>.
-- ZIP перепаковывается с сохранением исходных путей (arcname), если они были в архиве.
+Ключевые улучшения:
+1. Более надёжное извлечение DOI (учёт переносов строк, обрезанных DOI)
+2. Улучшенное извлечение названий и авторов из PDF
+3. Многоуровневая стратегия матчинга с приоритетами
+4. Расширенная диагностика и логирование
+5. Автоматическая подстройка порогов на основе данных
+6. Поддержка частичных совпадений DOI
 """
 
 import zipfile
 import re
 import math
 import shutil
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Tuple, Any, Set
 from collections import Counter
+from enum import Enum
 
 from lxml import etree
 from ipsas.utils.logger import get_logger
@@ -36,6 +33,18 @@ except ImportError:
     logger.warning("PyPDF2 не установлен. Извлечение метаданных из PDF будет недоступно.")
 
 
+class MatchMethod(Enum):
+    """Методы сопоставления PDF и статей"""
+    EDN_EXACT = "edn_exact"              # Точное совпадение EDN
+    DOI_EXACT = "doi_exact"              # Точное совпадение DOI
+    DOI_PARTIAL = "doi_partial"          # Частичное совпадение DOI (обрезанный)
+    TITLE_HIGH = "title_high"            # Высокое совпадение по названию (>0.85)
+    TITLE_AUTHORS = "title_authors"      # Совпадение по названию + авторам
+    PAGES_TITLE = "pages_title"          # Совпадение по страницам + названию
+    FALLBACK = "fallback"                # Общий fallback
+    UNMATCHED = "unmatched"              # Не сопоставлено
+
+
 @dataclass(frozen=True)
 class PDFEntry:
     """PDF файл на диске + исходный путь (arcname) внутри ZIP."""
@@ -45,6 +54,7 @@ class PDFEntry:
 
 @dataclass
 class ArticleInfo:
+    """Информация о статье из XML"""
     index: int
     element: etree.Element
     article_id: Optional[str]
@@ -55,23 +65,76 @@ class ArticleInfo:
     authors_rus: List[str]
     authors_eng: List[str]
     doi: Optional[str]
+    edn: Optional[str]  # eLIBRARY Document Number (6 латинских символов)
+
+
+@dataclass
+class PDFMetadata:
+    """Метаданные извлечённые из PDF"""
+    title: Optional[str] = None
+    authors: List[str] = field(default_factory=list)
+    doi: Optional[str] = None
+    doi_candidates: List[str] = field(default_factory=list)  # Все найденные DOI
+    edn: Optional[str] = None  # eLIBRARY Document Number
+    text_length: int = 0
+    extraction_quality: str = "unknown"  # low, medium, high
+
+
+@dataclass
+class MatchResult:
+    """Результат сопоставления"""
+    article_index: int
+    article_id: Optional[str]
+    article_title: str
+    pdf_filename: Optional[str]
+    score: float
+    method: MatchMethod
+    doi: Optional[str]
+    confidence: str = "low"  # low, medium, high
+    details: Dict[str, Any] = field(default_factory=dict)
+    pdf_metadata: Optional[Dict[str, Any]] = None  # Для совместимости с шаблоном
 
 
 class PDFMatcher:
-    """Класс для сопоставления PDF файлов со статьями в XML."""
+    """Улучшенный класс для сопоставления PDF файлов со статьями в XML."""
 
-    # Пороги/настройки по умолчанию
-    MIN_SCORE_FALLBACK = 0.20          # минимальный балл для fallback (title+authors) - снижен для лучшего покрытия
-    MARGIN_SCORE_GAP = 0.10            # если топ-1 и топ-2 ближе, чем gap — не матчим автоматически
-    READ_PAGES_FOR_TEXT = 3            # сколько первых страниц читать для DOI/текста (увеличено для лучшего извлечения)
+    # Динамические пороги (могут подстраиваться)
+    MIN_SCORE_HIGH_CONFIDENCE = 0.75    # Высокая уверенность
+    MIN_SCORE_MEDIUM_CONFIDENCE = 0.45  # Средняя уверенность
+    MIN_SCORE_LOW_CONFIDENCE = 0.25     # Низкая уверенность (требует ручной проверки)
+    MARGIN_SCORE_GAP = 0.15             # Зазор между топ-1 и топ-2
+    READ_PAGES_FOR_TEXT = 5             # Страниц для извлечения текста
+    
+    # Веса для комбинированного score
+    WEIGHTS = {
+        "doi": 1.0,
+        "title": 0.60,
+        "authors": 0.30,
+        "pages": 0.05,
+        "filename": 0.05,
+    }
+
+    def __init__(self, adaptive_thresholds: bool = True, verbose: bool = True):
+        """
+        Args:
+            adaptive_thresholds: Автоматически подстраивать пороги на основе данных
+            verbose: Подробное логирование
+        """
+        self.adaptive_thresholds = adaptive_thresholds
+        self.verbose = verbose
+        self.stats = {
+            "doi_extractions": 0,
+            "doi_extraction_failures": 0,
+            "edn_extractions": 0,
+            "edn_extraction_failures": 0,
+            "title_extractions": 0,
+            "title_extraction_failures": 0,
+            "author_extractions": 0,
+            "author_extraction_failures": 0,
+        }
 
     def extract_zip(self, zip_path: Path, extract_to: Path) -> Dict[str, Any]:
-        """
-        Извлечь файлы из ZIP архива, сохранив исходные пути (arcnames).
-
-        Returns:
-            {'xml': Path, 'xml_arcname': str, 'pdfs': List[PDFEntry]}
-        """
+        """Извлечь файлы из ZIP архива, сохранив исходные пути (arcnames)."""
         extract_to.mkdir(parents=True, exist_ok=True)
 
         xml_path: Optional[Path] = None
@@ -83,7 +146,6 @@ class PDFMatcher:
                 if member.is_dir():
                     continue
 
-                # Извлекаем с сохранением поддиректорий
                 zf.extract(member, extract_to)
                 extracted_path = extract_to / member.filename
                 if not extracted_path.exists():
@@ -104,11 +166,12 @@ class PDFMatcher:
 
         return {"xml": xml_path, "xml_arcname": xml_arcname, "pdfs": pdfs}
 
-    # ----------------------------
-    # Нормализация/парсинг
-    # ----------------------------
+    # ===========================
+    # Нормализация и парсинг
+    # ===========================
 
     def parse_article_pages(self, pages_str: str) -> Optional[Tuple[int, int]]:
+        """Парсинг диапазона страниц из строки"""
         if not pages_str:
             return None
 
@@ -117,539 +180,784 @@ class PDFMatcher:
         if not s:
             return None
 
-        # 7-24, 7–24, 7—24, 7..24
-        m = re.search(r'(\d+)\s*[-–—]\s*(\d+)', s)
-        if not m:
-            m = re.search(r'(\d+)\s*\.\.\s*(\d+)', s)
-        if m:
-            a, b = int(m.group(1)), int(m.group(2))
+        # Различные форматы диапазонов
+        patterns = [
+            r'(\d+)\s*[-–—]\s*(\d+)',  # 7-24, 7–24, 7—24
+            r'(\d+)\s*\.\.\s*(\d+)',    # 7..24
+            r'(\d+)\s*,\s*(\d+)',       # 7,24 (менее вероятно, но возможно)
+        ]
+        
+        for pattern in patterns:
+            m = re.search(pattern, s)
+            if m:
+                a, b = int(m.group(1)), int(m.group(2))
+                return (a, b) if a <= b else (b, a)
+
+        # Одиночное число
+        nums = re.findall(r'\d+', s)
+        if nums:
+            if len(nums) == 1:
+                p = int(nums[0])
+                return (p, p)
+            # Берём первое и последнее
+            a, b = int(nums[0]), int(nums[-1])
             return (a, b) if a <= b else (b, a)
 
-        nums = re.findall(r'\d+', s)
-        if not nums:
-            return None
-        if len(nums) == 1:
-            p = int(nums[0])
-            return (p, p)
-
-        a, b = int(nums[0]), int(nums[-1])
-        return (a, b) if a <= b else (b, a)
+        return None
 
     def normalize_text(self, text: str) -> str:
-        """
-        Нормализация общего текста (НЕ для DOI):
-        - lower
-        - удаление пунктуации
-        - схлопывание пробелов
-        """
+        """Нормализация общего текста (для сравнения, НЕ для DOI)"""
         if not text:
             return ""
         t = text.lower()
-        t = re.sub(r'[^\w\s]', ' ', t)         # пунктуацию в пробелы
+        t = re.sub(r'[^\w\s]', ' ', t)
         t = re.sub(r'\s+', ' ', t).strip()
         return t
 
     def normalize_doi(self, doi: str) -> str:
-        """Нормализация DOI без ломания '/' и '.'."""
+        """
+        Улучшенная нормализация DOI.
+        Сохраняет структуру DOI, убирает только явно лишнее.
+        """
         if not doi:
             return ""
+        
         d = doi.strip()
-        # Убираем префикс "doi:" или "DOI:" если есть
-        d = re.sub(r'^\s*doi[:\s]*', '', d, flags=re.IGNORECASE)
-        d = d.strip()
-        # Убираем лишние символы в конце (скобки, точки, запятые, точки с запятой)
-        d = re.sub(r'[).,;]+$', '', d)
-        # Приводим к нижнему регистру для сравнения
-        d = d.lower()
+        
+        # Убираем префиксы
+        d = re.sub(r'^\s*(doi|DOI)[:\s]+', '', d)
+        d = re.sub(r'^(https?://)?((dx\.)?doi\.org/|doi\.org/)', '', d)
+        
+        # Убираем trailing мусор
+        d = re.sub(r'[)\]},;\.]+$', '', d)
+        
+        # Нижний регистр для сравнения
+        d = d.lower().strip()
+        
         return d
 
-    def extract_doi_from_text(self, text: str) -> Optional[str]:
+    def normalize_edn(self, edn: str) -> str:
+        """
+        Нормализация EDN (eLIBRARY Document Number).
+        EDN должен содержать 6 латинских символов (буквы и/или цифры).
+        """
+        if not edn:
+            return ""
+        
+        e = edn.strip().upper()  # EDN обычно в верхнем регистре
+        
+        # Убираем префиксы
+        e = re.sub(r'^\s*(edn|EDN)[:\s]+', '', e, flags=re.IGNORECASE)
+        
+        # Извлекаем только латинские буквы и цифры (максимум 6 символов)
+        e = re.sub(r'[^A-Z0-9]', '', e)
+        
+        # Проверяем длину (должно быть 6 символов)
+        if len(e) == 6:
+            return e
+        elif len(e) > 6:
+            # Если больше 6, берем первые 6
+            return e[:6]
+        else:
+            # Если меньше 6, возвращаем как есть (может быть обрезан)
+            return e
+
+    def extract_doi_from_text(self, text: str) -> Tuple[Optional[str], List[str]]:
+        """
+        Улучшенное извлечение DOI из текста.
+        
+        Returns:
+            (best_doi, all_candidates) - лучший DOI и все найденные кандидаты
+        """
         if not text:
-            return None
+            return None, []
 
-        # DOI core pattern: 10.<digits>/<non-space>
-        # Убираем переносы внутри DOI: иногда бывает "10.1234/\nabc"
-        compact = text.replace("\n", " ")
-        compact = re.sub(r'\s+', ' ', compact)
+        # Убираем переносы строк внутри потенциальных DOI
+        text_compact = text.replace("\n", " ").replace("\r", " ")
+        text_compact = re.sub(r'\s+', ' ', text_compact)
 
+        # Паттерны для поиска DOI (от специфичных к общим)
         patterns = [
-            r'\bdoi[:\s]*\s*(10\.\d{3,9}/[^\s\)\]\}<>",;]+)',
+            # С явным указанием "DOI:"
+            r'(?:doi|DOI)\s*[:=]\s*(10\.\d{3,9}/[^\s\)\]\}<>",;]+)',
+            # С URL
+            r'(?:https?://)?(?:dx\.)?doi\.org/(10\.\d{3,9}/[^\s\)\]\}<>",;]+)',
+            # Просто DOI
             r'\b(10\.\d{3,9}/[^\s\)\]\}<>",;]+)',
         ]
-        
-        best_doi = None
-        best_length = 0
-        
-        for pat in patterns:
-            matches = re.finditer(pat, compact, flags=re.IGNORECASE)
+
+        all_candidates = []
+        seen = set()
+
+        for pattern in patterns:
+            matches = re.finditer(pattern, text_compact, flags=re.IGNORECASE)
             for m in matches:
                 doi_raw = m.group(1)
-                # Пробуем взять более длинный DOI (может быть обрезан на пробеле или спецсимволе)
-                # Ищем продолжение DOI после найденного фрагмента
+                
+                # Расширяем DOI, если он обрезан
+                # DOI может содержать: буквы, цифры, дефисы, точки, подчеркивания, скобки
                 end_pos = m.end()
-                if end_pos < len(compact):
-                    # Берем следующие символы, которые могут быть частью DOI
-                    # DOI может содержать: буквы, цифры, дефисы, точки, подчеркивания
-                    continuation = compact[end_pos:end_pos+100]  # увеличиваем до 100 символов
-                    # Ищем продолжение DOI (до пробела, скобки, запятой и т.д.)
-                    continuation_match = re.match(r'[a-zA-Z0-9\-_\.]+', continuation)
-                    if continuation_match:
-                        doi_full = doi_raw + continuation_match.group(0)
+                if end_pos < len(text_compact):
+                    continuation = text_compact[end_pos:end_pos+200]
+                    cont_match = re.match(r'[a-zA-Z0-9\-_\.\(\)]+', continuation)
+                    if cont_match:
+                        doi_full = doi_raw + cont_match.group(0)
                     else:
                         doi_full = doi_raw
                 else:
                     doi_full = doi_raw
-                
-                doi = self.normalize_doi(doi_full)
-                if "/" in doi and doi.startswith("10."):
-                    # Проверяем, что DOI достаточно длинный и выбираем самый длинный
-                    if len(doi) > best_length:
-                        best_doi = doi
-                        best_length = len(doi)
-        
-        return best_doi
 
-    def _extract_title_from_text(self, text: str) -> Optional[str]:
+                # Нормализуем
+                doi_normalized = self.normalize_doi(doi_full)
+                
+                # Проверяем валидность
+                if self._is_valid_doi(doi_normalized):
+                    if doi_normalized not in seen:
+                        all_candidates.append(doi_normalized)
+                        seen.add(doi_normalized)
+
+        # Выбираем лучший DOI (самый длинный и полный)
+        if all_candidates:
+            # Сортируем по длине (более длинный обычно более полный)
+            all_candidates.sort(key=len, reverse=True)
+            best_doi = all_candidates[0]
+            
+            # Проверяем, нет ли более "качественного" DOI среди коротких
+            # (иногда длинный DOI может включать мусор)
+            for doi in all_candidates[1:]:
+                # Если короткий DOI является префиксом длинного - используем длинный
+                if best_doi.startswith(doi):
+                    break
+                # Если нашли более структурированный DOI - используем его
+                if self._doi_quality_score(doi) > self._doi_quality_score(best_doi):
+                    best_doi = doi
+                    break
+            
+            return best_doi, all_candidates
+        
+        return None, []
+
+    def extract_edn_from_text(self, text: str) -> Optional[str]:
         """
-        Извлечь название статьи из текста PDF.
-        Ищет название после пропуска служебной информации (название журнала, издательство и т.д.).
+        Извлечение EDN из текста.
+        EDN - это 6 латинских символов (буквы и/или цифры).
+        
+        Returns:
+            Нормализованный EDN или None
         """
         if not text:
             return None
+
+        # Убираем переносы строк
+        text_compact = text.replace("\n", " ").replace("\r", " ")
+        text_compact = re.sub(r'\s+', ' ', text_compact)
+
+        # Паттерны для поиска EDN (от специфичных к общим)
+        patterns = [
+            # С явным указанием "EDN:" или "EDN="
+            r'(?:edn|EDN)\s*[:=]\s*([A-Z0-9]{6})',
+            # 6 латинских символов после слова "EDN"
+            r'\b(?:edn|EDN)\s+([A-Z0-9]{6})\b',
+            # Просто 6 латинских символов (может быть ложное срабатывание)
+            # Используем только если есть контекст (например, рядом есть "elibrary" или "document")
+            r'\b([A-Z0-9]{6})\b(?=.*(?:elibrary|document|номер|number))',
+        ]
+
+        candidates = []
+
+        for pattern in patterns:
+            matches = re.finditer(pattern, text_compact, flags=re.IGNORECASE)
+            for m in matches:
+                edn_raw = m.group(1).upper()
+                # Проверяем, что это действительно EDN (6 символов, латинские буквы/цифры)
+                if len(edn_raw) == 6 and re.match(r'^[A-Z0-9]{6}$', edn_raw):
+                    edn_normalized = self.normalize_edn(edn_raw)
+                    if edn_normalized and len(edn_normalized) == 6:
+                        candidates.append(edn_normalized)
+
+        # Убираем дубликаты
+        unique_candidates = list(dict.fromkeys(candidates))
+
+        if unique_candidates:
+            # Если несколько кандидатов, выбираем первый (обычно EDN уникален)
+            return unique_candidates[0]
+
+        return None
+
+    def _is_valid_doi(self, doi: str) -> bool:
+        """Проверка валидности DOI"""
+        if not doi:
+            return False
         
+        # Минимальная длина DOI
+        if len(doi) < 10:
+            return False
+        
+        # Должен начинаться с "10."
+        if not doi.startswith("10."):
+            return False
+        
+        # Должен содержать "/"
+        if "/" not in doi:
+            return False
+        
+        # Проверяем структуру: 10.XXXX/suffix
+        parts = doi.split("/", 1)
+        if len(parts) != 2:
+            return False
+        
+        prefix, suffix = parts
+        
+        # Префикс: 10.XXXX где XXXX - цифры (обычно 3-9 цифр)
+        if not re.match(r'10\.\d{3,9}$', prefix):
+            return False
+        
+        # Суффикс не должен быть пустым
+        if not suffix or len(suffix) < 2:
+            return False
+        
+        return True
+
+    def _doi_quality_score(self, doi: str) -> float:
+        """
+        Оценка качества DOI (больше = лучше).
+        Учитывает структуру и отсутствие подозрительных символов.
+        """
+        if not doi:
+            return 0.0
+        
+        score = 0.0
+        
+        # Базовая валидация
+        if self._is_valid_doi(doi):
+            score += 1.0
+        else:
+            return 0.0
+        
+        # Длина (оптимальная 15-50 символов)
+        length = len(doi)
+        if 15 <= length <= 50:
+            score += 1.0
+        elif length < 15:
+            score += 0.5  # Может быть обрезан
+        
+        # Отсутствие подозрительных последовательностей
+        suspicious_patterns = [
+            r'\.\.+',      # Двойные точки
+            r'--+',        # Двойные дефисы
+            r'//',         # Двойные слеши
+            r'[\(\)\[\]]', # Скобки (редко в DOI)
+        ]
+        
+        for pattern in suspicious_patterns:
+            if re.search(pattern, doi):
+                score -= 0.2
+        
+        # Наличие типичных окончаний (увеличивает уверенность)
+        if re.search(r'[a-zA-Z0-9]{5,}$', doi):
+            score += 0.5
+        
+        return max(0.0, score)
+
+    def _extract_title_from_text(self, text: str, max_attempts: int = 3) -> Optional[str]:
+        """
+        Улучшенное извлечение названия статьи из текста PDF.
+        Использует несколько стратегий.
+        """
+        if not text:
+            return None
+
         lines = [line.strip() for line in text.split('\n') if line.strip()]
         if not lines:
             return None
+
+        # Стратегия 1: Пропуск служебной информации
+        title1 = self._extract_title_strategy1(lines)
         
-        # Ключевые слова для пропуска (название журнала, издательство)
+        # Стратегия 2: Поиск по структуре (между заголовком журнала и abstract)
+        title2 = self._extract_title_strategy2(text)
+        
+        # Стратегия 3: Поиск самой длинной строки в начале (после служебной информации)
+        title3 = self._extract_title_strategy3(lines)
+        
+        # Выбираем лучший результат
+        candidates = [t for t in [title1, title2, title3] if t]
+        
+        if not candidates:
+            return None
+        
+        # Оцениваем качество каждого кандидата
+        scored_candidates = []
+        for title in candidates:
+            score = self._title_quality_score(title)
+            scored_candidates.append((score, title))
+        
+        scored_candidates.sort(key=lambda x: x[0], reverse=True)
+        
+        best_title = scored_candidates[0][1]
+        
+        if self.verbose:
+            logger.debug(f"    Извлечено название: '{best_title[:80]}...' (score={scored_candidates[0][0]:.2f})")
+            if len(scored_candidates) > 1:
+                logger.debug(f"    Альтернативы: {[(t[:40], f'{s:.2f}') for s, t in scored_candidates[1:3]]}")
+        
+        return best_title
+
+    def _extract_title_strategy1(self, lines: List[str]) -> Optional[str]:
+        """Стратегия 1: Пропуск служебной информации"""
         skip_keywords = [
-            'труды', 'proceedings', 'учебных', 'заведений', 'связи', 'telecommunication',
-            'известия', 'вестник', 'журнал', 'journal', 'bulletin',
-            'университет', 'university', 'институт', 'institute',
-            'издательство', 'publisher', 'issn', 'eissn',
-            'том', 'volume', 'выпуск', 'issue', 'номер', 'number',
-            'год', 'year', 'страница', 'page', 'стр', 'pp',
-            'российская федерация', 'russian federation', 'bmv', 'bmw'
+            'труды', 'proceedings', 'учебных', 'заведений', 'связи',
+            'telecommunication', 'известия', 'вестник', 'журнал',
+            'journal', 'bulletin', 'университет', 'university',
+            'институт', 'institute', 'издательство', 'publisher',
+            'issn', 'eissn', 'том', 'volume', 'выпуск', 'issue',
         ]
         
-        # Паттерны названий журналов
-        journal_patterns = [
-            r'труды\s+учебных\s+заведений',
-            r'proceedings\s+of\s+telecommunication',
-            r'известия\s+вузов',
-            r'прикладная\s+химия',
+        stop_keywords = [
+            'abstract', 'аннотация', 'keywords', 'ключевые слова',
+            'doi', 'introduction', 'введение', 'резюме', 'summary'
         ]
         
-        # Ключевые слова окончания
-        stop_keywords = ['abstract', 'аннотация', 'keywords', 'ключевые слова', 'doi', 'introduction', 'введение', 'резюме', 'summary']
-        
-        skip_count = 0
         title_lines = []
-        found_title_start = False
+        skip_count = 0
         
-        for i, line in enumerate(lines[:50]):  # Проверяем первые 50 строк
+        for i, line in enumerate(lines[:60]):
             line_lower = line.lower()
             
-            # Пропускаем строки с ключевыми словами окончания
-            if any(keyword in line_lower for keyword in stop_keywords):
+            # Стоп-слова
+            if any(kw in line_lower for kw in stop_keywords):
                 break
             
-            # Пропускаем строки с названием журнала
-            if any(re.search(pattern, line_lower) for pattern in journal_patterns):
+            # Пропускаем служебные строки
+            if i < 15 and any(kw in line_lower for kw in skip_keywords):
                 skip_count += 1
                 continue
             
-            # Пропускаем строки с служебной информацией (первые 10 строк)
-            if i < 10 and any(keyword in line_lower for keyword in skip_keywords):
+            # Пропускаем короткие, email, URL
+            if len(line) < 10 or '@' in line or 'http' in line_lower:
+                continue
+            
+            # Пропускаем ЗАГЛАВНЫЕ строки (название журнала)
+            if line.isupper() and len(line) > 30 and skip_count < 10:
                 skip_count += 1
                 continue
             
-            # Пропускаем очень короткие строки (меньше 8 символов)
-            if len(line) < 8:
-                continue
-            
-            # Пропускаем строки с email, адресами, DOI
-            if '@' in line or 'http' in line_lower or (i < 8 and 'doi' in line_lower):
-                continue
-            
-            # Пропускаем строки только с заглавными буквами (название журнала) - но только если они длинные
-            if line.isupper() and len(line) > 30 and skip_count < 8:
-                skip_count += 1
-                continue
-            
-            # Пропускаем строки с номерами томов/выпусков
-            if re.search(r'\b(том|volume|выпуск|issue|№|no\.?|год|year)\s*\d+', line_lower):
-                continue
-            
-            # Пропускаем строки с адресами
-            if re.search(r'(российская\s+федерация|russian\s+federation|г\.|ул\.|пр\.|street|avenue)', line_lower):
-                continue
-            
-            # Пропускаем строки с именами авторов в формате "Имя Ф.О., email@"
-            if re.search(r'[А-ЯЁ][а-яё]+\s+[А-ЯЁ]\.\s*[А-ЯЁ]\.\s*,?\s*[a-z]+@', line):
-                continue
-            
-            # Пропускаем строки, которые выглядят как авторы (Фамилия И.О.)
-            if re.match(r'^[А-ЯЁA-Z][а-яёa-z]+\s+[А-ЯЁA-Z]\.\s*[А-ЯЁA-Z]?\.?\s*$', line):
-                continue
-            
-            # Если уже пропустили достаточно строк (минимум 3), начинаем собирать название
-            if skip_count >= 3 or i >= 10:
-                if not found_title_start:
-                    found_title_start = True
+            # Если пропустили достаточно - начинаем собирать название
+            if skip_count >= 3 or i >= 12:
                 title_lines.append(line)
-                # Останавливаемся, если собрали достаточно длинное название
-                if len(' '.join(title_lines)) > 50:
-                    # Проверяем следующую строку - если она тоже похожа на название, добавляем
-                    if i + 1 < len(lines):
-                        next_line = lines[i + 1].strip()
-                        if len(next_line) > 10 and not any(keyword in next_line.lower() for keyword in stop_keywords):
-                            if not re.match(r'^[А-ЯЁA-Z][а-яёa-z]+\s+[А-ЯЁA-Z]\.\s*[А-ЯЁA-Z]?\.?\s*$', next_line):
-                                title_lines.append(next_line)
+                if len(' '.join(title_lines)) > 60:
                     break
         
         if title_lines:
             title = ' '.join(title_lines).strip()
             title = re.sub(r'\s+', ' ', title)
-            # Убираем точки/запятые в конце, но оставляем если это часть текста
-            title = re.sub(r'[.,;]+$', '', title).strip()
+            title = re.sub(r'[.,;:]+$', '', title).strip()
             
-            # Проверяем, что это не название журнала
-            title_lower = title.lower()
-            is_journal = any(re.search(pattern, title_lower) for pattern in journal_patterns)
-            
-            # Проверяем, что название содержит достаточно слов (минимум 3)
-            word_count = len([w for w in title.split() if len(w) > 2])
-            
-            if not is_journal and 15 <= len(title) <= 400 and word_count >= 3:
+            if 15 <= len(title) <= 500:
                 return title
         
         return None
 
-    def _extract_authors_from_text(self, text: str) -> List[str]:
-        """
-        Извлечь авторов из текста PDF.
-        Ищет авторов после названия статьи, до Abstract/Keywords.
-        """
-        if not text:
-            return []
+    def _extract_title_strategy2(self, text: str) -> Optional[str]:
+        """Стратегия 2: Поиск между маркерами"""
+        # Ищем текст между концом header-секции и началом abstract
+        # Header обычно содержит название журнала, том, выпуск
+        # После идёт название статьи
+        # Затем авторы
+        # Затем abstract/keywords
         
-        lines = [line.strip() for line in text.split('\n') if line.strip()]
-        if not lines:
-            return []
+        # Разбиваем на блоки по двойным переносам
+        blocks = re.split(r'\n\s*\n', text[:3000])  # Первые 3000 символов
         
-        # Ключевые слова для пропуска
-        skip_keywords = [
-            'труды', 'proceedings', 'учебных', 'заведений', 'связи', 'telecommunication',
-            'известия', 'вестник', 'журнал', 'journal', 'issn', 'university', 'institute',
-            'bmv', 'bmw', 'российская федерация', 'russian federation', 'publisher', 'издательство'
-        ]
-        
-        stop_keywords = ['abstract', 'аннотация', 'keywords', 'ключевые слова', 'doi', 'introduction', 'введение', 'summary', 'резюме']
-        
-        authors_found = []
-        title_found = False
-        
-        # Ищем авторов в первых 40 строках
-        for i, line in enumerate(lines[:40]):
-            line_lower = line.lower()
+        for i, block in enumerate(blocks):
+            block_lower = block.lower()
             
-            # Останавливаемся на ключевых словах
-            if any(keyword in line_lower for keyword in stop_keywords):
+            # Пропускаем блоки с служебными словами
+            if any(kw in block_lower for kw in ['issn', 'volume', 'journal', 'proceedings']):
+                continue
+            
+            # Пропускаем блоки с abstract/keywords
+            if any(kw in block_lower for kw in ['abstract', 'keywords', 'аннотация']):
                 break
             
-            # Пропускаем служебные строки
-            if any(keyword in line_lower for keyword in skip_keywords):
+            # Пропускаем блоки с авторами (содержат инициалы)
+            if re.search(r'\b[А-ЯЁA-Z]\.\s*[А-ЯЁA-Z]\.', block):
                 continue
             
-            # Пропускаем очень короткие или очень длинные строки
-            if len(line) < 5 or len(line) > 250:
+            # Если блок достаточно длинный и похож на название
+            if 30 <= len(block) <= 500:
+                # Очищаем
+                title = ' '.join(block.split())
+                title = re.sub(r'[.,;:]+$', '', title).strip()
+                
+                # Проверяем качество
+                if self._title_quality_score(title) > 0.5:
+                    return title
+        
+        return None
+
+    def _extract_title_strategy3(self, lines: List[str]) -> Optional[str]:
+        """Стратегия 3: Самая длинная строка в начале"""
+        # После пропуска первых 5-15 строк, ищем самую длинную строку
+        candidates = []
+        
+        for i, line in enumerate(lines[5:40], start=5):
+            line_lower = line.lower()
+            
+            # Пропускаем служебные
+            if any(kw in line_lower for kw in ['issn', 'journal', 'abstract', '@', 'http']):
                 continue
             
-            # Пропускаем строки только с заглавными буквами (кроме коротких, которые могут быть инициалами)
+            # Пропускаем ЗАГЛАВНЫЕ (журнал)
             if line.isupper() and len(line) > 30:
                 continue
             
-            # Пропускаем строки с email, адресами
-            if '@' in line or 'http' in line_lower:
-                continue
-            
-            # Пропускаем строки с номерами томов/выпусков
-            if re.search(r'\b(том|volume|выпуск|issue|№|no\.?|год|year)\s*\d+', line_lower):
-                continue
-            
-            # Пропускаем строки с адресами
-            if re.search(r'(г\.|ул\.|пр\.|street|avenue|российская\s+федерация)', line_lower):
-                continue
-            
-            # Если строка достаточно длинная и не похожа на название (больше 100 символов), это может быть название
-            if len(line) > 100 and not title_found:
-                title_found = True
-                continue
-            
-            # Проверяем, похоже ли на авторов
-            # Паттерн 1: Фамилия И.О. или Фамилия И. О. (русский/английский)
-            author_pattern1 = r'[А-ЯЁA-Z][а-яёa-z]+\s+[А-ЯЁA-Z]\.\s*[А-ЯЁA-Z]?\.?'
-            # Паттерн 2: Фамилия Имя Отчество (полное имя)
-            author_pattern2 = r'[А-ЯЁA-Z][а-яёa-z]+\s+[А-ЯЁA-Z][а-яёa-z]+\s+[А-ЯЁA-Z][а-яёa-z]+'
-            # Паттерн 3: Фамилия, И.О. (с запятой)
-            author_pattern3 = r'[А-ЯЁA-Z][а-яёa-z]+,\s*[А-ЯЁA-Z]\.\s*[А-ЯЁA-Z]?\.?'
-            
-            is_author_line = (
-                re.search(author_pattern1, line) or 
-                re.search(author_pattern2, line) or 
-                re.search(author_pattern3, line)
-            )
-            
-            if is_author_line:
-                # Дополнительная проверка: должна содержать строчные буквы
-                if re.search(r'[а-яёa-z]', line):
-                    # Разделяем по запятым, точкам с запятой, "and", "и"
-                    parts = re.split(r'[,;]\s*|(?:\s+и\s+|\s+and\s+)', line, flags=re.IGNORECASE)
-                    for part in parts:
-                        part = part.strip()
-                        # Пропускаем слишком короткие или длинные
-                        if 5 <= len(part) <= 120:
-                            # Пропускаем аббревиатуры (только заглавные, короткие)
-                            if part.isupper() and len(part) <= 8:
-                                continue
-                            # Пропускаем если это не похоже на имя (нет инициалов или полного имени)
-                            if not (re.search(r'[А-ЯЁA-Z]\.', part) or len(part.split()) >= 2):
-                                continue
-                            # Очищаем от лишних символов, но оставляем точки, дефисы, апострофы
-                            part_clean = re.sub(r'[^\w\s\.\-\']', '', part).strip()
-                            if part_clean and re.search(r'[а-яёa-z]', part_clean):
-                                # Проверяем, что это не служебное значение
-                                part_lower = part_clean.lower()
-                                if part_lower not in ['bmv', 'bmw'] and len(part_clean) > 5:
-                                    authors_found.append(part_clean)
-            
-            # Если нашли авторов, проверяем следующую строку (может быть продолжение списка)
-            if authors_found and i + 1 < len(lines):
-                next_line = lines[i + 1].strip()
-                if len(next_line) > 5 and len(next_line) < 200:
-                    if re.search(author_pattern1, next_line) or re.search(author_pattern3, next_line):
-                        # Добавляем авторов из следующей строки
-                        parts = re.split(r'[,;]\s*|(?:\s+и\s+|\s+and\s+)', next_line, flags=re.IGNORECASE)
-                        for part in parts:
-                            part = part.strip()
-                            if 5 <= len(part) <= 120:
-                                part_clean = re.sub(r'[^\w\s\.\-\']', '', part).strip()
-                                if part_clean and re.search(r'[а-яёa-z]', part_clean):
-                                    part_lower = part_clean.lower()
-                                    if part_lower not in ['bmv', 'bmw'] and len(part_clean) > 5:
-                                        authors_found.append(part_clean)
-                break
+            if 30 <= len(line) <= 400:
+                candidates.append(line)
         
-        # Ограничиваем количество авторов и убираем дубликаты
+        if candidates:
+            # Сортируем по длине
+            candidates.sort(key=len, reverse=True)
+            title = candidates[0].strip()
+            title = re.sub(r'[.,;:]+$', '', title).strip()
+            return title
+        
+        return None
+
+    def _title_quality_score(self, title: str) -> float:
+        """Оценка качества извлечённого названия"""
+        if not title:
+            return 0.0
+        
+        score = 0.0
+        
+        # Длина (оптимальная 30-250 символов)
+        length = len(title)
+        if 30 <= length <= 250:
+            score += 1.0
+        elif 20 <= length < 30 or 250 < length <= 400:
+            score += 0.5
+        else:
+            score += 0.2
+        
+        # Количество слов (оптимально 5-30)
+        word_count = len([w for w in title.split() if len(w) > 2])
+        if 5 <= word_count <= 30:
+            score += 1.0
+        elif 3 <= word_count < 5 or 30 < word_count <= 50:
+            score += 0.5
+        
+        # Наличие строчных букв (не только ЗАГЛАВНЫЕ)
+        if re.search(r'[a-zа-я]', title):
+            score += 0.5
+        
+        # Отсутствие служебных слов
+        bad_keywords = ['issn', 'journal', 'proceedings', 'volume', 'issue', '@']
+        if not any(kw in title.lower() for kw in bad_keywords):
+            score += 0.5
+        
+        # Начинается с заглавной буквы
+        if title[0].isupper():
+            score += 0.3
+        
+        # Не содержит email/url
+        if '@' not in title and 'http' not in title.lower():
+            score += 0.3
+        
+        return score
+
+    def _extract_authors_from_text(self, text: str) -> List[str]:
+        """
+        Улучшенное извлечение авторов из текста PDF.
+        Использует несколько паттернов и стратегий.
+        """
+        if not text:
+            return []
+
+        lines = [line.strip() for line in text.split('\n') if line.strip()]
+        if not lines:
+            return []
+
+        authors_found = []
+        
+        # Паттерны для распознавания авторов
+        # Формат: Фамилия И.О. или Фамилия И. О.
+        pattern1 = r'([А-ЯЁA-Z][а-яёa-z]+)\s+([А-ЯЁA-Z]\.)\s*([А-ЯЁA-Z]\.)?'
+        # Формат: Фамилия, И.О.
+        pattern2 = r'([А-ЯЁA-Z][а-яёa-z]+),\s*([А-ЯЁA-Z]\.)\s*([А-ЯЁA-Z]\.)?'
+        # Формат: Фамилия Имя Отчество (полное)
+        pattern3 = r'([А-ЯЁA-Z][а-яёa-z]+)\s+([А-ЯЁA-Z][а-яёa-z]+)\s+([А-ЯЁA-Z][а-яёa-z]+)'
+        
+        skip_keywords = ['труды', 'proceedings', 'journal', 'issn', 'university', 'bmv', 'bmw']
+        stop_keywords = ['abstract', 'аннотация', 'keywords', 'ключевые слова', 'doi']
+        
+        in_author_section = False
+        title_passed = False
+        
+        for i, line in enumerate(lines[:50]):
+            line_lower = line.lower()
+            
+            # Стоп-слова
+            if any(kw in line_lower for kw in stop_keywords):
+                break
+            
+            # Пропускаем служебные строки
+            if any(kw in line_lower for kw in skip_keywords):
+                continue
+            
+            # Детектируем, что прошли название (длинная строка без инициалов)
+            if len(line) > 50 and not re.search(r'\b[А-ЯЁA-Z]\.\s*[А-ЯЁA-Z]\.', line):
+                title_passed = True
+                continue
+            
+            # После названия ищем авторов
+            if title_passed or i > 10:
+                in_author_section = True
+            
+            if in_author_section:
+                # Пробуем все паттерны
+                for pattern in [pattern1, pattern2, pattern3]:
+                    matches = re.finditer(pattern, line)
+                    for match in matches:
+                        author = match.group(0).strip()
+                        # Фильтруем мусор
+                        if len(author) >= 5 and author.lower() not in ['bmv', 'bmw']:
+                            # Проверяем, что это не аббревиатура
+                            if not (author.isupper() and len(author) <= 8):
+                                authors_found.append(author)
+                
+                # Если нашли авторов в этой строке, проверяем следующую
+                if authors_found and i + 1 < len(lines):
+                    next_line = lines[i + 1].strip()
+                    # Если следующая строка тоже содержит авторов - добавляем
+                    if len(next_line) > 5 and re.search(pattern1, next_line):
+                        continue
+                    else:
+                        # Иначе завершаем поиск
+                        break
+        
+        # Убираем дубликаты, сохраняя порядок
         unique_authors = []
         seen = set()
-        for author in authors_found[:10]:
-            author_lower = author.lower()
-            if author_lower not in seen:
-                seen.add(author_lower)
+        for author in authors_found[:15]:  # Максимум 15 авторов
+            author_normalized = self.normalize_text(author)
+            if author_normalized not in seen:
+                seen.add(author_normalized)
                 unique_authors.append(author)
         
         return unique_authors
 
-    def _trigrams(self, s: str) -> set:
+    def _trigrams(self, s: str) -> Set[str]:
+        """Создать набор триграмм из строки"""
         s = re.sub(r'\s+', ' ', s.strip())
         if len(s) < 3:
             return {s} if s else set()
         return {s[i:i+3] for i in range(len(s) - 2)}
 
     def _cosine_similarity(self, vec1: Dict[str, float], vec2: Dict[str, float]) -> float:
-        """
-        Вычислить косинусное сходство между двумя векторами.
-        
-        Args:
-            vec1: Первый вектор (словарь слово -> вес)
-            vec2: Второй вектор (словарь слово -> вес)
-            
-        Returns:
-            Косинусное сходство (0.0 - 1.0)
-        """
-        # Находим общие слова
-        common_words = set(vec1.keys()) & set(vec2.keys())
-        if not common_words:
+        """Косинусное сходство между двумя векторами"""
+        common = set(vec1.keys()) & set(vec2.keys())
+        if not common:
             return 0.0
         
-        # Вычисляем скалярное произведение
-        dot_product = sum(vec1[word] * vec2[word] for word in common_words)
+        dot_product = sum(vec1[w] * vec2[w] for w in common)
         
-        # Вычисляем нормы векторов
         norm1 = math.sqrt(sum(v * v for v in vec1.values()))
         norm2 = math.sqrt(sum(v * v for v in vec2.values()))
         
         if norm1 == 0.0 or norm2 == 0.0:
             return 0.0
         
-        # Косинусное сходство
         return dot_product / (norm1 * norm2)
 
-    def _text_to_vector(self, text: str, use_tf_idf: bool = False) -> Dict[str, float]:
-        """
-        Преобразовать текст в вектор слов.
-        
-        Args:
-            text: Исходный текст
-            use_tf_idf: Использовать TF-IDF веса (пока просто TF)
-            
-        Returns:
-            Словарь слово -> вес
-        """
+    def _text_to_vector(self, text: str) -> Dict[str, float]:
+        """Преобразовать текст в TF вектор"""
         if not text:
             return {}
         
-        # Нормализуем текст
         text_norm = self.normalize_text(text)
         if not text_norm:
             return {}
         
-        # Разбиваем на слова (длиннее 2 символов)
         words = [w for w in text_norm.split() if len(w) > 2]
         if not words:
             return {}
         
-        # Подсчитываем частоту (TF)
         word_counts = Counter(words)
-        total_words = len(words)
+        total = len(words)
         
-        # Создаем вектор (TF веса)
-        vector = {}
-        for word, count in word_counts.items():
-            vector[word] = count / total_words  # TF нормализация
-        
-        return vector
+        return {word: count / total for word, count in word_counts.items()}
 
-    def calculate_title_similarity(self, a: str, b: str) -> float:
+    def calculate_title_similarity(self, title1: str, title2: str) -> float:
         """
-        Улучшенная похожесть названий с использованием косинусного сходства:
-        0.5 * cosine_similarity + 0.3 * token_jaccard + 0.2 * trigram_jaccard
+        Улучшенное вычисление схожести названий.
+        Комбинирует несколько метрик.
         """
-        if not a or not b:
+        if not title1 or not title2:
             return 0.0
-        a_norm = self.normalize_text(a)
-        b_norm = self.normalize_text(b)
-        if not a_norm or not b_norm:
+        
+        t1_norm = self.normalize_text(title1)
+        t2_norm = self.normalize_text(title2)
+        
+        if not t1_norm or not t2_norm:
             return 0.0
-        if a_norm == b_norm:
+        
+        # Точное совпадение
+        if t1_norm == t2_norm:
             return 1.0
+        
+        # 1. Косинусное сходство (TF vectors)
+        vec1 = self._text_to_vector(t1_norm)
+        vec2 = self._text_to_vector(t2_norm)
+        cosine_sim = self._cosine_similarity(vec1, vec2) if (vec1 and vec2) else 0.0
+        
+        # 2. Jaccard по токенам (слова длиннее 3 символов)
+        tokens1 = {w for w in t1_norm.split() if len(w) > 3}
+        tokens2 = {w for w in t2_norm.split() if len(w) > 3}
+        token_jaccard = 0.0
+        if tokens1 and tokens2:
+            token_jaccard = len(tokens1 & tokens2) / len(tokens1 | tokens2)
+        
+        # 3. Jaccard по триграммам
+        tri1 = self._trigrams(t1_norm)
+        tri2 = self._trigrams(t2_norm)
+        tri_jaccard = 0.0
+        if tri1 and tri2:
+            tri_jaccard = len(tri1 & tri2) / len(tri1 | tri2)
+        
+        # 4. Longest Common Subsequence (нормализованная)
+        lcs_sim = self._lcs_similarity(t1_norm, t2_norm)
+        
+        # Комбинированный score с весами
+        # Косинусное сходство - основной показатель
+        # Token Jaccard - важен для ключевых слов
+        # Trigram Jaccard - учитывает порядок символов
+        # LCS - учитывает порядок слов
+        combined = (
+            0.40 * cosine_sim +
+            0.30 * token_jaccard +
+            0.15 * tri_jaccard +
+            0.15 * lcs_sim
+        )
+        
+        return max(0.0, min(1.0, combined))
 
-        # Косинусное сходство
-        vec_a = self._text_to_vector(a_norm)
-        vec_b = self._text_to_vector(b_norm)
-        cosine_sim = 0.0
-        if vec_a and vec_b:
-            cosine_sim = self._cosine_similarity(vec_a, vec_b)
-
-        # Токены (Jaccard)
-        a_tokens = {w for w in a_norm.split() if len(w) > 3}
-        b_tokens = {w for w in b_norm.split() if len(w) > 3}
-        token_j = 0.0
-        if a_tokens and b_tokens:
-            token_j = len(a_tokens & b_tokens) / len(a_tokens | b_tokens)
-
-        # Триграммы (Jaccard)
-        a_tri = self._trigrams(a_norm)
-        b_tri = self._trigrams(b_norm)
-        tri_j = 0.0
-        if a_tri and b_tri:
-            tri_j = len(a_tri & b_tri) / len(a_tri | b_tri)
-
-        # Комбинированный score
-        score = 0.5 * cosine_sim + 0.3 * token_j + 0.2 * tri_j
-        return max(0.0, min(score, 1.0))
+    def _lcs_similarity(self, s1: str, s2: str) -> float:
+        """Longest Common Subsequence similarity"""
+        # Для строк разбиваем на слова (быстрее, чем по символам)
+        words1 = s1.split()
+        words2 = s2.split()
+        
+        if not words1 or not words2:
+            return 0.0
+        
+        # Динамическое программирование для LCS
+        m, n = len(words1), len(words2)
+        dp = [[0] * (n + 1) for _ in range(m + 1)]
+        
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                if words1[i-1] == words2[j-1]:
+                    dp[i][j] = dp[i-1][j-1] + 1
+                else:
+                    dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+        
+        lcs_length = dp[m][n]
+        
+        # Нормализуем по длине более короткой последовательности
+        max_possible = min(m, n)
+        
+        return lcs_length / max_possible if max_possible > 0 else 0.0
 
     def _norm_surname(self, s: str) -> str:
+        """Нормализация фамилии"""
         if not s:
             return ""
         s = s.strip().lower()
         s = s.replace("ё", "е")
-        # оставляем буквы/дефис
-        s = re.sub(r"[^a-zа-я\-]", "", s)
+        s = re.sub(r"[^a-zа-я\-']", "", s)  # Оставляем апостроф для иностранных фамилий
         return s
 
     def compare_authors(self, pdf_authors: List[str], xml_surnames: List[str]) -> float:
         """
-        Сравнение авторов с использованием косинусного сходства:
-        - pdf_authors: список строк (могут быть "Ivanov I.I.")
-        - xml_surnames: уже фамилии (ENG или RUS)
+        Улучшенное сравнение авторов.
+        Учитывает различные форматы записи.
         """
         if not pdf_authors or not xml_surnames:
             return 0.0
 
         # Извлекаем фамилии из PDF
-        pdf_surn = []
-        for a in pdf_authors:
-            if not a:
+        pdf_surnames = []
+        for author in pdf_authors:
+            if not author:
                 continue
-            # фамилия = первое слово до пробела/запятой
-            parts = re.split(r"[,\s]+", a.strip())
-            if parts:
-                pdf_surn.append(self._norm_surname(parts[0]))
+            # Фамилия - первое слово
+            parts = re.split(r"[,\s]+", author.strip())
+            if parts and len(parts[0]) > 2:
+                pdf_surnames.append(self._norm_surname(parts[0]))
 
-        xml_surn = [self._norm_surname(x) for x in xml_surnames if x]
-        pdf_surn = [x for x in pdf_surn if x]
+        xml_surn_norm = [self._norm_surname(s) for s in xml_surnames if s]
+        pdf_surn_norm = [s for s in pdf_surnames if s]
 
-        if not xml_surn or not pdf_surn:
+        if not xml_surn_norm or not pdf_surn_norm:
             return 0.0
 
-        # Метод 1: Точное совпадение множеств
-        xml_set = set(xml_surn)
-        pdf_set = set(pdf_surn)
-        exact = len(xml_set & pdf_set)
-        exact_match_score = exact / max(len(xml_set), len(pdf_set))
+        xml_set = set(xml_surn_norm)
+        pdf_set = set(pdf_surn_norm)
 
-        # Метод 2: Косинусное сходство на основе векторов фамилий
-        # Создаем векторы: каждая фамилия = отдельное измерение
-        all_surnames = list(xml_set | pdf_set)
-        if not all_surnames:
+        # 1. Точные совпадения
+        exact_matches = len(xml_set & pdf_set)
+        total_unique = len(xml_set | pdf_set)
+        
+        if total_unique == 0:
             return 0.0
         
-        # Вектор для XML: 1.0 если фамилия есть, 0.0 если нет
-        vec_xml = {surname: 1.0 if surname in xml_set else 0.0 for surname in all_surnames}
-        # Вектор для PDF: 1.0 если фамилия есть, 0.0 если нет
-        vec_pdf = {surname: 1.0 if surname in pdf_set else 0.0 for surname in all_surnames}
-        
-        cosine_sim = self._cosine_similarity(vec_xml, vec_pdf)
+        exact_score = exact_matches / max(len(xml_set), len(pdf_set))
 
-        # Метод 3: Prefix бонус для частичных совпадений (латиница/опечатки)
-        prefix_bonus = 0.0
-        if exact_match_score < 1.0:
-            matched_prefixes = set()
-            for p in pdf_set:
-                if len(p) < 5:
-                    continue
-                for x in xml_set:
-                    if len(x) < 5:
+        # 2. Частичные совпадения (префиксы для учёта транслитерации)
+        partial_matches = 0
+        for pdf_s in pdf_set:
+            if pdf_s in xml_set:
+                continue  # Уже учтено в exact
+            if len(pdf_s) >= 5:
+                for xml_s in xml_set:
+                    if xml_s in pdf_set:
                         continue
-                    # Проверяем префикс (первые 5 символов)
-                    if p[:5] == x[:5] and p != x:
-                        prefix_key = (p[:5], x[:5])
-                        if prefix_key not in matched_prefixes:
-                            prefix_bonus += 0.15
-                            matched_prefixes.add(prefix_key)
-                        break
-            prefix_bonus = min(0.3, prefix_bonus)  # Ограничиваем бонус
+                    if len(xml_s) >= 5:
+                        # Совпадение первых 5 символов
+                        if pdf_s[:5] == xml_s[:5]:
+                            partial_matches += 0.5
+                            break
 
-        # Комбинированный score: 60% косинусное, 30% точное совпадение, 10% prefix бонус
-        combined_score = 0.6 * cosine_sim + 0.3 * exact_match_score + 0.1 * prefix_bonus
-        
-        return min(1.0, combined_score)
+        partial_score = partial_matches / max(len(xml_set), len(pdf_set))
 
-    # ----------------------------
+        # 3. Косинусное сходство на основе наборов фамилий
+        all_surnames = list(xml_set | pdf_set)
+        if all_surnames:
+            vec_xml = {s: 1.0 if s in xml_set else 0.0 for s in all_surnames}
+            vec_pdf = {s: 1.0 if s in pdf_set else 0.0 for s in all_surnames}
+            cosine_sim = self._cosine_similarity(vec_xml, vec_pdf)
+        else:
+            cosine_sim = 0.0
+
+        # Комбинированный score
+        combined = 0.5 * exact_score + 0.3 * cosine_sim + 0.2 * partial_score
+
+        return min(1.0, combined)
+
+    # ===========================
     # Извлечение данных из XML
-    # ----------------------------
+    # ===========================
 
     def get_article_info(self, article_elem: etree.Element, index: int) -> ArticleInfo:
-        # pages
+        """Извлечь информацию о статье из XML элемента"""
+        # Страницы
         pages = None
         pages_elem = article_elem.find("./pages")
         if pages_elem is not None and pages_elem.text:
             pages = self.parse_article_pages(pages_elem.text)
 
-        # titles
+        # Названия
         title_rus = None
         title_eng = None
         for t in article_elem.findall(".//artTitles/artTitle"):
@@ -662,7 +970,7 @@ class PDFMatcher:
             elif lang == "ENG" and title_eng is None:
                 title_eng = text
 
-        # authors (surnames)
+        # Авторы (фамилии)
         authors_rus: List[str] = []
         authors_eng: List[str] = []
 
@@ -672,17 +980,23 @@ class PDFMatcher:
                 s_el = ind.find("./surname")
                 if s_el is None or not (s_el.text or "").strip():
                     continue
-                s = s_el.text.strip()
+                surname = s_el.text.strip()
                 if lang == "RUS":
-                    authors_rus.append(s)
+                    authors_rus.append(surname)
                 elif lang == "ENG":
-                    authors_eng.append(s)
+                    authors_eng.append(surname)
 
         # DOI строго из codes/doi
         doi = None
         doi_el = article_elem.find(".//codes/doi")
         if doi_el is not None and doi_el.text and doi_el.text.strip():
             doi = self.normalize_doi(doi_el.text)
+
+        # EDN строго из codes/edn
+        edn = None
+        edn_el = article_elem.find(".//codes/edn")
+        if edn_el is not None and edn_el.text and edn_el.text.strip():
+            edn = self.normalize_edn(edn_el.text)
 
         return ArticleInfo(
             index=index,
@@ -695,141 +1009,137 @@ class PDFMatcher:
             authors_rus=authors_rus,
             authors_eng=authors_eng,
             doi=doi,
+            edn=edn,
         )
 
-    # ----------------------------
+    # ===========================
     # Извлечение метаданных PDF
-    # ----------------------------
+    # ===========================
 
-    def extract_pdf_metadata(self, pdf_path: Path) -> Dict[str, Any]:
+    def extract_pdf_metadata(self, pdf_path: Path) -> PDFMetadata:
         """
-        Извлечь метаданные из PDF:
-        - title (если есть в metadata, иначе из текста)
-        - authors (из /Author либо из текста)
-        - doi (по тексту первых страниц)
+        Извлечь метаданные из PDF с улучшенной обработкой.
         """
-        meta: Dict[str, Any] = {"title": None, "authors": [], "doi": None}
+        meta = PDFMetadata()
 
         if not PDF_SUPPORT:
+            meta.extraction_quality = "no_support"
             return meta
 
         try:
             with open(pdf_path, "rb") as f:
                 reader = PdfReader(f)
 
-                # doc metadata
-                md = reader.metadata
-                title_from_meta = None
-                authors_from_meta = []
-                
-                if md:
-                    t = md.get("/Title") or md.get("Title")
-                    if t and str(t).strip():
-                        title_from_meta = str(t).strip()
-                        # Проверяем, что это не служебная информация
-                        title_lower = title_from_meta.lower()
-                        skip_patterns = [
-                            r'труды\s+учебных\s+заведений',
-                            r'proceedings\s+of\s+telecommunication',
-                            r'известия\s+вузов',
-                            r'журнал',
-                            r'journal',
-                            r'issn',
-                            r'volume',
-                            r'том'
-                        ]
-                        is_journal = any(re.search(pattern, title_lower) for pattern in skip_patterns)
-                        if not is_journal and len(title_from_meta) > 10:
-                            meta["title"] = title_from_meta
-                            logger.debug(f"  PDF {pdf_path.name}: Title из метаданных: '{title_from_meta[:60]}...'")
+                # Метаданные документа
+                doc_meta = reader.metadata
+                if doc_meta:
+                    # Title
+                    title_meta = doc_meta.get("/Title") or doc_meta.get("Title")
+                    if title_meta and str(title_meta).strip():
+                        title_str = str(title_meta).strip()
+                        # Проверяем качество
+                        if self._title_quality_score(title_str) > 0.5:
+                            meta.title = title_str
+                            self.stats["title_extractions"] += 1
 
-                    a = md.get("/Author") or md.get("Author")
-                    if a and str(a).strip():
-                        parts = re.split(r"[,;]", str(a))
-                        authors_from_meta = [p.strip() for p in parts if p.strip()]
-                        # Фильтруем служебные значения (BMV, BMW и т.д.)
-                        valid_authors = []
-                        for author in authors_from_meta:
-                            author_lower = author.lower().strip()
-                            # Пропускаем служебные значения
-                            if author_lower in ['bmv', 'bmw'] or len(author) < 3:
-                                continue
-                            # Пропускаем если это не похоже на имя (только заглавные, короткое)
-                            if author.isupper() and len(author) <= 5:
-                                continue
-                            valid_authors.append(author)
-                        
-                        if valid_authors:
-                            meta["authors"] = valid_authors
-                            logger.debug(f"  PDF {pdf_path.name}: Authors из метаданных: {valid_authors}")
-                        else:
-                            logger.debug(f"  PDF {pdf_path.name}: Authors из метаданных отфильтрованы (служебные значения): {authors_from_meta}")
+                    # Authors
+                    author_meta = doc_meta.get("/Author") or doc_meta.get("Author")
+                    if author_meta and str(author_meta).strip():
+                        author_str = str(author_meta)
+                        parts = re.split(r"[,;]", author_str)
+                        authors_list = []
+                        for p in parts:
+                            p = p.strip()
+                            # Фильтруем мусор
+                            if p and len(p) > 3 and p.lower() not in ['bmv', 'bmw']:
+                                if not (p.isupper() and len(p) <= 5):
+                                    authors_list.append(p)
+                        if authors_list:
+                            meta.authors = authors_list
+                            self.stats["author_extractions"] += 1
 
-                # text from first pages
-                text_pages: List[str] = []
+                # Извлекаем текст
+                text_pages = []
                 max_pages = min(self.READ_PAGES_FOR_TEXT, len(reader.pages))
+                
                 for i in range(max_pages):
                     try:
-                        txt = reader.pages[i].extract_text()
-                        if txt:
-                            text_pages.append(txt)
-                    except Exception:
+                        page_text = reader.pages[i].extract_text()
+                        if page_text:
+                            text_pages.append(page_text)
+                    except Exception as e:
+                        logger.debug(f"Ошибка извлечения текста со страницы {i}: {e}")
                         continue
+
                 full_text = "\n".join(text_pages)
+                meta.text_length = len(full_text)
 
                 if full_text:
-                    logger.debug(f"  PDF {pdf_path.name}: Извлечено {len(full_text)} символов текста из {max_pages} страниц")
-                    
-                    # Извлекаем DOI
-                    doi = self.extract_doi_from_text(full_text)
+                    # DOI
+                    doi, doi_candidates = self.extract_doi_from_text(full_text)
                     if doi:
-                        meta["doi"] = doi
-                        logger.info(f"  PDF {pdf_path.name}: DOI извлечен из текста: '{doi}'")
+                        meta.doi = doi
+                        meta.doi_candidates = doi_candidates
+                        self.stats["doi_extractions"] += 1
                     else:
-                        logger.debug(f"  PDF {pdf_path.name}: DOI не найден в тексте")
-                        # Попробуем найти частичные совпадения для диагностики
-                        doi_candidates = re.findall(r'10\.\d+/[^\s\)]+', full_text[:2000], re.IGNORECASE)
-                        if doi_candidates:
-                            logger.debug(f"    Найдены потенциальные DOI фрагменты: {doi_candidates[:3]}")
-                    
-                    # Извлекаем title из текста, если не найден в метаданных или был служебным
-                    if not meta["title"]:
+                        self.stats["doi_extraction_failures"] += 1
+
+                    # EDN
+                    edn = self.extract_edn_from_text(full_text)
+                    if edn:
+                        meta.edn = edn
+                        self.stats["edn_extractions"] += 1
+                    else:
+                        self.stats["edn_extraction_failures"] += 1
+
+                    # Title (если не было в метаданных или низкого качества)
+                    if not meta.title:
                         title = self._extract_title_from_text(full_text)
                         if title:
-                            meta["title"] = title
-                            logger.info(f"  PDF {pdf_path.name}: Title извлечен из текста: '{title[:80]}...'")
+                            meta.title = title
+                            self.stats["title_extractions"] += 1
                         else:
-                            logger.debug(f"  PDF {pdf_path.name}: Title не найден в тексте")
-                    
-                    # Извлекаем authors из текста, если не найдены в метаданных или были служебными
-                    if not meta["authors"]:
+                            self.stats["title_extraction_failures"] += 1
+
+                    # Authors (если не было в метаданных)
+                    if not meta.authors:
                         authors = self._extract_authors_from_text(full_text)
                         if authors:
-                            meta["authors"] = authors
-                            logger.info(f"  PDF {pdf_path.name}: Authors извлечены из текста: {authors}")
+                            meta.authors = authors
+                            self.stats["author_extractions"] += 1
                         else:
-                            logger.debug(f"  PDF {pdf_path.name}: Authors не найдены в тексте")
-                    else:
-                        # Даже если авторы есть в метаданных, попробуем улучшить из текста
-                        authors_from_text = self._extract_authors_from_text(full_text)
-                        if authors_from_text and len(authors_from_text) > len(meta["authors"]):
-                            logger.info(f"  PDF {pdf_path.name}: Authors дополнены из текста: {authors_from_text}")
-                            meta["authors"] = authors_from_text
+                            self.stats["author_extraction_failures"] += 1
+
+                # Оценка качества извлечения
+                quality_score = 0
+                if meta.doi:
+                    quality_score += 3
+                if meta.edn:
+                    quality_score += 3  # EDN также высоко ценится
+                if meta.title:
+                    quality_score += 2
+                if meta.authors:
+                    quality_score += 1
+
+                if quality_score >= 5:
+                    meta.extraction_quality = "high"
+                elif quality_score >= 3:
+                    meta.extraction_quality = "medium"
+                else:
+                    meta.extraction_quality = "low"
 
         except Exception as e:
             logger.error(f"Ошибка чтения PDF {pdf_path.name}: {e}", exc_info=True)
+            meta.extraction_quality = "error"
 
         return meta
 
-    # ----------------------------
+    # ===========================
     # Очистка и запись XML
-    # ----------------------------
+    # ===========================
 
     def cleanup_pdf_files_in_articles(self, root: etree.Element) -> int:
-        """
-        Удалить все <file desc="PDF"> внутри <article>/<files>.
-        Использовать, если предыдущие прогоны внесли неверные привязки.
-        """
+        """Удалить все <file desc="PDF"> внутри <article>/<files>."""
         removed = 0
         for article in root.findall(".//article"):
             files = article.find("./files")
@@ -845,144 +1155,585 @@ class PDFMatcher:
                 files.remove(fe)
                 removed += 1
 
-            # если в <files> не осталось детей — удалить <files>
             if len(files) == 0:
                 article.remove(files)
 
         return removed
 
     def set_pdf_file_in_article(self, article_elem: etree.Element, pdf_filename: str) -> None:
-        """
-        Установить/заменить <files>/<file desc="PDF">.
-        Не создаёт дублей.
-        """
+        """Установить/заменить <files>/<file desc="PDF">."""
         files = article_elem.find("./files")
         if files is None:
             files = etree.SubElement(article_elem, "files")
 
-        # replace if exists
+        # Replace if exists
         for fe in files.findall("./file"):
             if (fe.get("desc") or "").strip().lower() == "pdf":
                 fe.text = pdf_filename
                 return
 
+        # Create new
         fe = etree.SubElement(files, "file")
         fe.set("desc", "PDF")
         fe.text = pdf_filename
 
-    # ----------------------------
-    # Матчинг
-    # ----------------------------
+    # ===========================
+    # Матчинг - Многоуровневая стратегия
+    # ===========================
 
-    def _score_fallback(self, pdf_name: str, pdf_meta: Dict[str, Any], art: ArticleInfo) -> float:
+    def _calculate_combined_score(
+        self,
+        pdf_meta: PDFMetadata,
+        article: ArticleInfo,
+        pdf_name: str
+    ) -> Tuple[float, Dict[str, float]]:
         """
-        Fallback score без DOI: по названию + авторам + страницам + имени файла.
-        Используется только когда DOI в PDF не найден.
-        """
-        score = 0.0
-        # Динамические веса: если один из компонентов отсутствует, перераспределяем вес
-        has_title = bool(pdf_meta.get("title"))
-        has_authors = bool(pdf_meta.get("authors"))
+        Вычислить комбинированный score для PDF и статьи.
         
-        if has_title and has_authors:
-            weights = {"title": 0.65, "authors": 0.30, "filename": 0.05}
-        elif has_title:
-            weights = {"title": 0.85, "authors": 0.0, "filename": 0.15}
-        elif has_authors:
-            weights = {"title": 0.0, "authors": 0.85, "filename": 0.15}
-        else:
-            # Если нет ни title, ни authors, используем только имя файла
-            weights = {"title": 0.0, "authors": 0.0, "filename": 1.0}
+        Returns:
+            (total_score, component_scores)
+        """
+        components = {
+            "title": 0.0,
+            "authors": 0.0,
+            "pages": 0.0,
+            "filename": 0.0,
+        }
 
-        # 2.1 Заголовок: сравниваем с RUS и ENG, берём максимум
-        title_sim = 0.0
-        title_details = []
-        if pdf_meta.get("title"):
-            candidates = []
-            if art.title_rus:
-                candidates.append(("RUS", art.title_rus))
-            if art.title_eng:
-                candidates.append(("ENG", art.title_eng))
+        # 1. Title similarity
+        if pdf_meta.title:
+            title_scores = []
+            if article.title_rus:
+                title_scores.append(self.calculate_title_similarity(pdf_meta.title, article.title_rus))
+            if article.title_eng:
+                title_scores.append(self.calculate_title_similarity(pdf_meta.title, article.title_eng))
             
-            for lang, xml_title in candidates:
-                sim = self.calculate_title_similarity(pdf_meta["title"], xml_title)
-                title_details.append(f"{lang}:{sim:.3f}")
-                if sim > title_sim:
-                    title_sim = sim
-            logger.info(f"      Title similarity: {title_sim:.3f} ({', '.join(title_details) if title_details else 'нет данных'})")
-        else:
-            logger.info(f"      Title: не найдено в PDF метаданных")
-        
-        score += weights["title"] * title_sim
+            if title_scores:
+                components["title"] = max(title_scores)
 
-        # 2.2 Авторы: сравниваем с ENG и RUS фамилиями, берём максимум
-        author_sim = 0.0
-        author_details = []
-        if pdf_meta.get("authors"):
-            if art.authors_eng:
-                a1 = self.compare_authors(pdf_meta["authors"], art.authors_eng)
-                author_details.append(f"ENG:{a1:.3f}")
-                if a1 > author_sim:
-                    author_sim = a1
-            if art.authors_rus:
-                a2 = self.compare_authors(pdf_meta["authors"], art.authors_rus)
-                author_details.append(f"RUS:{a2:.3f}")
-                if a2 > author_sim:
-                    author_sim = a2
-            logger.info(f"      Author similarity: {author_sim:.3f} ({', '.join(author_details) if author_details else 'нет данных'})")
-        else:
-            logger.info(f"      Authors: не найдены в PDF метаданных")
-        
-        score += weights["authors"] * author_sim
+        # 2. Authors similarity
+        if pdf_meta.authors:
+            author_scores = []
+            if article.authors_rus:
+                author_scores.append(self.compare_authors(pdf_meta.authors, article.authors_rus))
+            if article.authors_eng:
+                author_scores.append(self.compare_authors(pdf_meta.authors, article.authors_eng))
+            
+            if author_scores:
+                components["authors"] = max(author_scores)
 
-        # 2.3 Сравнение с именем файла (дополнительный сигнал)
-        filename_sim = 0.0
-        pdf_name_base = Path(pdf_name).stem.lower()  # без расширения
+        # 3. Pages match (from filename)
+        if article.pages:
+            start, end = article.pages
+            pages_pattern = f"{start}[-–—]{end}"
+            if pages_pattern in pdf_name.lower():
+                components["pages"] = 1.0
+            else:
+                # Частичное совпадение (только start или end)
+                if f"{start}" in pdf_name or f"{end}" in pdf_name:
+                    components["pages"] = 0.5
+
+        # 4. Filename similarity (по ключевым словам из title)
+        pdf_name_base = Path(pdf_name).stem.lower()
+        article_title = article.title_rus or article.title_eng or ""
         
-        # Извлекаем ключевые слова из названия статьи
-        if art.title_rus or art.title_eng:
-            title_for_match = (art.title_rus or art.title_eng).lower()
-            # Нормализуем: убираем знаки препинания, оставляем только слова
-            title_words = set(re.findall(r'\b[а-яёa-z]{4,}\b', title_for_match))
+        if article_title:
+            title_words = set(re.findall(r'\b[а-яёa-z]{4,}\b', article_title.lower()))
             filename_words = set(re.findall(r'\b[а-яёa-z]{4,}\b', pdf_name_base))
             
             if title_words and filename_words:
-                # Jaccard similarity по словам
                 common = len(title_words & filename_words)
                 total = len(title_words | filename_words)
                 if total > 0:
-                    filename_sim = common / total
-                    logger.info(f"      Filename similarity: {filename_sim:.3f} (общих слов: {common}/{total})")
-        
-        score += weights["filename"] * filename_sim
+                    components["filename"] = common / total
 
-        # 2.4 Контроль страниц (слабый сигнал - бонус)
-        pages_hit = 0.0
-        if art.pages:
-            s, e = art.pages
-            pages_str = f"{s}-{e}"
-            name_l = pdf_name.lower()
-            # Проверяем точный диапазон в имени файла
-            if pages_str in name_l or f"{s}–{e}" in name_l or f"{s}—{e}" in name_l:
-                pages_hit = 1.0
-                logger.info(f"      Pages match: найдено '{pages_str}' в имени файла (+0.05)")
-        
-        # pages_hit добавляется как небольшой бонус (не входит в основную формулу)
-        if pages_hit > 0:
-            score = min(1.0, score + 0.05)  # небольшой бонус
+        # Вычисляем взвешенный total score
+        total_score = (
+            self.WEIGHTS["title"] * components["title"] +
+            self.WEIGHTS["authors"] * components["authors"] +
+            self.WEIGHTS["pages"] * components["pages"] +
+            self.WEIGHTS["filename"] * components["filename"]
+        )
 
-        logger.info(f"      ИТОГОВЫЙ SCORE: {score:.3f} = title({title_sim:.3f}*{weights['title']}) + authors({author_sim:.3f}*{weights['authors']}) + filename({filename_sim:.3f}*{weights['filename']})")
-        return max(0.0, min(score, 1.0))
+        return total_score, components
 
-    def process_zip(self, zip_path: Path, extract_to: Path) -> Dict[str, Any]:
+    def _match_by_edn(
+        self,
+        pdf_entries: List[PDFEntry],
+        articles_info: List[ArticleInfo],
+        pdf_metadata: Dict[Path, PDFMetadata]
+    ) -> Tuple[List[MatchResult], Set[int], Set[Path]]:
         """
-        Обработать ZIP архив:
-        - извлечь,
-        - очистить старые неверные <file desc="PDF"> (по умолчанию да),
-        - сопоставить PDF со статьями,
-        - записать в XML,
-        - собрать новый ZIP с сохранением структуры.
+        Phase 0: Сопоставление по EDN (eLIBRARY Document Number).
+        EDN имеет приоритет над DOI, так как это более специфичный идентификатор.
+        
+        Returns:
+            (matches, matched_articles, matched_pdfs)
         """
+        matches = []
+        matched_articles = set()
+        matched_pdfs = set()
+
+        # Создаём индекс EDN -> статьи
+        edn_index: Dict[str, List[ArticleInfo]] = {}
+        for art in articles_info:
+            if art.edn:
+                edn_index.setdefault(art.edn, []).append(art)
+
+        logger.info("=" * 80)
+        logger.info("Phase 0: Сопоставление по EDN")
+        logger.info("=" * 80)
+
+        for pe in pdf_entries:
+            meta = pdf_metadata.get(pe.path)
+            if not meta or not meta.edn:
+                continue
+
+            pdf_edn = meta.edn
+            
+            # Точное совпадение EDN
+            if pdf_edn in edn_index:
+                articles = edn_index[pdf_edn]
+                
+                if len(articles) == 1:
+                    art = articles[0]
+                    
+                    if art.index not in matched_articles and pe.path not in matched_pdfs:
+                        self.set_pdf_file_in_article(art.element, Path(pe.arcname).name)
+                        matched_articles.add(art.index)
+                        matched_pdfs.add(pe.path)
+                        
+                        match = MatchResult(
+                            article_index=art.index,
+                            article_id=art.article_id,
+                            article_title=art.title_rus or art.title_eng or "Без названия",
+                            pdf_filename=Path(pe.arcname).name,
+                            score=1.0,
+                            method=MatchMethod.EDN_EXACT,
+                            doi=art.doi,
+                            confidence="high",
+                            details={"edn_match": "exact", "edn": pdf_edn},
+                            pdf_metadata=self._pdf_metadata_to_dict(meta)
+                        )
+                        matches.append(match)
+                        
+                        logger.info(f"✓ EDN exact match: article#{art.index+1} <-> {pe.arcname} (EDN: {pdf_edn})")
+                else:
+                    logger.warning(f"⚠ EDN {pdf_edn} найден в {len(articles)} статьях, пропускаем")
+
+        logger.info(f"Phase 0 завершена: {len(matched_articles)} сопоставлений по EDN")
+        
+        return matches, matched_articles, matched_pdfs
+
+    def _match_by_doi(
+        self,
+        pdf_entries: List[PDFEntry],
+        articles_info: List[ArticleInfo],
+        pdf_metadata: Dict[Path, PDFMetadata],
+        matched_articles: Set[int],
+        matched_pdfs: Set[Path]
+    ) -> Tuple[List[MatchResult], Set[int], Set[Path]]:
+        """
+        Phase 1: Сопоставление по DOI (точное и частичное).
+        
+        Returns:
+            (matches, matched_articles, matched_pdfs)
+        """
+        matches = []
+        matched_articles = set()
+        matched_pdfs = set()
+
+        # Создаём индекс DOI -> статьи
+        doi_index: Dict[str, List[ArticleInfo]] = {}
+        for art in articles_info:
+            if art.doi:
+                doi_index.setdefault(art.doi, []).append(art)
+
+        logger.info("=" * 80)
+        logger.info("Phase 1: Сопоставление по DOI")
+        logger.info("=" * 80)
+
+        for pe in pdf_entries:
+            # Пропускаем уже сопоставленные PDF
+            if pe.path in matched_pdfs:
+                continue
+            
+            meta = pdf_metadata.get(pe.path)
+            if not meta or not meta.doi:
+                continue
+
+            pdf_doi = meta.doi
+            
+            # 1. Точное совпадение
+            if pdf_doi in doi_index:
+                articles = doi_index[pdf_doi]
+                
+                if len(articles) == 1:
+                    art = articles[0]
+                    
+                    if art.index not in matched_articles and pe.path not in matched_pdfs:
+                        self.set_pdf_file_in_article(art.element, Path(pe.arcname).name)
+                        matched_articles.add(art.index)
+                        matched_pdfs.add(pe.path)
+                        
+                        match = MatchResult(
+                            article_index=art.index,
+                            article_id=art.article_id,
+                            article_title=art.title_rus or art.title_eng or "Без названия",
+                            pdf_filename=Path(pe.arcname).name,
+                            score=1.0,
+                            method=MatchMethod.DOI_EXACT,
+                            doi=pdf_doi,
+                            confidence="high",
+                            details={"doi_match": "exact"},
+                            pdf_metadata=self._pdf_metadata_to_dict(meta)
+                        )
+                        matches.append(match)
+                        
+                        logger.info(f"✓ DOI exact match: article#{art.index+1} <-> {pe.arcname}")
+                else:
+                    logger.warning(f"⚠ DOI {pdf_doi} найден в {len(articles)} статьях, пропускаем")
+            
+            # 2. Частичное совпадение (PDF DOI - префикс XML DOI)
+            else:
+                partial_match_found = False
+                
+                for xml_doi, articles in doi_index.items():
+                    # Проверяем, является ли PDF DOI префиксом XML DOI
+                    if xml_doi.startswith(pdf_doi) and len(xml_doi) > len(pdf_doi):
+                        # Разница должна быть разумной (не более 50% длины)
+                        if len(xml_doi) - len(pdf_doi) <= len(pdf_doi) * 0.5:
+                            if len(articles) == 1:
+                                art = articles[0]
+                                
+                                if art.index not in matched_articles and pe.path not in matched_pdfs:
+                                    self.set_pdf_file_in_article(art.element, Path(pe.arcname).name)
+                                    matched_articles.add(art.index)
+                                    matched_pdfs.add(pe.path)
+                                    
+                                    match = MatchResult(
+                                        article_index=art.index,
+                                        article_id=art.article_id,
+                                        article_title=art.title_rus or art.title_eng or "Без названия",
+                                        pdf_filename=Path(pe.arcname).name,
+                                        score=0.95,
+                                        method=MatchMethod.DOI_PARTIAL,
+                                        doi=xml_doi,
+                                        confidence="high",
+                                        details={
+                                            "doi_match": "partial",
+                                            "pdf_doi": pdf_doi,
+                                            "xml_doi": xml_doi
+                                        },
+                                        pdf_metadata=self._pdf_metadata_to_dict(meta)
+                                    )
+                                    matches.append(match)
+                                    
+                                    logger.info(f"~ DOI partial match: article#{art.index+1} <-> {pe.arcname}")
+                                    logger.info(f"  PDF DOI: {pdf_doi}")
+                                    logger.info(f"  XML DOI: {xml_doi}")
+                                    
+                                    partial_match_found = True
+                                    break
+
+                if not partial_match_found:
+                    # Проверяем обратное: XML DOI - префикс PDF DOI (PDF более полный)
+                    for xml_doi, articles in doi_index.items():
+                        if pdf_doi.startswith(xml_doi) and len(pdf_doi) > len(xml_doi):
+                            if len(pdf_doi) - len(xml_doi) <= len(xml_doi) * 0.5:
+                                if len(articles) == 1:
+                                    art = articles[0]
+                                    
+                                    if art.index not in matched_articles and pe.path not in matched_pdfs:
+                                        self.set_pdf_file_in_article(art.element, Path(pe.arcname).name)
+                                        matched_articles.add(art.index)
+                                        matched_pdfs.add(pe.path)
+                                        
+                                        match = MatchResult(
+                                            article_index=art.index,
+                                            article_id=art.article_id,
+                                            article_title=art.title_rus or art.title_eng or "Без названия",
+                                            pdf_filename=Path(pe.arcname).name,
+                                            score=0.95,
+                                            method=MatchMethod.DOI_PARTIAL,
+                                            doi=pdf_doi,
+                                            confidence="high",
+                                            details={
+                                                "doi_match": "partial_reverse",
+                                                "pdf_doi": pdf_doi,
+                                                "xml_doi": xml_doi
+                                            },
+                                            pdf_metadata=self._pdf_metadata_to_dict(meta)
+                                        )
+                                        matches.append(match)
+                                        
+                                        logger.info(f"~ DOI partial match (reverse): article#{art.index+1} <-> {pe.arcname}")
+                                        logger.info(f"  PDF DOI: {pdf_doi}")
+                                        logger.info(f"  XML DOI: {xml_doi}")
+                                        
+                                        partial_match_found = True
+                                        break
+
+        logger.info(f"Phase 1 завершена: {len(matched_articles)} сопоставлений по DOI")
+        
+        return matches, matched_articles, matched_pdfs
+
+    def _match_fallback(
+        self,
+        pdf_entries: List[PDFEntry],
+        articles_info: List[ArticleInfo],
+        pdf_metadata: Dict[Path, PDFMetadata],
+        matched_articles: Set[int],
+        matched_pdfs: Set[Path]
+    ) -> List[MatchResult]:
+        """
+        Phase 2: Fallback сопоставление (title + authors + pages).
+        Использует многоуровневую стратегию с адаптивными порогами.
+        """
+        matches = []
+        
+        # Несопоставленные кандидаты
+        remaining_articles = [a for a in articles_info if a.index not in matched_articles]
+        remaining_pdfs = [pe for pe in pdf_entries if pe.path not in matched_pdfs]
+        
+        if not remaining_articles or not remaining_pdfs:
+            logger.info("Phase 2: нет кандидатов для fallback")
+            return matches
+
+        logger.info("=" * 80)
+        logger.info(f"Phase 2: Fallback сопоставление")
+        logger.info(f"  Статей: {len(remaining_articles)}, PDF: {len(remaining_pdfs)}")
+        logger.info("=" * 80)
+
+        # Вычисляем scores для всех пар
+        scored_pairs: List[Tuple[float, ArticleInfo, PDFEntry, Dict[str, float]]] = []
+        
+        for art in remaining_articles:
+            for pe in remaining_pdfs:
+                meta = pdf_metadata.get(pe.path, PDFMetadata())
+                
+                total_score, components = self._calculate_combined_score(
+                    meta, art, Path(pe.arcname).name
+                )
+                
+                if total_score > 0:
+                    scored_pairs.append((total_score, art, pe, components))
+        
+        if not scored_pairs:
+            logger.warning("Phase 2: не найдено совпадений (все scores = 0)")
+            return matches
+
+        # Сортируем по убыванию score
+        scored_pairs.sort(key=lambda x: x[0], reverse=True)
+
+        # Статистика для адаптивной подстройки порогов
+        all_scores = [s[0] for s in scored_pairs]
+        if self.adaptive_thresholds and all_scores:
+            self._adjust_thresholds(all_scores)
+
+        # Группируем по статьям для проверки неоднозначности
+        by_article: Dict[int, List[Tuple[float, PDFEntry, Dict[str, float]]]] = {}
+        for score, art, pe, comps in scored_pairs:
+            by_article.setdefault(art.index, []).append((score, pe, comps))
+
+        # Определяем неоднозначные статьи (margin rule)
+        ambiguous_articles = set()
+        for art_idx, candidates in by_article.items():
+            if len(candidates) >= 2:
+                candidates_sorted = sorted(candidates, key=lambda x: x[0], reverse=True)
+                top1_score = candidates_sorted[0][0]
+                top2_score = candidates_sorted[1][0]
+                
+                if (top1_score - top2_score) < self.MARGIN_SCORE_GAP:
+                    ambiguous_articles.add(art_idx)
+                    
+                    if self.verbose:
+                        logger.info(f"  Статья #{art_idx+1}: неоднозначность")
+                        logger.info(f"    Top-1: {candidates_sorted[0][1].arcname} (score={top1_score:.3f})")
+                        logger.info(f"    Top-2: {candidates_sorted[1][1].arcname} (score={top2_score:.3f})")
+                        logger.info(f"    Gap: {top1_score - top2_score:.3f} < {self.MARGIN_SCORE_GAP}")
+
+        # Greedy assignment с учётом уровней уверенности
+        local_matched_articles = set()
+        local_matched_pdfs = set()
+
+        # Уровень 1: Высокая уверенность (не неоднозначные)
+        for score, art, pe, components in scored_pairs:
+            if art.index in local_matched_articles or pe.path in local_matched_pdfs:
+                continue
+            
+            if art.index in ambiguous_articles:
+                continue
+            
+            if score >= self.MIN_SCORE_HIGH_CONFIDENCE:
+                meta = pdf_metadata.get(pe.path, PDFMetadata())
+                self._assign_match(
+                    art, pe, score, components,
+                    matched_articles, matched_pdfs,
+                    local_matched_articles, local_matched_pdfs,
+                    matches, confidence="high",
+                    pdf_meta=meta
+                )
+
+        # Уровень 2: Средняя уверенность
+        for score, art, pe, components in scored_pairs:
+            if art.index in local_matched_articles or pe.path in local_matched_pdfs:
+                continue
+            
+            if art.index in ambiguous_articles:
+                continue
+            
+            if self.MIN_SCORE_MEDIUM_CONFIDENCE <= score < self.MIN_SCORE_HIGH_CONFIDENCE:
+                meta = pdf_metadata.get(pe.path, PDFMetadata())
+                self._assign_match(
+                    art, pe, score, components,
+                    matched_articles, matched_pdfs,
+                    local_matched_articles, local_matched_pdfs,
+                    matches, confidence="medium",
+                    pdf_meta=meta
+                )
+
+        # Уровень 3: Низкая уверенность (только если единственный кандидат)
+        for art_idx in ambiguous_articles:
+            if art_idx in local_matched_articles:
+                continue
+            
+            candidates = by_article[art_idx]
+            # Фильтруем доступные PDF
+            available = [c for c in candidates if c[1].path not in local_matched_pdfs]
+            
+            if len(available) == 1:
+                score, pe, components = available[0]
+                art = next(a for a in articles_info if a.index == art_idx)
+                meta = pdf_metadata.get(pe.path, PDFMetadata())
+                
+                if score >= self.MIN_SCORE_LOW_CONFIDENCE:
+                    self._assign_match(
+                        art, pe, score, components,
+                        matched_articles, matched_pdfs,
+                        local_matched_articles, local_matched_pdfs,
+                        matches, confidence="low",
+                        pdf_meta=meta
+                    )
+
+        logger.info(f"Phase 2 завершена: {len(matches)} новых сопоставлений")
+        
+        return matches
+
+    def _adjust_thresholds(self, scores: List[float]) -> None:
+        """Адаптивная подстройка порогов на основе распределения scores"""
+        if not scores:
+            return
+        
+        scores_sorted = sorted(scores, reverse=True)
+        n = len(scores_sorted)
+        
+        # Используем перцентили для определения порогов
+        p75 = scores_sorted[int(n * 0.25)] if n > 3 else scores_sorted[0]
+        p50 = scores_sorted[int(n * 0.50)] if n > 1 else scores_sorted[0]
+        p25 = scores_sorted[int(n * 0.75)] if n > 3 else scores_sorted[-1]
+        
+        # Подстраиваем пороги (с ограничениями)
+        new_high = max(0.65, min(0.85, p75))
+        new_medium = max(0.35, min(0.65, p50))
+        new_low = max(0.15, min(0.45, p25))
+        
+        # Обновляем только если изменения значительны
+        if abs(new_high - self.MIN_SCORE_HIGH_CONFIDENCE) > 0.05:
+            logger.info(f"Адаптивная подстройка порога high: {self.MIN_SCORE_HIGH_CONFIDENCE:.2f} -> {new_high:.2f}")
+            self.MIN_SCORE_HIGH_CONFIDENCE = new_high
+        
+        if abs(new_medium - self.MIN_SCORE_MEDIUM_CONFIDENCE) > 0.05:
+            logger.info(f"Адаптивная подстройка порога medium: {self.MIN_SCORE_MEDIUM_CONFIDENCE:.2f} -> {new_medium:.2f}")
+            self.MIN_SCORE_MEDIUM_CONFIDENCE = new_medium
+
+    def _assign_match(
+        self,
+        art: ArticleInfo,
+        pe: PDFEntry,
+        score: float,
+        components: Dict[str, float],
+        matched_articles: Set[int],
+        matched_pdfs: Set[Path],
+        local_matched_articles: Set[int],
+        local_matched_pdfs: Set[Path],
+        matches: List[MatchResult],
+        confidence: str,
+        pdf_meta: PDFMetadata
+    ) -> None:
+        """Вспомогательный метод для регистрации сопоставления"""
+        self.set_pdf_file_in_article(art.element, Path(pe.arcname).name)
+        
+        matched_articles.add(art.index)
+        matched_pdfs.add(pe.path)
+        local_matched_articles.add(art.index)
+        local_matched_pdfs.add(pe.path)
+        
+        # Определяем метод на основе компонентов
+        method = self._determine_match_method(components, score)
+        
+        match = MatchResult(
+            article_index=art.index,
+            article_id=art.article_id,
+            article_title=art.title_rus or art.title_eng or "Без названия",
+            pdf_filename=Path(pe.arcname).name,
+            score=score,
+            method=method,
+            doi=art.doi,
+            confidence=confidence,
+            details=components,
+            pdf_metadata=self._pdf_metadata_to_dict(pdf_meta)
+        )
+        matches.append(match)
+        
+        if self.verbose:
+            logger.info(f"✓ Match ({confidence}): article#{art.index+1} <-> {pe.arcname}")
+            logger.info(f"  Score: {score:.3f}, Components: {components}")
+
+    def _determine_match_method(self, components: Dict[str, float], total_score: float) -> MatchMethod:
+        """Определить метод сопоставления на основе компонентов"""
+        title_score = components.get("title", 0.0)
+        authors_score = components.get("authors", 0.0)
+        pages_score = components.get("pages", 0.0)
+        
+        # Приоритеты
+        if title_score > 0.85:
+            return MatchMethod.TITLE_HIGH
+        elif title_score > 0.5 and authors_score > 0.5:
+            return MatchMethod.TITLE_AUTHORS
+        elif pages_score > 0.8 and title_score > 0.4:
+            return MatchMethod.PAGES_TITLE
+        else:
+            return MatchMethod.FALLBACK
+
+    def _pdf_metadata_to_dict(self, meta: PDFMetadata) -> Dict[str, Any]:
+        """Преобразовать PDFMetadata в словарь для шаблона"""
+        return {
+            "title": meta.title,
+            "authors": meta.authors,
+            "doi": meta.doi,
+            "doi_candidates": meta.doi_candidates,
+            "edn": meta.edn,
+            "extraction_quality": meta.extraction_quality,
+        }
+
+    # ===========================
+    # Главный процесс
+    # ===========================
+
+    def process_zip(self, zip_path: Path, extract_to: Path, cleanup_old: bool = True) -> Dict[str, Any]:
+        """
+        Главный метод обработки ZIP архива.
+        
+        Args:
+            zip_path: Путь к ZIP архиву
+            extract_to: Директория для извлечения
+            cleanup_old: Удалять старые <file desc="PDF"> перед обработкой
+        
+        Returns:
+            Словарь с результатами обработки
+        """
+        # Извлечение
         extracted = self.extract_zip(zip_path, extract_to)
         xml_path: Path = extracted["xml"]
         xml_arcname: str = extracted["xml_arcname"]
@@ -991,7 +1742,7 @@ class PDFMatcher:
         if not pdf_entries:
             raise ValueError("В архиве не найдены PDF файлы")
 
-        # parse XML
+        # Парсинг XML
         parser = etree.XMLParser(remove_blank_text=True)
         tree = etree.parse(str(xml_path), parser)
         root = tree.getroot()
@@ -1000,361 +1751,197 @@ class PDFMatcher:
         if not articles:
             raise ValueError("В XML не найдены статьи")
 
-        # CLEANUP: убрать старые неверные привязки PDF
-        removed = self.cleanup_pdf_files_in_articles(root)
-        if removed:
-            logger.info(f"Очистка: удалено старых <file desc='PDF'>: {removed}")
+        # Cleanup
+        removed = 0
+        if cleanup_old:
+            removed = self.cleanup_pdf_files_in_articles(root)
+            if removed:
+                logger.info(f"Очистка: удалено {removed} старых <file desc='PDF'>")
 
-        # collect articles info
-        articles_info: List[ArticleInfo] = []
-        for idx, a in enumerate(articles):
-            articles_info.append(self.get_article_info(a, idx))
+        # Сбор информации о статьях
+        articles_info = [self.get_article_info(a, idx) for idx, a in enumerate(articles)]
 
-        # extract pdf metadata
-        logger.info(f"Найдено статей: {len(articles_info)}, PDF файлов: {len(pdf_entries)}")
-        pdf_meta: Dict[Path, Dict[str, Any]] = {}
+        # Извлечение метаданных из PDF
+        logger.info(f"Найдено статей: {len(articles_info)}, PDF: {len(pdf_entries)}")
         logger.info("=" * 80)
-        logger.info("Извлечение метаданных из PDF:")
+        logger.info("Извлечение метаданных из PDF")
         logger.info("=" * 80)
+        
+        pdf_metadata: Dict[Path, PDFMetadata] = {}
         for pe in sorted(pdf_entries, key=lambda x: x.arcname.lower()):
             logger.info(f"PDF: {pe.arcname}")
             meta = self.extract_pdf_metadata(pe.path)
-            pdf_meta[pe.path] = meta
-            logger.info(f"  Извлечено: DOI='{meta.get('doi')}', Title='{meta.get('title')}', Authors={meta.get('authors')}")
-        
-        # Логируем информацию о статьях
-        logger.info("=" * 80)
-        logger.info("Информация о статьях из XML:")
-        logger.info("=" * 80)
-        for art in articles_info:
-            title_display = art.title_rus or art.title_eng or "Без названия"
-            if len(title_display) > 60:
-                title_display = title_display[:60] + "..."
-            logger.info(f"  Статья #{art.index+1}: DOI='{art.doi}', Title='{title_display}', Authors_RUS={art.authors_rus}, Authors_ENG={art.authors_eng}")
-
-        # -----------------------
-        # Phase 1: Жёсткая проверка по DOI
-        # -----------------------
-        matches: List[Dict[str, Any]] = []
-        matched_articles = set()
-        matched_pdfs = set()
-        rejected_pdfs = set()  # PDF с DOI, которые не совпали
-
-        # build map doi->article indices (DOI в выпуске должен быть уникален)
-        doi_to_article = {}
-        articles_with_doi = 0
-        for art in articles_info:
-            if art.doi:
-                doi_to_article.setdefault(art.doi, []).append(art)
-                articles_with_doi += 1
-        
-        logger.info(f"Статей с DOI в XML: {articles_with_doi} из {len(articles_info)}")
-        pdfs_with_doi = sum(1 for m in pdf_meta.values() if m.get('doi'))
-        logger.info(f"PDF файлов с DOI: {pdfs_with_doi} из {len(pdf_entries)}")
-
-        # Шаг 1: Жёсткая проверка по DOI
-        logger.info("=" * 80)
-        logger.info("Phase 1: Проверка по DOI")
-        logger.info("=" * 80)
-        
-        for pe in pdf_entries:
-            m = pdf_meta.get(pe.path, {})
-            pdf_doi_raw = m.get("doi")
-            if not pdf_doi_raw:
-                logger.debug(f"  PDF {pe.arcname}: DOI не найден в PDF - будет использован fallback")
-                continue  # DOI не найден в PDF - переходим к fallback
+            pdf_metadata[pe.path] = meta
             
-            pdf_doi = self.normalize_doi(pdf_doi_raw)
-            logger.debug(f"  PDF {pe.arcname}: DOI из PDF (нормализован) = '{pdf_doi}'")
-            
-            # Ищем совпадение по DOI
-            if pdf_doi in doi_to_article:
-                if len(doi_to_article[pdf_doi]) == 1:
-                    art = doi_to_article[pdf_doi][0]
-                    if art.index in matched_articles or pe.path in matched_pdfs:
-                        continue
-                    # MATCH (подтверждено)
-                    self.set_pdf_file_in_article(art.element, Path(pe.arcname).name)
-                    matched_articles.add(art.index)
-                    matched_pdfs.add(pe.path)
-                    matches.append({
-                        "article_index": art.index,
-                        "article_id": art.article_id,
-                        "article_title": art.title_rus or art.title_eng or "Без названия",
-                        "pdf_filename": Path(pe.arcname).name,
-                        "score": 1.0,
-                        "method": "doi_exact",
-                        "doi": pdf_doi,
-                    })
-                    logger.info(f"✓ DOI match (подтверждено): article#{art.index+1} <-> {pe.arcname} (DOI: {pdf_doi})")
-                else:
-                    logger.warning(f"⚠ DOI {pdf_doi} найден в нескольких статьях, пропускаем")
-            else:
-                # NOT MATCH: DOI в PDF найден, но не совпадает с XML
-                # Проверяем, может быть это частичное совпадение (DOI в PDF обрезан)
-                partial_match = False
-                matched_xml_doi = None
-                for xml_doi in doi_to_article.keys():
-                    # Если DOI из PDF является началом DOI из XML - это частичное совпадение
-                    if xml_doi.startswith(pdf_doi) and len(xml_doi) > len(pdf_doi):
-                        partial_match = True
-                        matched_xml_doi = xml_doi
-                        logger.info(f"  ~ Частичное совпадение DOI: PDF {pe.arcname} имеет '{pdf_doi}', XML имеет '{xml_doi}' (начинается с PDF DOI)")
-                        # Используем fallback вместо полного отвержения
-                        break
-                
-                if not partial_match:
-                    # Полное несовпадение - отвергаем только если DOI в PDF достаточно длинный
-                    # Если DOI очень короткий (например, "10.31854/181"), возможно он обрезан
-                    if len(pdf_doi) < 15:  # очень короткий DOI - вероятно обрезан
-                        logger.info(f"  → PDF {pe.arcname} имеет короткий DOI '{pdf_doi}' (возможно обрезан) - будет использован fallback")
-                        # Не отвергаем, используем fallback
-                    else:
-                        # Длинный DOI, но не совпадает - отвергаем
-                        rejected_pdfs.add(pe.path)
-                        logger.warning(f"✗ DOI не совпадает: PDF {pe.arcname} имеет DOI '{pdf_doi}', но такой DOI не найден в XML - отвергнуто")
-                        # Логируем доступные DOI из XML для отладки
-                        if doi_to_article:
-                            available_dois = list(doi_to_article.keys())[:5]  # первые 5 для примера
-                            logger.debug(f"    Доступные DOI в XML (примеры): {available_dois}")
-                else:
-                    logger.info(f"  → PDF {pe.arcname} будет использован в fallback (частичное совпадение DOI)")
-        
-        logger.info(f"Phase 1 завершена: сопоставлено {len(matched_articles)} статей по DOI, отвергнуто {len(rejected_pdfs)} PDF")
+            logger.info(f"  DOI: {meta.doi or 'не найдено'}")
+            if meta.doi_candidates and len(meta.doi_candidates) > 1:
+                logger.info(f"  DOI кандидаты: {meta.doi_candidates}")
+            logger.info(f"  EDN: {meta.edn or 'не найдено'}")
+            logger.info(f"  Title: {meta.title[:80] if meta.title else 'не найдено'}...")
+            logger.info(f"  Authors: {meta.authors or 'не найдены'}")
+            logger.info(f"  Quality: {meta.extraction_quality}")
 
-        # -----------------------------------------
-        # Phase 2: Fallback (title+authors), margin
-        # -----------------------------------------
-        # Шаг 2: Фоллбек-проверка (только когда DOI в PDF не найден)
-        # candidates: только несопоставленные статьи и PDF без DOI (или с DOI, но не отвергнутые)
-        remaining_articles = [a for a in articles_info if a.index not in matched_articles]
-        # Исключаем PDF, которые были отвергнуты по DOI
-        remaining_pdfs = [pe for pe in pdf_entries if pe.path not in matched_pdfs and pe.path not in rejected_pdfs]
-        
-        logger.info(f"Fallback матчинг: {len(remaining_articles)} статей, {len(remaining_pdfs)} PDF (исключены {len(rejected_pdfs)} PDF с несовпадающим DOI)")
+        # Сопоставление - Phase 0: EDN (приоритет над DOI)
+        matches_edn, matched_articles, matched_pdfs = self._match_by_edn(
+            pdf_entries, articles_info, pdf_metadata
+        )
 
-        # score matrix as list of pairs
-        scored_pairs = []
-        all_scores = []  # для диагностики
-        # Сохраняем все scores для каждой статьи (даже ниже порога) для диагностики
-        article_scores_map: Dict[int, List[Tuple[float, str]]] = {}  # article_index -> [(score, pdf_name), ...]
-        
-        logger.info("=" * 80)
-        logger.info(f"Phase 2: Fallback матчинг ({len(remaining_articles)} статей, {len(remaining_pdfs)} PDF)")
-        logger.info("=" * 80)
-        
-        if not remaining_articles or not remaining_pdfs:
-            logger.warning(f"⚠ Нет кандидатов для fallback: статей={len(remaining_articles)}, PDF={len(remaining_pdfs)}")
-        
-        for art in remaining_articles:
-            article_scores_map[art.index] = []
-            art_title = art.title_rus or art.title_eng or "Без названия"
-            if len(art_title) > 50:
-                art_title_display = art_title[:50] + "..."
-            else:
-                art_title_display = art_title
-            logger.info(f"Обработка статьи #{art.index+1}: '{art_title_display}'")
-            logger.info(f"  XML данные: Title_RUS='{art.title_rus[:60] if art.title_rus and len(art.title_rus) > 60 else art.title_rus}...', Title_ENG='{art.title_eng[:60] if art.title_eng and len(art.title_eng) > 60 else art.title_eng}...', Authors_RUS={art.authors_rus}, Authors_ENG={art.authors_eng}")
-            
-            for pe in remaining_pdfs:
-                pdf_meta_for_file = pdf_meta.get(pe.path, {})
-                pdf_title = pdf_meta_for_file.get('title', 'Не найдено')
-                pdf_authors = pdf_meta_for_file.get('authors', [])
-                logger.info(f"  Сравнение с PDF {pe.arcname}:")
-                logger.info(f"    PDF Title='{pdf_title[:60] if pdf_title and len(pdf_title) > 60 else pdf_title}', Authors={pdf_authors}")
-                
-                sc = self._score_fallback(Path(pe.arcname).name, pdf_meta_for_file, art)
-                all_scores.append(sc)
-                # Сохраняем все scores для диагностики
-                article_scores_map[art.index].append((sc, pe.arcname))
-                
-                if sc >= self.MIN_SCORE_FALLBACK:
-                    scored_pairs.append((sc, art, pe))
-                    logger.info(f"    ✓✓✓ КАНДИДАТ: статья#{art.index+1} <-> {pe.arcname} (score={sc:.3f}) ✓✓✓")
-                elif sc > 0:
-                    logger.info(f"    - Низкий score: статья#{art.index+1} <-> {pe.arcname} (score={sc:.3f}, порог={self.MIN_SCORE_FALLBACK})")
-                else:
-                    logger.info(f"    - Score=0: статья#{art.index+1} <-> {pe.arcname} (нет совпадений)")
-        
-        if all_scores:
-            logger.info(f"Статистика fallback scores: min={min(all_scores):.3f}, max={max(all_scores):.3f}, avg={sum(all_scores)/len(all_scores):.3f}")
-            # Показываем топ-5 лучших scores
-            top_scores = sorted(all_scores, reverse=True)[:5]
-            logger.info(f"Топ-5 scores: {[f'{s:.3f}' for s in top_scores]}")
-        logger.info(f"Найдено кандидатов для fallback (порог {self.MIN_SCORE_FALLBACK}): {len(scored_pairs)} из {len(all_scores)}")
+        # Сопоставление - Phase 1: DOI
+        matches_doi, matched_articles, matched_pdfs = self._match_by_doi(
+            pdf_entries, articles_info, pdf_metadata,
+            matched_articles, matched_pdfs
+        )
 
-        scored_pairs.sort(key=lambda x: x[0], reverse=True)
+        # Сопоставление - Phase 2: Fallback
+        matches_fallback = self._match_fallback(
+            pdf_entries, articles_info, pdf_metadata,
+            matched_articles, matched_pdfs
+        )
 
-        # margin rule per article: compute top1/top2 among its candidates
-        top_by_article: Dict[int, List[Tuple[float, PDFEntry]]] = {}
-        for sc, art, pe in scored_pairs:
-            top_by_article.setdefault(art.index, []).append((sc, pe))
-        
-        ambiguous = set()
-        for idx, candidates in top_by_article.items():
-            candidates_sorted = sorted(candidates, key=lambda x: x[0], reverse=True)
-            if len(candidates_sorted) >= 2:
-                top1_score = candidates_sorted[0][0]
-                top2_score = candidates_sorted[1][0]
-                if (top1_score - top2_score) < self.MARGIN_SCORE_GAP:
-                    ambiguous.add(idx)
-                    logger.info(f"  Статья #{idx+1}: неоднозначность (top1={top1_score:.3f}, top2={top2_score:.3f}, gap={top1_score-top2_score:.3f} < {self.MARGIN_SCORE_GAP})")
+        # Объединяем результаты (EDN имеет приоритет)
+        all_matches = matches_edn + matches_doi + matches_fallback
 
-        if ambiguous:
-            logger.info(f"Неоднозначные статьи (margin<{self.MARGIN_SCORE_GAP}): {sorted(i+1 for i in ambiguous)}")
-
-        # greedy assignment (после отсечения ambiguous)
-        # Первый проход: сопоставляем однозначные
-        for sc, art, pe in scored_pairs:
-            if art.index in matched_articles or pe.path in matched_pdfs:
-                continue
-            if art.index in ambiguous:
-                continue
-
-            self.set_pdf_file_in_article(art.element, Path(pe.arcname).name)
-            matched_articles.add(art.index)
-            matched_pdfs.add(pe.path)
-            matches.append({
-                "article_index": art.index,
-                "article_id": art.article_id,
-                "article_title": art.title_rus or art.title_eng or "Без названия",
-                "pdf_filename": Path(pe.arcname).name,
-                "score": float(sc),
-                "method": "fallback",
-                "doi": art.doi,
-            })
-            logger.info(f"~ fallback match: article#{art.index+1} <-> {pe.arcname} (score={sc:.2f})")
-        
-        # Второй проход: для ambiguous статей, если остался только один свободный PDF - сопоставляем его
-        for idx in list(ambiguous):
-            candidates = top_by_article[idx]
-            candidates_sorted = sorted(candidates, key=lambda x: x[0], reverse=True)
-            # Если это единственный доступный PDF для этой статьи - сопоставляем
-            available_for_article = [c for c in candidates_sorted if c[1].path not in matched_pdfs]
-            if len(available_for_article) == 1:
-                sc, pe = available_for_article[0]
-                art = next(a for a in articles_info if a.index == idx)
-                self.set_pdf_file_in_article(art.element, Path(pe.arcname).name)
-                matched_articles.add(idx)
-                matched_pdfs.add(pe.path)
-                matches.append({
-                    "article_index": idx,
-                    "article_id": art.article_id,
-                    "article_title": art.title_rus or art.title_eng or "Без названия",
-                    "pdf_filename": Path(pe.arcname).name,
-                    "score": float(sc),
-                    "method": "fallback_ambiguous",
-                    "doi": art.doi,
-                })
-                logger.info(f"~ fallback match (ambiguous, единственный кандидат): article#{idx+1} <-> {pe.arcname} (score={sc:.2f})")
-                ambiguous.remove(idx)
-        
-        # Третий проход: для оставшихся ambiguous статей - берем лучший доступный вариант
-        for idx in list(ambiguous):
-            candidates = top_by_article[idx]
-            candidates_sorted = sorted(candidates, key=lambda x: x[0], reverse=True)
-            for sc, pe in candidates_sorted:
-                if idx in matched_articles or pe.path in matched_pdfs:
-                    continue
-                # Берем первый доступный (лучший по score)
-                art = next(a for a in articles_info if a.index == idx)
-                self.set_pdf_file_in_article(art.element, Path(pe.arcname).name)
-                matched_articles.add(idx)
-                matched_pdfs.add(pe.path)
-                matches.append({
-                    "article_index": idx,
-                    "article_id": art.article_id,
-                    "article_title": art.title_rus or art.title_eng or "Без названия",
-                    "pdf_filename": Path(pe.arcname).name,
-                    "score": float(sc),
-                    "method": "fallback_ambiguous_best",
-                    "doi": art.doi,
-                })
-                logger.info(f"~ fallback match (ambiguous, лучший доступный): article#{idx+1} <-> {pe.arcname} (score={sc:.2f})")
-                ambiguous.remove(idx)
-                break
-
-        # add unmatched articles to report with diagnostic info
+        # Добавляем несопоставленные статьи
         for art in articles_info:
             if art.index not in matched_articles:
-                # Найдем лучший score для этой статьи из scored_pairs (выше порога)
-                best_score = 0.0
-                best_pdf = None
-                for sc, a, pe in scored_pairs:
-                    if a.index == art.index:
-                        if sc > best_score:
-                            best_score = sc
-                            best_pdf = pe.arcname
+                match = MatchResult(
+                    article_index=art.index,
+                    article_id=art.article_id,
+                    article_title=art.title_rus or art.title_eng or "Без названия",
+                    pdf_filename=None,
+                    score=0.0,
+                    method=MatchMethod.UNMATCHED,
+                    doi=art.doi,
+                    confidence="none",
+                    details={"reason": "no_suitable_pdf_found"},
+                    pdf_metadata=None
+                )
+                all_matches.append(match)
                 
-                # Также проверим все scores для этой статьи (даже те, что ниже порога)
-                all_scores_for_article = article_scores_map.get(art.index, [])
-                if all_scores_for_article:
-                    all_scores_for_article.sort(key=lambda x: x[0], reverse=True)
-                    best_score_all = all_scores_for_article[0][0]
-                    best_pdf_all = all_scores_for_article[0][1]
-                    if best_score_all > best_score:
-                        best_score = best_score_all
-                        best_pdf = best_pdf_all
-                    
-                    # Покажем топ-3 лучших scores для диагностики
-                    top3 = all_scores_for_article[:3]
-                    logger.info(f"  📊 Топ-3 scores для статьи #{art.index+1}: {[(pdf, f'{sc:.3f}') for sc, pdf in top3]}")
-                
-                reason = "unknown"
-                if art.index in ambiguous:
-                    reason = f"ambiguous (score={best_score:.2f}, margin<{self.MARGIN_SCORE_GAP})"
-                elif best_score > 0 and best_score < self.MIN_SCORE_FALLBACK:
-                    reason = f"low_score ({best_score:.3f} < {self.MIN_SCORE_FALLBACK})"
-                elif not remaining_pdfs:
-                    reason = "no_pdfs_available"
-                elif best_score == 0.0:
-                    reason = "no_matches_found (score=0 для всех PDF)"
-                else:
-                    reason = "no_matches_found"
-                
-                logger.warning(f"⚠ Статья #{art.index+1} не сопоставлена: {reason}" + 
-                             (f" (лучший кандидат: {best_pdf}, score={best_score:.3f})" if best_pdf else 
-                              (f" (лучший score: {best_score:.3f}, но PDF уже использован)" if best_score > 0 else "")))
-                
-                # Если есть лучший score, но он ниже порога - все равно покажем его
-                if best_score > 0 and best_score < self.MIN_SCORE_FALLBACK:
-                    logger.info(f"  💡 Рекомендация: для статьи #{art.index+1} лучший score={best_score:.3f} (порог={self.MIN_SCORE_FALLBACK}). "
-                              f"Можно попробовать снизить порог или улучшить извлечение метаданных.")
-                
-                matches.append({
-                    "article_index": art.index,
-                    "article_id": art.article_id,
-                    "article_title": art.title_rus or art.title_eng or "Без названия",
-                    "pdf_filename": None,
-                    "score": best_score,
-                    "method": "unmatched",
-                    "doi": art.doi,
-                    "reason": reason,
-                })
+                logger.warning(f"⚠ Статья #{art.index+1} не сопоставлена")
 
-        matches.sort(key=lambda x: x["article_index"])
+        # Сортируем по индексу статьи
+        all_matches.sort(key=lambda x: x.article_index)
 
-        # save XML
+        # Сохраняем XML
         tree.write(str(xml_path), encoding="UTF-8", xml_declaration=True, pretty_print=True)
 
-        # Создаем уникальное имя для обработанного XML файла
+        # Создаём копию для скачивания
         output_xml = extract_to / f"{zip_path.stem}_processed.xml"
-        # Копируем обработанный XML в файл с уникальным именем для скачивания
         shutil.copy2(xml_path, output_xml)
 
-        return {
+        # Формируем результат
+        result = {
             "success": True,
             "xml_path": xml_path,
             "output_xml": output_xml,
             "xml_arcname": xml_arcname,
-            "matches": matches,
+            "matches": [self._match_result_to_dict(m) for m in all_matches],
             "total_articles": len(articles_info),
-            "matched_articles": sum(1 for m in matches if m["pdf_filename"]),
-            "unmatched_articles": sum(1 for m in matches if not m["pdf_filename"]),
+            "matched_articles": len(matched_articles),
+            "unmatched_articles": len(articles_info) - len(matched_articles),
             "cleanup_removed_pdf_tags": removed,
+            "statistics": {
+                "doi_extractions": self.stats["doi_extractions"],
+                "doi_extraction_failures": self.stats["doi_extraction_failures"],
+                "edn_extractions": self.stats["edn_extractions"],
+                "edn_extraction_failures": self.stats["edn_extraction_failures"],
+                "title_extractions": self.stats["title_extractions"],
+                "title_extraction_failures": self.stats["title_extraction_failures"],
+                "author_extractions": self.stats["author_extractions"],
+                "author_extraction_failures": self.stats["author_extraction_failures"],
+            },
             "settings": {
-                "min_score_fallback": self.MIN_SCORE_FALLBACK,
+                "min_score_high": self.MIN_SCORE_HIGH_CONFIDENCE,
+                "min_score_medium": self.MIN_SCORE_MEDIUM_CONFIDENCE,
+                "min_score_low": self.MIN_SCORE_LOW_CONFIDENCE,
                 "margin_score_gap": self.MARGIN_SCORE_GAP,
                 "read_pages_for_text": self.READ_PAGES_FOR_TEXT,
+                "adaptive_thresholds": self.adaptive_thresholds,
             }
         }
+
+        # Итоговая статистика
+        logger.info("=" * 80)
+        logger.info("ИТОГОВАЯ СТАТИСТИКА")
+        logger.info("=" * 80)
+        logger.info(f"Всего статей: {result['total_articles']}")
+        logger.info(f"Сопоставлено: {result['matched_articles']}")
+        logger.info(f"Не сопоставлено: {result['unmatched_articles']}")
+        logger.info(f"Процент покрытия: {result['matched_articles']/result['total_articles']*100:.1f}%")
+        logger.info("")
+        logger.info("Распределение по методам:")
+        method_counts = Counter(m["method"] for m in result["matches"])
+        for method, count in method_counts.most_common():
+            logger.info(f"  {method}: {count}")
+        logger.info("")
+        logger.info("Распределение по уверенности:")
+        conf_counts = Counter(m["confidence"] for m in result["matches"] if m["pdf_filename"])
+        for conf, count in conf_counts.most_common():
+            logger.info(f"  {conf}: {count}")
+
+        return result
+
+    def _match_result_to_dict(self, match: MatchResult) -> Dict[str, Any]:
+        """Преобразовать MatchResult в словарь"""
+        return {
+            "article_index": match.article_index,
+            "article_id": match.article_id,
+            "article_title": match.article_title,
+            "pdf_filename": match.pdf_filename,
+            "score": match.score,
+            "method": match.method.value,
+            "doi": match.doi,
+            "confidence": match.confidence,
+            "details": match.details,
+            "pdf_metadata": match.pdf_metadata,
+        }
+
+
+# ===========================
+# Утилиты для использования
+# ===========================
+
+def process_archive(
+    zip_path: str,
+    extract_dir: str = "./extracted",
+    adaptive: bool = True,
+    verbose: bool = True
+) -> Dict[str, Any]:
+    """
+    Удобная функция для обработки одного архива.
+    
+    Args:
+        zip_path: Путь к ZIP архиву
+        extract_dir: Директория для извлечения
+        adaptive: Использовать адаптивные пороги
+        verbose: Подробное логирование
+    
+    Returns:
+        Словарь с результатами
+    """
+    matcher = PDFMatcher(adaptive_thresholds=adaptive, verbose=verbose)
+    
+    zip_p = Path(zip_path)
+    extract_p = Path(extract_dir) / zip_p.stem
+    
+    return matcher.process_zip(zip_p, extract_p)
+
+
+if __name__ == "__main__":
+    import sys
+    
+    if len(sys.argv) < 2:
+        print("Usage: python pdf_matcher.py <path_to_zip>")
+        sys.exit(1)
+    
+    result = process_archive(sys.argv[1])
+    
+    print("\n" + "=" * 80)
+    print("РЕЗУЛЬТАТЫ")
+    print("=" * 80)
+    print(f"Успешно: {result['success']}")
+    print(f"Обработано статей: {result['total_articles']}")
+    print(f"Сопоставлено: {result['matched_articles']}")
+    print(f"Не сопоставлено: {result['unmatched_articles']}")
+    print(f"\nОбработанный XML: {result['output_xml']}")
