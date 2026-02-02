@@ -419,6 +419,17 @@
                                 Добавление названий PDF файлов в xml
                             </a>
                         </li>
+                        {% set issue_active = request.endpoint in [
+                            'issue_metadata.issue_metadata_page',
+                            'issue_metadata.process_issue_metadata'
+                        ] %}
+                        <li>
+                            <a href="{{ url_for('issue_metadata.issue_metadata_page') }}"
+                               class="{{ 'active' if issue_active else '' }}"
+                               {{ 'aria-current="page"' if issue_active else '' }}>
+                                Парсер загруженного выпуска
+                            </a>
+                        </li>
                     </ul>
                 </div>
 

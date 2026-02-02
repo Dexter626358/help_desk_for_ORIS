@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Результаты парсинга выпуска - IPSAS{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="margin-bottom: 1.5rem; color: #667eea;">Результаты парсинга выпуска</h1>
+
+    {% if result.notice %}
+        <div class="alert alert-info" role="alert">
+            {{ result.notice }}
+        </div>
+    {% endif %}
+
+    <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem;">
+        <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.1rem;">Метаданные выпуска</h2>
+        <p><strong>Ссылка:</strong> {{ issue_url }}</p>
+        <p><strong>Журнал:</strong> {{ result.issue.journal_title or "—" }}</p>
+        <p><strong>Заголовок выпуска:</strong> {{ result.issue.issue_title or "—" }}</p>
+        <p><strong>ISSN:</strong> {{ result.issue.issn or "—" }}</p>
+        <p><strong>Год:</strong> {{ result.issue.year or "—" }}</p>
+        <p><strong>Том:</strong> {{ result.issue.volume or "—" }}</p>
+        <p><strong>Номер:</strong> {{ result.issue.issue or "—" }}</p>
+        <p><strong>Количество статей:</strong> {{ result.issue.article_count or 0 }}</p>
+
+        {% if result.issue.warnings %}
+            <div style="margin-top: 1rem;">
+                <strong>Проблемы выпуска:</strong>
+                <ul style="margin-top: 0.5rem;">
+                    {% for warning in result.issue.warnings %}
+                        <li>{{ warning }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if result.articles %}
+        <h2 style="margin-bottom: 1rem; color: #333;">Статьи</h2>
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            {% for article in result.articles %}
+                <div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem;">
+                    <p><strong>Ссылка:</strong> {{ article.url }}</p>
+                    <p><strong>Название (RU):</strong> {{ article.title_ru or "—" }}</p>
+                    <p><strong>Название (EN):</strong> {{ article.title_en or "—" }}</p>
+                    <p><strong>Дата публикации:</strong> {{ article.publication_date_display or article.publication_date or "—" }}</p>
+                    <p><strong>Авторы (RU):</strong> {% if article.authors_ru %}{{ article.authors_ru | length }}{% else %}{{ article.authors_count or 0 }}{% endif %}</p>
+                    <p style="margin: 0.25rem 0;">
+                        {% if article.authors_ru %}
+                            {{ article.authors_ru | join(', ') }}
+                        {% elif article.authors %}
+                            {{ article.authors | join(', ') }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </p>
+                    <p><strong>Авторы (EN) / Authors:</strong> {% if article.authors_en %}{{ article.authors_en | length }}{% else %}—{% endif %}</p>
+                    <p style="margin: 0.25rem 0;">
+                        {% if article.authors_en %}
+                            {{ article.authors_en | join(', ') }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </p>
+                    <p><strong>Организации:</strong></p>
+                    <p style="margin: 0.25rem 0;">
+                        {% if article.affiliations %}
+                            {{ article.affiliations | join(', ') }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </p>
+                    <p><strong>DOI:</strong> {{ article.identifiers.doi or "—" }}</p>
+                    <p><strong>EDN:</strong> {{ article.identifiers.edn or "—" }}</p>
+
+                    <div style="margin-top: 0.75rem;">
+                        <strong>Аннотация (RU):</strong>
+                        <p style="margin: 0.25rem 0;">
+                            Длина:
+                            {% if article.abstract_ru_stats.length %}
+                                {{ article.abstract_ru_stats.length }} слов
+                            {% else %}
+                                —
+                            {% endif %}
+                        </p>
+                        <p style="margin: 0.25rem 0;">
+                            {% if article.abstract_ru_stats.first_10 and article.abstract_ru_stats.last_10 %}
+                                {{ article.abstract_ru_stats.first_10 }}...{{ article.abstract_ru_stats.last_10 }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div style="margin-top: 0.75rem;">
+                        <strong>Аннотация (EN):</strong>
+                        <p style="margin: 0.25rem 0;">
+                            Длина:
+                            {% if article.abstract_en_stats.length %}
+                                {{ article.abstract_en_stats.length }} слов
+                            {% else %}
+                                —
+                            {% endif %}
+                        </p>
+                        <p style="margin: 0.25rem 0;">
+                            {% if article.abstract_en_stats.first_10 and article.abstract_en_stats.last_10 %}
+                                {{ article.abstract_en_stats.first_10 }}...{{ article.abstract_en_stats.last_10 }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div style="margin-top: 0.75rem;">
+                        <p><strong>Ключевые слова (RU):</strong> {{ article.keywords_ru_count }}</p>
+                        <p style="margin: 0.25rem 0;">
+                            {% if article.keywords_ru %}
+                                {{ article.keywords_ru | join(', ') }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </p>
+                        <p><strong>Ключевые слова (EN):</strong> {{ article.keywords_en_count }}</p>
+                        <p style="margin: 0.25rem 0;">
+                            {% if article.keywords_en %}
+                                {{ article.keywords_en | join(', ') }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </p>
+                        <p><strong>Источники литературы:</strong> {{ article.references_count }}</p>
+                        <p style="margin: 0.25rem 0;">
+                            <strong>Первый:</strong>
+                            {% if article.reference_first %}
+                                {{ article.reference_first }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </p>
+                        <p style="margin: 0.25rem 0;">
+                            <strong>Последний:</strong>
+                            {% if article.reference_last %}
+                                {{ article.reference_last }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    {% if article.problems %}
+                        <div style="margin-top: 0.75rem;">
+                            <strong>Проблемы:</strong>
+                            <ul style="margin-top: 0.5rem;">
+                                {% for problem in article.problems %}
+                                    <li>{{ problem }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    {% if article.errors %}
+                        <div style="margin-top: 0.75rem;">
+                            <strong>Ошибки:</strong>
+                            <ul style="margin-top: 0.5rem;">
+                                {% for error in article.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>Статьи не найдены.</p>
+    {% endif %}
+
+    <div style="margin-top: 2rem;">
+        <a href="{{ url_for('issue_metadata.issue_metadata_page') }}" class="btn btn-secondary">Новая проверка</a>
+    </div>
+</div>
+{% endblock %}
