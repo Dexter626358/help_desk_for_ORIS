@@ -15,20 +15,29 @@
     <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem;">
         <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.1rem;">Метаданные выпуска</h2>
         <p><strong>Ссылка:</strong> {{ issue_url }}</p>
-        <p><strong>Журнал:</strong> {{ result.issue.journal_title or "—" }}</p>
-        <p><strong>Заголовок выпуска:</strong> {{ result.issue.issue_title or "—" }}</p>
-        <p><strong>ISSN:</strong> {{ result.issue.issn or "—" }}</p>
-        <p><strong>Год:</strong> {{ result.issue.year or "—" }}</p>
-        <p><strong>Том:</strong> {{ result.issue.volume or "—" }}</p>
-        <p><strong>Номер:</strong> {{ result.issue.issue or "—" }}</p>
-        <p><strong>Количество статей:</strong> {{ result.issue.article_count or 0 }}</p>
+        <p data-field="journal_title"><strong>Журнал (RU):</strong> {{ result.issue.journal_title_ru or "—" }}</p>
+        <p data-field="journal_title"><strong>Журнал (EN):</strong> {{ result.issue.journal_title or "—" }}</p>
+        <p data-field="issue_title"><strong>Заголовок выпуска:</strong> {{ result.issue.issue_title or "—" }}</p>
+        <p data-field="issn"><strong>ISSN (печатный):</strong> {{ result.issue.issn or "—" }}</p>
+        <p data-field="eissn"><strong>ISSN (онлайн):</strong> {{ result.issue.eissn or "—" }}</p>
+        <p data-field="year"><strong>Год:</strong> {{ result.issue.year or "—" }}</p>
+        <p data-field="volume"><strong>Том:</strong> {{ result.issue.volume or "—" }}</p>
+        <p data-field="issue"><strong>Номер:</strong> {{ result.issue.issue or "—" }}</p>
+        <p data-field="article_count"><strong>Количество статей:</strong> {{ result.issue.article_count or 0 }}</p>
 
         {% if result.issue.warnings %}
-            <div style="margin-top: 1rem;">
-                <strong>Проблемы выпуска:</strong>
-                <ul style="margin-top: 0.5rem;">
-                    {% for warning in result.issue.warnings %}
-                        <li>{{ warning }}</li>
+            {% set warn_list = result.issue.warnings %}
+            {% set has_error = warn_list | selectattr('severity', 'equalto', 'error') | list | length > 0 %}
+            <div class="issue-check-block" style="margin-top: 1.25rem; padding: 1rem 1.25rem; border-radius: 8px; border-left: 4px solid {% if has_error %}#dc3545{% else %}#fd7e14{% endif %}; background-color: {% if has_error %}#f8d7da{% else %}#fff3cd{% endif %};">
+                <strong style="{% if has_error %}color: #721c24;{% else %}color: #856404;{% endif %}">Обратите внимание</strong>
+                <p style="margin: 0.5rem 0 0.75rem 0; font-size: 0.9rem; {% if has_error %}color: #721c24;{% else %}color: #664d03;{% endif %}">По результатам проверки выпуска обнаружены замечания. Рекомендуется устранить перед публикацией.</p>
+                <ul style="margin: 0; padding-left: 1.25rem;">
+                    {% for w in warn_list %}
+                        {% if w is mapping %}
+                            <li style="margin-bottom: 0.35rem; {% if w.severity == 'error' %}color: #721c24; font-weight: 500;{% else %}color: #856404;{% endif %}">{{ w.text }}</li>
+                        {% else %}
+                            <li style="margin-bottom: 0.35rem; color: #856404;">{{ w }}</li>
+                        {% endif %}
                     {% endfor %}
                 </ul>
             </div>
@@ -44,6 +53,7 @@
                     <p><strong>Название (RU):</strong> {{ article.title_ru or "—" }}</p>
                     <p><strong>Название (EN):</strong> {{ article.title_en or "—" }}</p>
                     <p><strong>Дата публикации:</strong> {{ article.publication_date_display or article.publication_date or "—" }}</p>
+                    <p><strong>Тип статьи:</strong> {{ article.article_type or "—" }}</p>
                     <p><strong>Авторы (RU):</strong> {% if article.authors_ru %}{{ article.authors_ru | length }}{% else %}{{ article.authors_count or 0 }}{% endif %}</p>
                     <p style="margin: 0.25rem 0;">
                         {% if article.authors_ru %}
@@ -54,22 +64,28 @@
                             —
                         {% endif %}
                     </p>
-                    <p><strong>Авторы (EN) / Authors:</strong> {% if article.authors_en %}{{ article.authors_en | length }}{% else %}—{% endif %}</p>
+                    <p><strong>Авторы (EN) / Authors:</strong> {% if article.authors_en %}{{ article.authors_en | length }}{% else %}Нет{% endif %}</p>
                     <p style="margin: 0.25rem 0;">
                         {% if article.authors_en %}
                             {{ article.authors_en | join(', ') }}
                         {% else %}
-                            —
+                            Нет данных
                         {% endif %}
                     </p>
                     <p><strong>Организации:</strong></p>
-                    <p style="margin: 0.25rem 0;">
-                        {% if article.affiliations %}
-                            {{ article.affiliations | join(', ') }}
-                        {% else %}
-                            —
-                        {% endif %}
-                    </p>
+                    {% if article.affiliations %}
+                        <ul style="margin: 0.25rem 0; padding-left: 1.25rem;">
+                            {% for aff in ([article.affiliations] if article.affiliations is string else article.affiliations) %}
+                                {% for org in (aff.split('; ') if aff is string else [aff]) %}
+                                    {% if (org | trim) %}
+                                        <li style="margin-bottom: 0.25rem;">{{ org | trim }}</li>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p style="margin: 0.25rem 0;">—</p>
+                    {% endif %}
                     <p><strong>DOI:</strong> {{ article.identifiers.doi or "—" }}</p>
                     <p><strong>EDN:</strong> {{ article.identifiers.edn or "—" }}</p>
 

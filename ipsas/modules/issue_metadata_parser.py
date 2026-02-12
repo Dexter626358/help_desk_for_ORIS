@@ -24,6 +24,159 @@ from ipsas.utils.logger import get_logger
 logger = get_logger(__name__)
 
 
+# ===========================
+# Формальные проверки выделенных данных
+# ===========================
+
+_ISSN_PATTERN = re.compile(r"^\d{4}-?\d{3}[\dXx]$")  # XXXX-XXXX или XXXX-XXXx
+_DOI_PATTERN = re.compile(r"^10\.\d{4,9}/.+")  # 10.XXXX/suffix
+_EDN_PATTERN = re.compile(r"^[A-Za-z0-9]{6}$")  # 6 латинских символов
+_DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")  # YYYY-MM-DD
+_YEAR_PATTERN = re.compile(r"^\d{4}$")
+
+# Известные русские названия журналов (если на странице нет мета с lang=ru)
+JOURNAL_TITLE_RU_BY_EN: Dict[str, str] = {
+    "Inland Water Biology": "Биология внутренних вод",
+}
+
+
+def _validate_issn(value: Optional[str]) -> Optional[str]:
+    """Проверка формата ISSN. Возвращает сообщение об ошибке или None."""
+    if not value or not value.strip():
+        return None
+    s = value.strip()
+    if not _ISSN_PATTERN.match(s):
+        return f"ISSN не соответствует формату XXXX-XXXX: «{s[:20]}{'…' if len(s) > 20 else ''}»"
+    return None
+
+
+def _validate_doi(value: Optional[str]) -> Optional[str]:
+    """Проверка формата DOI. Возвращает сообщение об ошибке или None."""
+    if not value or not value.strip():
+        return None
+    s = value.strip().lower()
+    if not _DOI_PATTERN.match(s):
+        return f"DOI не соответствует формату 10.XXXX/...: «{s[:30]}{'…' if len(s) > 30 else ''}»"
+    if len(s) < 15:
+        return "DOI подозрительно короткий"
+    return None
+
+
+def _validate_edn(value: Optional[str]) -> Optional[str]:
+    """Проверка формата EDN (6 латинских символов). Возвращает сообщение об ошибке или None."""
+    if not value or not value.strip():
+        return None
+    s = value.strip()
+    if not _EDN_PATTERN.match(s):
+        return f"EDN должен быть 6 латинских символов: «{s[:15]}{'…' if len(s) > 15 else ''}»"
+    return None
+
+
+def _validate_date(value: Optional[str]) -> Optional[str]:
+    """Проверка формата даты YYYY-MM-DD. Возвращает сообщение об ошибке или None."""
+    if not value or not value.strip():
+        return None
+    s = value.strip()
+    if not _DATE_PATTERN.match(s):
+        return f"Дата не в формате ГГГГ-ММ-ДД: «{s[:20]}»"
+    parts = s.split("-")
+    y, m, d = int(parts[0]), int(parts[1]), int(parts[2])
+    if not (1 <= m <= 12 and 1 <= d <= 31):
+        return f"Некорректная дата: «{s}»"
+    return None
+
+
+def _validate_year(value: Optional[object]) -> Optional[str]:
+    """Проверка формата года (4 цифры). Возвращает сообщение об ошибке или None."""
+    if value is None:
+        return None
+    s = str(value).strip()
+    if not s:
+        return None
+    if not _YEAR_PATTERN.match(s):
+        return f"Год не в формате ГГГГ: «{s[:15]}»"
+    y = int(s)
+    if not (1900 <= y <= 2100):
+        return f"Год вне допустимого диапазона: «{s}»"
+    return None
+
+
+def _validate_volume_issue(value: Optional[object], name: str) -> Optional[str]:
+    """Проверка тома/номера выпуска: непустое, разумное число. Возвращает сообщение об ошибке или None."""
+    if value is None:
+        return None
+    if isinstance(value, list) and value:
+        value = value[0]
+    s = str(value).strip()
+    if not s:
+        return None
+    if not re.match(r"^\d{1,5}$", s):
+        return f"{name} должен быть числом: «{s[:15]}»"
+    n = int(s)
+    if n < 1 or n > 99999:
+        return f"{name} вне допустимого диапазона (1–99999): «{s}»"
+    return None
+
+
+def _validate_journal_title(value: Optional[str]) -> Optional[str]:
+    """Проверка названия журнала: непустое, разумная длина. Возвращает сообщение об ошибке или None."""
+    if not value or not value.strip():
+        return None
+    s = value.strip()
+    if len(s) < 2:
+        return "Название журнала слишком короткое"
+    if len(s) > 500:
+        return "Название журнала слишком длинное"
+    return None
+
+
+def _validate_author_name(name: str) -> Optional[str]:
+    """Проверка формата имени автора (Фамилия И. О. или Surname I. O.). Возвращает сообщение об ошибке или None."""
+    if not name or not name.strip():
+        return "Пустое имя автора"
+    s = name.strip()
+    if len(s) < 3:
+        return f"Слишком короткое имя автора: «{s}»"
+    if len(s) > 150:
+        return f"Слишком длинное имя автора: «{s[:30]}…»"
+    if " " not in s and "." not in s:
+        return f"Имя автора должно содержать пробел или инициалы: «{s[:30]}»"
+    return None
+
+
+def _validate_affiliation(value: Optional[str]) -> Optional[str]:
+    """Проверка организации: непустое, разумная длина. Возвращает сообщение об ошибке или None."""
+    if not value or not value.strip():
+        return None
+    s = value.strip()
+    if len(s) < 2:
+        return "Название организации слишком короткое"
+    if len(s) > 1000:
+        return "Название организации слишком длинное"
+    return None
+
+
+def _transliterate_ru_to_en(text: str) -> str:
+    """Транслитерация русских букв в латиницу (ГОСТ 7.79-2000) для дублирования авторов на английском."""
+    if not text:
+        return text
+    # Многобуквенные соответствия (сначала их, чтобы не разбить на однобуквенные)
+    multi = [
+        ("щ", "shch"), ("ш", "sh"), ("ч", "ch"), ("ж", "zh"), ("ю", "yu"), ("я", "ya"),
+        ("Щ", "Shch"), ("Ш", "Sh"), ("Ч", "Ch"), ("Ж", "Zh"), ("Ю", "Yu"), ("Я", "Ya"),
+        ("х", "kh"), ("ц", "ts"), ("Х", "Kh"), ("Ц", "Ts"), ("ё", "e"), ("Ё", "E"),
+    ]
+    res = text
+    for ru, en in multi:
+        res = res.replace(ru, en)
+    # Остальные буквы 1:1
+    single = str.maketrans(
+        "абвгдезийклмнопрстуфыьэАБВГДЕЗИЙКЛМНОПРСТУФЫЬЭ",
+        "abvgdezijklmnoprstufy'eABVGDEZIJKLMNOPRSTUFY'E"
+    )
+    return res.translate(single)
+
+
 @dataclass
 class DownloadResult:
     path: Path
@@ -64,6 +217,21 @@ class IssueMetadataParser:
 
         issue_root = self._fetch_html(issue_url)
         issue_metadata = self._parse_issue_page(issue_root, issue_url)
+        # Название журнала на русском: с той же страницы (meta lang=ru), с locale=ru или из словаря
+        if not issue_metadata.get("journal_title_ru"):
+            try:
+                ru_root = self._fetch_html_with_locale(issue_url, "ru")
+                ru_title = ru_root.xpath("//meta[@name='citation_journal_title']/@content")
+                if ru_title and ru_title[0].strip():
+                    issue_metadata["journal_title_ru"] = ru_title[0].strip()
+            except Exception:
+                pass
+        if not issue_metadata.get("journal_title_ru") and issue_metadata.get("journal_title"):
+            fallback = JOURNAL_TITLE_RU_BY_EN.get(issue_metadata["journal_title"].strip())
+            if fallback:
+                issue_metadata["journal_title_ru"] = fallback
+        if not issue_metadata.get("journal_title_ru"):
+            issue_metadata["journal_title_ru"] = None
         article_urls = issue_metadata.get("article_urls", [])
 
         articles: List[Dict[str, object]] = []
@@ -101,6 +269,8 @@ class IssueMetadataParser:
                             for key, val in xml_parsed["identifiers"].items():
                                 if val is not None:
                                     article_data["identifiers"][key] = val
+                        if xml_parsed.get("article_type") is not None:
+                            article_data["article_type"] = xml_parsed["article_type"]
                     except Exception as exc:
                         logger.warning("Не удалось получить JATS XML для статьи %s: %s", article_url, exc)
 
@@ -121,6 +291,7 @@ class IssueMetadataParser:
                     "publication_date_display": None,
                     "title_ru": None,
                     "title_en": None,
+                    "article_type": None,
                     "identifiers": {
                         "doi": None,
                         "edn": None,
@@ -415,10 +586,34 @@ class IssueMetadataParser:
             edn_el = codes.xpath(".//*[local-name()='edn']")
             if edn_el and edn_el[0].text and edn_el[0].text.strip():
                 identifiers["edn"] = edn_el[0].text.strip()
-        if not identifiers["doi"]:
-            article_id_doi = root.xpath(".//*[local-name()='article-id'][@pub-id-type='doi']")
-            if article_id_doi and article_id_doi[0].text and article_id_doi[0].text.strip():
-                identifiers["doi"] = article_id_doi[0].text.strip()
+        def pub_id_type(node: etree._Element) -> Optional[str]:
+            """Значение атрибута pub-id-type (с учётом namespace)."""
+            v = node.get("pub-id-type")
+            if v:
+                return v.strip().lower()
+            for key, val in (node.attrib or {}).items():
+                if key.split("}")[-1] == "pub-id-type" and val:
+                    return val.strip().lower()
+            return None
+
+        for node in root.xpath(".//*[local-name()='article-id']"):
+            text = (node.text or "").strip()
+            if not text:
+                continue
+            pt = pub_id_type(node)
+            if pt == "doi" and not identifiers["doi"]:
+                identifiers["doi"] = text
+            elif pt == "edn" and not identifiers["edn"]:
+                identifiers["edn"] = text
+
+        # Тип статьи: subj-group subj-group-type="article-type" / subject (напр. Research Article)
+        article_type: Optional[str] = None
+        for node in root.xpath(".//*[local-name()='subj-group']"):
+            if (node.get("subj-group-type") or "").strip().lower() == "article-type":
+                subj = node.xpath(".//*[local-name()='subject']/text()")
+                if subj and (subj[0] or "").strip():
+                    article_type = (subj[0] or "").strip()
+                    break
 
         return {
             "abstract_ru": collect_abstract("ru"),
@@ -426,6 +621,7 @@ class IssueMetadataParser:
             "keywords_ru": collect_keywords("ru"),
             "keywords_en": collect_keywords("en"),
             "identifiers": identifiers,
+            "article_type": article_type,
         }
 
     def _extract_xml_from_zip(self, zip_path: Path) -> Tuple[bytes, str]:
@@ -448,8 +644,45 @@ class IssueMetadataParser:
             values = root.xpath(f"//meta[@{attr}='{name}']/@content")
             return values[0].strip() if values else None
 
-        journal_title = meta_content("citation_journal_title") or meta_content("og:site_name", "property")
-        issn = meta_content("citation_issn")
+        def journal_titles_by_lang() -> Tuple[Optional[str], Optional[str]]:
+            """(journal_title, journal_title_ru) из мета citation_journal_title с учётом lang."""
+            journal_title: Optional[str] = None
+            journal_title_ru: Optional[str] = None
+            for node in root.xpath("//meta[@name='citation_journal_title']"):
+                content = (node.get("content") or "").strip()
+                if not content:
+                    continue
+                lang = (node.get("{http://www.w3.org/XML/1998/namespace}lang") or node.get("lang") or "").strip().lower()
+                if lang.startswith("ru"):
+                    journal_title_ru = content
+                elif lang.startswith("en") or not lang:
+                    journal_title = journal_title or content
+            if not journal_title and journal_title_ru:
+                journal_title = journal_title_ru
+            return (journal_title, journal_title_ru)
+
+        journal_title, journal_title_ru_from_meta = journal_titles_by_lang()
+        journal_title = journal_title or meta_content("citation_journal_title") or meta_content("og:site_name", "property")
+        issn = None
+        issn_online = None
+        # Сначала блок #headerIssn — однозначно печатный/онлайн по подписи (Print/Печатный, Online/Онлайн)
+        header_issn = root.xpath("//*[@id='headerIssn']")
+        if header_issn:
+            block_text = (header_issn[0].text_content() or "")
+            m_print = re.search(
+                r"ISSN\s+(\d{4}-\d{3}[\dXx])\s*\(\s*(?:Print|Печатный)\s*\)", block_text, re.IGNORECASE
+            )
+            if m_print:
+                issn = m_print.group(1)
+            m_online = re.search(
+                r"ISSN\s+(\d{4}-\d{3}[\dXx])\s*\(\s*(?:Online|Онлайн)\s*\)", block_text, re.IGNORECASE
+            )
+            if m_online:
+                issn_online = m_online.group(1)
+        if not issn:
+            issn = meta_content("citation_issn")
+        if not issn_online:
+            issn_online = meta_content("citation_issn_online") or meta_content("citation_eissn") or None
         if not issn:
             page_text = root.text_content()
             match = re.search(r"ISSN[:\s]+(\d{4}-\d{3}[\dXx])", page_text)
@@ -475,8 +708,10 @@ class IssueMetadataParser:
         return {
             "issue_url": issue_url,
             "journal_title": journal_title,
+            "journal_title_ru": journal_title_ru_from_meta,  # может быть дополнено в parse_issue_url (locale=ru или словарь)
             "issue_title": issue_title,
             "issn": issn,
+            "eissn": issn_online,
             "volume": volume,
             "issue": issue,
             "year": year,
@@ -683,30 +918,18 @@ class IssueMetadataParser:
             return value
 
         def format_date_ru(value: Optional[str]) -> Optional[str]:
+            """Формат даты для отображения в статье: DD.MM.YYYY."""
             if not value:
                 return None
             parts = value.split("-")
             if len(parts) != 3:
                 return value
             year, month, day = parts
-            months = {
-                "01": "января",
-                "02": "февраля",
-                "03": "марта",
-                "04": "апреля",
-                "05": "мая",
-                "06": "июня",
-                "07": "июля",
-                "08": "августа",
-                "09": "сентября",
-                "10": "октября",
-                "11": "ноября",
-                "12": "декабря",
-            }
-            month_name = months.get(month.zfill(2))
-            if not month_name:
+            day_int = int(day) if day.isdigit() else 0
+            month_int = int(month) if month.isdigit() else 0
+            if not (1 <= day_int <= 31 and 1 <= month_int <= 12):
                 return value
-            return f"{int(day)} {month_name} {year}"
+            return f"{day_int:02d}.{month_int:02d}.{year}"
 
         def collect_references() -> List[str]:
             headings = root.xpath("//h2[normalize-space(text())='References' or normalize-space(text())='Литература' or normalize-space(text())='Список литературы']")
@@ -782,9 +1005,10 @@ class IssueMetadataParser:
         author_meta = collect_meta_lang_values("citation_author")
         authors_ru = author_meta["ru"]
         authors_en = author_meta["en"]
-        if not authors_ru and not authors_en:
-            authors_en = collect_author_section_names()
+        # Англ. имена только из мета citation_author с xml:lang="en"; иначе в шаблоне показываем «Нет данных»
         authors = authors_ru or authors_en
+        if not authors:
+            authors = collect_author_section_names()
         authors_count = len(authors)
 
         affiliations_meta = collect_meta_lang_values("citation_author_institution")
@@ -807,6 +1031,7 @@ class IssueMetadataParser:
             "publication_date_display": publication_date_display,
             "title_ru": title_ru,
             "title_en": title_en,
+            "article_type": None,
             "identifiers": identifiers,
             "abstract_ru": abstract_ru,
             "abstract_en": abstract_en,
@@ -845,46 +1070,158 @@ class IssueMetadataParser:
         keywords_en_count = article.get("keywords_en_count", 0) or 0
         references_count = article.get("references_count", 0) or 0
         identifiers = article.get("identifiers") or {}
+        affiliations = article.get("affiliations") or []
 
-        if not title_ru and not title_en:
-            problems.append("Не найдено название статьи")
-        if not abstract_ru:
-            problems.append("Не найдена аннотация на русском")
-        if not abstract_en:
-            problems.append("Не найдена аннотация на английском")
-        if abstract_ru_stats.get("length") is not None and abstract_ru_stats.get("length") < 50:
-            problems.append("Слишком короткая аннотация на русском")
-        if abstract_en_stats.get("length") is not None and abstract_en_stats.get("length") < 50:
-            problems.append("Слишком короткая аннотация на английском")
+        # Отсутствие названий
+        if not (title_ru or "").strip() and not (title_en or "").strip():
+            problems.append("Отсутствует название статьи")
+        elif not (title_ru or "").strip():
+            problems.append("Отсутствует название статьи (RU)")
+        elif not (title_en or "").strip():
+            problems.append("Отсутствует название статьи (EN)")
+        # Отсутствие аннотаций
+        if not (abstract_ru or "").strip():
+            problems.append("Отсутствует аннотация (RU)")
+        if not (abstract_en or "").strip():
+            problems.append("Отсутствует аннотация (EN)")
+        # Язык аннотаций: RU — не должна быть целиком/преимущественно на латинице; EN — на кириллице
+        abstract_ru_s = (abstract_ru or "").strip()
+        abstract_en_s = (abstract_en or "").strip()
+        if abstract_ru_s:
+            lat = len(re.findall(r"[A-Za-z]", abstract_ru_s))
+            cyr = len(re.findall(r"[А-Яа-яЁё]", abstract_ru_s))
+            total_alpha = lat + cyr
+            if total_alpha > 0 and lat >= cyr:
+                problems.append("Аннотация (RU) целиком или преимущественно на латинице")
+        if abstract_en_s:
+            cyr = len(re.findall(r"[А-Яа-яЁё]", abstract_en_s))
+            lat = len(re.findall(r"[A-Za-z]", abstract_en_s))
+            total_alpha = lat + cyr
+            if total_alpha > 0 and cyr >= lat:
+                problems.append("Аннотация (EN) целиком или преимущественно на кириллице")
+        len_ru = abstract_ru_stats.get("length")
+        len_en = abstract_en_stats.get("length")
+        min_abstract_words = 50
+        if len_ru is not None and len_ru < min_abstract_words:
+            problems.append(f"Слишком короткая аннотация (RU): {len_ru} слов (рекомендуется не менее {min_abstract_words})")
+        if len_en is not None and len_en < min_abstract_words:
+            problems.append(f"Слишком короткая аннотация (EN): {len_en} слов (рекомендуется не менее {min_abstract_words})")
+        if len_ru is not None and len_en is not None and (len_ru > 0 or len_en > 0):
+            shorter, longer = min(len_ru, len_en), max(len_ru, len_en)
+            if longer > 0 and shorter < 0.5 * longer:
+                problems.append(
+                    f"Длина аннотаций должна быть сопоставимой: RU — {len_ru} слов, EN — {len_en} слов"
+                )
         if keywords_ru_count == 0:
             problems.append("Не найдены ключевые слова на русском")
         if keywords_en_count == 0:
             problems.append("Не найдены ключевые слова на английском")
+        if keywords_ru_count != keywords_en_count and (keywords_ru_count > 0 or keywords_en_count > 0):
+            problems.append(
+                f"Количество ключевых слов должно совпадать: RU — {keywords_ru_count}, EN — {keywords_en_count}"
+            )
+        # Отсутствие списка литературы
         if references_count == 0:
-            problems.append("Не найден список литературы")
+            problems.append("Отсутствует список литературы")
         if not identifiers.get("doi"):
             problems.append("Не найден DOI статьи")
+        else:
+            err = _validate_doi(identifiers.get("doi"))
+            if err:
+                problems.append(err)
+        edn = identifiers.get("edn")
+        if edn:
+            err = _validate_edn(edn)
+            if err:
+                problems.append(err)
+        pub_date = article.get("publication_date")
+        if pub_date:
+            err = _validate_date(pub_date)
+            if err:
+                problems.append(err)
+        authors_count = article.get("authors_count") or 0
+        authors_ru = article.get("authors_ru") or []
+        authors_en_list = article.get("authors_en") or []
+        # Отсутствие авторов
+        if not authors_ru and not article.get("authors_en") and not article.get("authors"):
+            problems.append("Отсутствуют авторы")
+        elif authors_count == 0 and (authors_ru or authors_en_list):
+            problems.append("Количество авторов не согласовано с списком")
+        for name in (authors_ru or []) + (authors_en_list or []):
+            err = _validate_author_name(name)
+            if err:
+                problems.append(err)
+                break
+
+        # Отсутствие аффилиаций
+        if not affiliations:
+            problems.append("Отсутствуют организации (аффилиации)")
+        for aff in affiliations[:5]:
+            err = _validate_affiliation(aff)
+            if err:
+                problems.append(err)
+                break
+
+        title_ru_s = (title_ru or "").strip()
+        title_en_s = (title_en or "").strip()
+        if title_ru_s and len(title_ru_s) < 5:
+            problems.append("Название статьи (RU) слишком короткое")
+        if title_en_s and len(title_en_s) < 5:
+            problems.append("Название статьи (EN) слишком короткое")
 
         return problems
 
-    def _build_issue_warnings(self, issue_metadata: Dict[str, object], articles: List[Dict[str, object]]) -> List[str]:
-        warnings: List[str] = []
-        if not issue_metadata.get("journal_title"):
-            warnings.append("Не найдено название журнала")
-        if not issue_metadata.get("issue_title"):
-            warnings.append("Не найден заголовок выпуска")
-        if not issue_metadata.get("article_urls"):
-            warnings.append("Не найден список статей в выпуске")
-        if not issue_metadata.get("volume"):
-            warnings.append("Не определен том выпуска")
-        if not issue_metadata.get("issue"):
-            warnings.append("Не определен номер выпуска")
-        if not issue_metadata.get("year"):
-            warnings.append("Не определен год выпуска")
+    def _issue_warn(
+        self, warnings: List[Dict[str, object]], text: str, severity: str = "warning", field: Optional[str] = None
+    ) -> None:
+        """Добавить замечание по выпуску (error — критично, warning — обратить внимание)."""
+        w: Dict[str, object] = {"text": text, "severity": severity}
+        if field:
+            w["field"] = field
+        warnings.append(w)
 
-        doi_missing = sum(1 for article in articles if not article.get("identifiers", {}).get("doi"))
-        if doi_missing:
-            warnings.append(f"Статей без DOI: {doi_missing}")
+    def _build_issue_warnings(self, issue_metadata: Dict[str, object], articles: List[Dict[str, object]]) -> List[Dict[str, object]]:
+        """Формальные проверки выпуска. Возвращает список {text, severity, field?} для подсветки в интерфейсе."""
+        warnings: List[Dict[str, object]] = []
+        if not issue_metadata.get("journal_title"):
+            self._issue_warn(warnings, "Не найдено название журнала", "error", "journal_title")
+        else:
+            err = _validate_journal_title(issue_metadata.get("journal_title"))
+            if err:
+                self._issue_warn(warnings, err, "warning", "journal_title")
+        if not issue_metadata.get("issue_title"):
+            self._issue_warn(warnings, "Не найден заголовок выпуска", "warning", "issue_title")
+        urls = issue_metadata.get("article_urls") or []
+        if not urls:
+            self._issue_warn(warnings, "Не найден список статей в выпуске", "error", "article_count")
+        if not issue_metadata.get("volume"):
+            self._issue_warn(warnings, "Не определен том выпуска", "warning", "volume")
+        else:
+            err = _validate_volume_issue(issue_metadata.get("volume"), "Том")
+            if err:
+                self._issue_warn(warnings, err, "warning", "volume")
+        if not issue_metadata.get("issue"):
+            self._issue_warn(warnings, "Не определен номер выпуска", "warning", "issue")
+        else:
+            err = _validate_volume_issue(issue_metadata.get("issue"), "Номер выпуска")
+            if err:
+                self._issue_warn(warnings, err, "warning", "issue")
+        if not issue_metadata.get("year"):
+            self._issue_warn(warnings, "Не определен год выпуска", "warning", "year")
+        else:
+            err = _validate_year(issue_metadata.get("year"))
+            if err:
+                self._issue_warn(warnings, err, "warning", "year")
+        article_count = issue_metadata.get("article_count")
+        if article_count is not None and urls and article_count != len(urls):
+            self._issue_warn(
+                warnings,
+                f"Количество статей не совпадает: указано {article_count}, ссылок в выпуске: {len(urls)}",
+                "warning",
+                "article_count",
+            )
+        if urls and article_count == 0:
+            self._issue_warn(warnings, "Количество статей указано как 0 при наличии ссылок на статьи", "warning", "article_count")
 
         return warnings
 
@@ -919,6 +1256,25 @@ class IssueMetadataParser:
             return result
 
         journal_title = first_text("//*[local-name()='journal-title']/text()")
+        journal_title_ru = None
+        for node in root.xpath("//*[local-name()='journal-title']"):
+            lang = (node.get("{http://www.w3.org/XML/1998/namespace}lang") or "").strip().lower()
+            if lang.startswith("ru"):
+                t = (node.text or "").strip()
+                if t:
+                    journal_title_ru = t
+                    break
+        if not journal_title_ru:
+            # JATS: trans-title-group xml:lang="ru" / trans-title (напр. «Биология внутренних вод»)
+            for node in root.xpath("//*[local-name()='trans-title-group']"):
+                lang = (node.get("{http://www.w3.org/XML/1998/namespace}lang") or "").strip().lower()
+                if lang.startswith("ru"):
+                    trans = node.xpath(".//*[local-name()='trans-title']/text()")
+                    if trans and (trans[0] or "").strip():
+                        journal_title_ru = (trans[0] or "").strip()
+                        break
+        if not journal_title_ru and journal_title:
+            journal_title_ru = journal_title
         journal_abbrev = first_text("//*[local-name()='journal-abbrev']/text()")
         publisher = first_text("//*[local-name()='publisher-name']/text()")
         issue_title = first_text("//*[local-name()='issue-title']/text()")
@@ -990,6 +1346,7 @@ class IssueMetadataParser:
 
         metadata = {
             "journal_title": journal_title,
+            "journal_title_ru": journal_title_ru,
             "journal_abbrev": journal_abbrev,
             "publisher": publisher,
             "issn": issn_print,
@@ -1002,17 +1359,38 @@ class IssueMetadataParser:
             "article_count": article_count,
         }
 
-        warnings: List[str] = []
+        warnings: List[Dict[str, object]] = []
         if not journal_title:
-            warnings.append("Не найдено название журнала")
+            warnings.append({"text": "Не найдено название журнала", "severity": "error", "field": "journal_title"})
+        else:
+            err = _validate_journal_title(journal_title)
+            if err:
+                warnings.append({"text": err, "severity": "warning", "field": "journal_title"})
         if not volume_values:
-            warnings.append("Не найден том выпуска")
+            warnings.append({"text": "Не найден том выпуска", "severity": "warning", "field": "volume"})
+        else:
+            err = _validate_volume_issue(volume_values[0], "Том")
+            if err:
+                warnings.append({"text": err, "severity": "warning", "field": "volume"})
         if not issue_values:
-            warnings.append("Не найден номер выпуска")
+            warnings.append({"text": "Не найден номер выпуска", "severity": "warning", "field": "issue"})
+        else:
+            err = _validate_volume_issue(issue_values[0], "Номер выпуска")
+            if err:
+                warnings.append({"text": err, "severity": "warning", "field": "issue"})
         if len(volume_values) > 1:
-            warnings.append("Найдено несколько значений тома")
+            warnings.append({"text": "Найдено несколько значений тома", "severity": "warning", "field": "volume"})
         if len(issue_values) > 1:
-            warnings.append("Найдено несколько значений номера выпуска")
+            warnings.append({"text": "Найдено несколько значений номера выпуска", "severity": "warning", "field": "issue"})
+        err = _validate_year(pub_year)
+        if err:
+            warnings.append({"text": err, "severity": "warning", "field": "year"})
+        if article_count == 0:
+            warnings.append({
+                "text": "В XML не найдено статей (article-meta)",
+                "severity": "warning",
+                "field": "article_count",
+            })
 
         metadata["warnings"] = warnings
         return metadata

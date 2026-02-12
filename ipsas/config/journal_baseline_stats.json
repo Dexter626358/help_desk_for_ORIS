@@ -1,0 +1,14 @@
+{
+  "0320-9652": {
+    "issn_print": "0320-9652",
+    "issn_online": "3034-5227",
+    "journal_title": "Inland Water Biology",
+    "journal_title_ru": "Биология внутренних вод",
+    "updated": null,
+    "articles_count": 0,
+    "issues_count": 0,
+    "abstract_ru": { "n": 0, "min": null, "max": null, "mean": null, "median": null, "p10": null, "p90": null },
+    "abstract_en": { "n": 0, "min": null, "max": null, "mean": null, "median": null, "p10": null, "p90": null },
+    "references_count": { "n": 0, "min": null, "max": null, "mean": null, "median": null, "p10": null, "p90": null }
+  }
+}
