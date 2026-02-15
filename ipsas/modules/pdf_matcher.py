@@ -14,11 +14,35 @@ import zipfile
 import re
 import math
 import shutil
+import bisect
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any, Set
 from collections import Counter
 from enum import Enum
+
+
+def _decode_zip_filename(name: str) -> str:
+    """
+    Исправить кодировку имени файла из ZIP (кириллица: CP866/UTF-8, прочитаны как CP437 и т.д.).
+    Возвращает строку в корректной Unicode для записи в UTF-8 XML (например, Гудимова_web.pdf).
+    """
+    if not name or not name.strip():
+        return name
+    # Пары (ошибочная кодировка при чтении, реальная кодировка в архиве)
+    for wrong_enc, right_enc in (
+        ("cp437", "cp866"),   # архив с CP866 (DOS), прочитан как CP437
+        ("cp437", "utf-8"),   # архив с UTF-8, прочитан как CP437
+        ("latin-1", "cp866"),
+        ("cp1252", "cp866"),
+    ):
+        try:
+            fixed = name.encode(wrong_enc).decode(right_enc)
+            if re.search(r"[А-Яа-яЁё]", fixed):
+                return fixed
+        except (UnicodeEncodeError, UnicodeDecodeError, LookupError):
+            continue
+    return name
 
 from lxml import etree
 from ipsas.utils.logger import get_logger
@@ -104,6 +128,12 @@ class PDFMatcher:
     MIN_SCORE_LOW_CONFIDENCE = 0.25     # Низкая уверенность (требует ручной проверки)
     MARGIN_SCORE_GAP = 0.15             # Зазор между топ-1 и топ-2
     READ_PAGES_FOR_TEXT = 5             # Страниц для извлечения текста
+    AUTHOR_SKIP_KEYWORDS = {
+        "труды", "proceedings", "journal", "issn", "university", "bmv", "bmw"
+    }
+    AUTHOR_FILTER_WORDS = {
+        "bmv", "bmw", "pdf", "doc", "xml", "html", "http", "www", "icecream", "split", "merge"
+    }
     
     # Веса для комбинированного score
     WEIGHTS = {
@@ -122,6 +152,9 @@ class PDFMatcher:
         """
         self.adaptive_thresholds = adaptive_thresholds
         self.verbose = verbose
+        self._initial_high_threshold = self.MIN_SCORE_HIGH_CONFIDENCE
+        self._initial_medium_threshold = self.MIN_SCORE_MEDIUM_CONFIDENCE
+        self._initial_low_threshold = self.MIN_SCORE_LOW_CONFIDENCE
         self.stats = {
             "doi_extractions": 0,
             "doi_extraction_failures": 0,
@@ -135,31 +168,49 @@ class PDFMatcher:
 
     def extract_zip(self, zip_path: Path, extract_to: Path) -> Dict[str, Any]:
         """Извлечь файлы из ZIP архива, сохранив исходные пути (arcnames)."""
-        extract_to.mkdir(parents=True, exist_ok=True)
+        if not zip_path.exists():
+            raise FileNotFoundError(f"ZIP архив не найден: {zip_path}")
+        if not zip_path.is_file():
+            raise ValueError(f"Путь не является файлом: {zip_path}")
+        if not zipfile.is_zipfile(zip_path):
+            raise ValueError(f"Файл не является ZIP архивом: {zip_path}")
+
+        try:
+            extract_to.mkdir(parents=True, exist_ok=True)
+        except PermissionError as e:
+            raise PermissionError(f"Нет прав на создание директории: {extract_to}") from e
 
         xml_path: Optional[Path] = None
         xml_arcname: Optional[str] = None
         pdfs: List[PDFEntry] = []
 
-        with zipfile.ZipFile(zip_path, "r") as zf:
-            for member in zf.infolist():
-                if member.is_dir():
-                    continue
+        try:
+            with zipfile.ZipFile(zip_path, "r") as zf:
+                for member in zf.infolist():
+                    if member.is_dir():
+                        continue
 
-                zf.extract(member, extract_to)
-                extracted_path = extract_to / member.filename
-                if not extracted_path.exists():
-                    continue
+                    raw_name = member.filename
+                    safe_name = _decode_zip_filename(raw_name)
+                    extracted_path = (extract_to / safe_name).resolve()
+                    if not str(extracted_path).startswith(str(extract_to.resolve())):
+                        continue
+                    extracted_path.parent.mkdir(parents=True, exist_ok=True)
+                    extracted_path.write_bytes(zf.read(member))
 
-                suffix = extracted_path.suffix.lower()
-                if suffix == ".xml":
-                    if xml_path is None:
-                        xml_path = extracted_path
-                        xml_arcname = member.filename
-                    else:
-                        logger.warning(f"Найдено несколько XML, используется первый: {xml_path.name}")
-                elif suffix == ".pdf":
-                    pdfs.append(PDFEntry(path=extracted_path, arcname=member.filename))
+                    suffix = extracted_path.suffix.lower()
+                    if suffix == ".xml":
+                        if xml_path is None:
+                            xml_path = extracted_path
+                            xml_arcname = safe_name
+                        else:
+                            logger.warning(f"Найдено несколько XML, используется первый: {xml_path.name}")
+                    elif suffix == ".pdf":
+                        pdfs.append(PDFEntry(path=extracted_path, arcname=safe_name))
+        except zipfile.BadZipFile as e:
+            raise ValueError(f"Повреждённый ZIP архив: {zip_path}") from e
+        except Exception as e:
+            raise RuntimeError(f"Ошибка при извлечении архива: {e}") from e
 
         if xml_path is None or xml_arcname is None:
             raise ValueError("В архиве не найден XML файл")
@@ -223,6 +274,7 @@ class PDFMatcher:
             return ""
         
         d = doi.strip()
+        d = re.sub(r"[‐‑‒–—−]", "-", d)
         
         # Убираем префиксы
         d = re.sub(r'^\s*(doi|DOI)[:\s]+', '', d)
@@ -230,6 +282,7 @@ class PDFMatcher:
         
         # Убираем trailing мусор
         d = re.sub(r'[)\]},;\.]+$', '', d)
+        d = re.sub(r"\s+", "", d)
         
         # Нижний регистр для сравнения
         d = d.lower().strip()
@@ -275,6 +328,10 @@ class PDFMatcher:
         # Убираем переносы строк внутри потенциальных DOI
         text_compact = text.replace("\n", " ").replace("\r", " ")
         text_compact = re.sub(r'\s+', ' ', text_compact)
+        # Нормализуем вариации тире, часто встречающиеся в OCR/сканах
+        text_compact = re.sub(r"[‐‑‒–—−]", "-", text_compact)
+        # Убираем пробелы/переносы сразу после префикса DOI, чтобы поймать разрывы строк
+        text_compact = re.sub(r'(10\.\d{3,9}/)\s+', r'\1', text_compact)
 
         # Паттерны для поиска DOI (от специфичных к общим)
         patterns = [
@@ -299,9 +356,16 @@ class PDFMatcher:
                 end_pos = m.end()
                 if end_pos < len(text_compact):
                     continuation = text_compact[end_pos:end_pos+200]
-                    cont_match = re.match(r'[a-zA-Z0-9\-_\.\(\)]+', continuation)
+                    # Поддержка DOI с пробелами вокруг дефисов: 1814 -3520 -2020 -6-1311 -1323
+                    cont_match = re.match(
+                        r'(?:\s*[‐‑‒–—−-]\s*[a-zA-Z0-9]+|[a-zA-Z0-9_\./\(\)]+)+',
+                        continuation
+                    )
                     if cont_match:
-                        doi_full = doi_raw + cont_match.group(0)
+                        extension = cont_match.group(0)
+                        extension = re.sub(r'\s*([‐‑‒–—−-])\s*', '-', extension)
+                        extension = re.sub(r'\s+', '', extension)
+                        doi_full = doi_raw + extension
                     else:
                         doi_full = doi_raw
                 else:
@@ -316,23 +380,12 @@ class PDFMatcher:
                         all_candidates.append(doi_normalized)
                         seen.add(doi_normalized)
 
-        # Выбираем лучший DOI (самый длинный и полный)
+        # Выбираем лучший DOI по качеству, затем по длине
         if all_candidates:
-            # Сортируем по длине (более длинный обычно более полный)
-            all_candidates.sort(key=len, reverse=True)
-            best_doi = all_candidates[0]
-            
-            # Проверяем, нет ли более "качественного" DOI среди коротких
-            # (иногда длинный DOI может включать мусор)
-            for doi in all_candidates[1:]:
-                # Если короткий DOI является префиксом длинного - используем длинный
-                if best_doi.startswith(doi):
-                    break
-                # Если нашли более структурированный DOI - используем его
-                if self._doi_quality_score(doi) > self._doi_quality_score(best_doi):
-                    best_doi = doi
-                    break
-            
+            best_doi = max(
+                all_candidates,
+                key=lambda d: (self._doi_quality_score(d), len(d))
+            )
             return best_doi, all_candidates
         
         return None, []
@@ -415,6 +468,9 @@ class PDFMatcher:
         # Суффикс не должен быть пустым
         if not suffix or len(suffix) < 2:
             return False
+        # Суффикс не должен заканчиваться на разделитель
+        if suffix.endswith(("-", ".", "_", "/")):
+            return False
         
         return True
 
@@ -440,6 +496,18 @@ class PDFMatcher:
             score += 1.0
         elif length < 15:
             score += 0.5  # Может быть обрезан
+
+        _, suffix = doi.split("/", 1)
+
+        # Приоритет статьеобразных DOI (например, .../1814-3520-2020-6-1311-1323)
+        if re.search(r"\d{4}-\d{4}-\d{4}-\d+-\d{3,5}-\d{3,5}$", suffix):
+            score += 2.0
+        elif suffix.count("-") >= 3:
+            score += 1.0
+
+        # Общий DOI журнала вида 1814-3520 менее полезен для матчинга статей
+        if re.fullmatch(r"\d{4}-\d{4}", suffix):
+            score -= 1.5
         
         # Отсутствие подозрительных последовательностей
         suspicious_patterns = [
@@ -688,7 +756,7 @@ class PDFMatcher:
         # Формат: Фамилия Имя Отчество (полное)
         pattern3 = r'([А-ЯЁA-Z][а-яёa-z]+)\s+([А-ЯЁA-Z][а-яёa-z]+)\s+([А-ЯЁA-Z][а-яёa-z]+)'
         
-        skip_keywords = ['труды', 'proceedings', 'journal', 'issn', 'university', 'bmv', 'bmw']
+        skip_keywords = self.AUTHOR_SKIP_KEYWORDS
         stop_keywords = ['abstract', 'аннотация', 'keywords', 'ключевые слова', 'doi']
         
         in_author_section = False
@@ -721,7 +789,8 @@ class PDFMatcher:
                     for match in matches:
                         author = match.group(0).strip()
                         # Фильтруем мусор
-                        if len(author) >= 5 and author.lower() not in ['bmv', 'bmw']:
+                        author_lower = author.lower()
+                        if len(author) >= 5 and not any(fw in author_lower for fw in self.AUTHOR_FILTER_WORDS):
                             # Проверяем, что это не аббревиатура
                             if not (author.isupper() and len(author) <= 8):
                                 authors_found.append(author)
@@ -853,6 +922,14 @@ class PDFMatcher:
         
         # Динамическое программирование для LCS
         m, n = len(words1), len(words2)
+        if m * n > 4000:
+            # При больших длинах используем грубую оценку через пересечение слов
+            set1, set2 = set(words1), set(words2)
+            if not set1 or not set2:
+                return 0.0
+            common = len(set1 & set2)
+            return common / min(len(set1), len(set2))
+
         dp = [[0] * (n + 1) for _ in range(m + 1)]
         
         for i in range(1, m + 1):
@@ -1051,7 +1128,8 @@ class PDFMatcher:
                         for p in parts:
                             p = p.strip()
                             # Фильтруем мусор
-                            if p and len(p) > 3 and p.lower() not in ['bmv', 'bmw']:
+                            p_lower = p.lower()
+                            if p and len(p) > 3 and not any(fw in p_lower for fw in self.AUTHOR_FILTER_WORDS):
                                 if not (p.isupper() and len(p) <= 5):
                                     authors_list.append(p)
                         if authors_list:
@@ -1222,6 +1300,19 @@ class PDFMatcher:
             if author_scores:
                 components["authors"] = max(author_scores)
 
+        # 2b. Heuristic: фамилия автора в имени PDF (часто самый надежный сигнал для выгрузок *_web.pdf)
+        pdf_name_norm = self.normalize_text(Path(pdf_name).stem).replace("ё", "е")
+        article_surnames = article.authors_rus or article.authors_eng
+        if article_surnames:
+            surname_hits = 0
+            for surname in article_surnames:
+                s_norm = self._norm_surname(surname)
+                if len(s_norm) >= 4 and s_norm in pdf_name_norm:
+                    surname_hits += 1
+            if surname_hits > 0:
+                components["authors"] = max(components["authors"], 0.90)
+                components["filename"] = max(components["filename"], 1.0)
+
         # 3. Pages match (from filename)
         if article.pages:
             start, end = article.pages
@@ -1261,18 +1352,18 @@ class PDFMatcher:
         self,
         pdf_entries: List[PDFEntry],
         articles_info: List[ArticleInfo],
-        pdf_metadata: Dict[Path, PDFMetadata]
-    ) -> Tuple[List[MatchResult], Set[int], Set[Path]]:
+        pdf_metadata: Dict[Path, PDFMetadata],
+        matched_articles: Set[int],
+        matched_pdfs: Set[Path]
+    ) -> List[MatchResult]:
         """
         Phase 0: Сопоставление по EDN (eLIBRARY Document Number).
         EDN имеет приоритет над DOI, так как это более специфичный идентификатор.
         
         Returns:
-            (matches, matched_articles, matched_pdfs)
+            matches
         """
         matches = []
-        matched_articles = set()
-        matched_pdfs = set()
 
         # Создаём индекс EDN -> статьи
         edn_index: Dict[str, List[ArticleInfo]] = {}
@@ -1317,13 +1408,54 @@ class PDFMatcher:
                         )
                         matches.append(match)
                         
-                        logger.info(f"✓ EDN exact match: article#{art.index+1} <-> {pe.arcname} (EDN: {pdf_edn})")
+                        logger.info(f"[OK] EDN exact match: article#{art.index+1} <-> {pe.arcname} (EDN: {pdf_edn})")
                 else:
-                    logger.warning(f"⚠ EDN {pdf_edn} найден в {len(articles)} статьях, пропускаем")
+                    logger.warning(f"[WARN] EDN {pdf_edn} найден в {len(articles)} статьях, выбираем лучшее совпадение")
 
-        logger.info(f"Phase 0 завершена: {len(matched_articles)} сопоставлений по EDN")
+                    pdf_name = Path(pe.arcname).name
+                    candidates = []
+                    for art in articles:
+                        if art.index in matched_articles:
+                            continue
+                        score, components = self._calculate_combined_score(meta, art, pdf_name)
+                        candidates.append((score, art, components))
+
+                    if candidates and pe.path not in matched_pdfs:
+                        candidates.sort(key=lambda x: x[0], reverse=True)
+                        best_score, best_art, best_components = candidates[0]
+                        self.set_pdf_file_in_article(best_art.element, Path(pe.arcname).name)
+                        matched_articles.add(best_art.index)
+                        matched_pdfs.add(pe.path)
+
+                        match = MatchResult(
+                            article_index=best_art.index,
+                            article_id=best_art.article_id,
+                            article_title=best_art.title_rus or best_art.title_eng or "Без названия",
+                            pdf_filename=Path(pe.arcname).name,
+                            score=1.0,
+                            method=MatchMethod.EDN_EXACT,
+                            doi=best_art.doi,
+                            confidence="high",
+                            details={
+                                "edn_match": "disambiguated",
+                                "edn": pdf_edn,
+                                "disambiguation_score": best_score,
+                                "components": best_components,
+                            },
+                            pdf_metadata=self._pdf_metadata_to_dict(meta)
+                        )
+                        matches.append(match)
+
+                        logger.info(
+                            f"[OK] EDN exact match (disambiguated): article#{best_art.index+1} "
+                            f"<-> {pe.arcname} (score: {best_score:.3f})"
+                        )
+                    else:
+                        logger.warning(f"[WARN] EDN {pdf_edn} найден в {len(articles)} статьях, пропускаем")
+
+        logger.info(f"Phase 0 завершена: {len(matches)} сопоставлений по EDN")
         
-        return matches, matched_articles, matched_pdfs
+        return matches
 
     def _match_by_doi(
         self,
@@ -1332,22 +1464,22 @@ class PDFMatcher:
         pdf_metadata: Dict[Path, PDFMetadata],
         matched_articles: Set[int],
         matched_pdfs: Set[Path]
-    ) -> Tuple[List[MatchResult], Set[int], Set[Path]]:
+    ) -> List[MatchResult]:
         """
         Phase 1: Сопоставление по DOI (точное и частичное).
         
         Returns:
-            (matches, matched_articles, matched_pdfs)
+            matches
         """
         matches = []
-        matched_articles = set()
-        matched_pdfs = set()
+        # Используем переданные множества, не создаём новые (чтобы сохранить сопоставления из Phase 0)
 
         # Создаём индекс DOI -> статьи
         doi_index: Dict[str, List[ArticleInfo]] = {}
         for art in articles_info:
             if art.doi:
                 doi_index.setdefault(art.doi, []).append(art)
+        doi_keys_sorted = sorted(doi_index.keys())
 
         logger.info("=" * 80)
         logger.info("Phase 1: Сопоставление по DOI")
@@ -1390,15 +1522,63 @@ class PDFMatcher:
                         )
                         matches.append(match)
                         
-                        logger.info(f"✓ DOI exact match: article#{art.index+1} <-> {pe.arcname}")
+                        logger.info(f"[OK] DOI exact match: article#{art.index+1} <-> {pe.arcname}")
                 else:
-                    logger.warning(f"⚠ DOI {pdf_doi} найден в {len(articles)} статьях, пропускаем")
+                    logger.warning(f"[WARN] DOI {pdf_doi} найден в {len(articles)} статьях, выбираем лучшее совпадение")
+
+                    pdf_name = Path(pe.arcname).name
+                    candidates = []
+                    for art in articles:
+                        if art.index in matched_articles:
+                            continue
+                        score, components = self._calculate_combined_score(meta, art, pdf_name)
+                        candidates.append((score, art, components))
+
+                    if candidates and pe.path not in matched_pdfs:
+                        candidates.sort(key=lambda x: x[0], reverse=True)
+                        best_score, best_art, best_components = candidates[0]
+                        self.set_pdf_file_in_article(best_art.element, Path(pe.arcname).name)
+                        matched_articles.add(best_art.index)
+                        matched_pdfs.add(pe.path)
+
+                        match = MatchResult(
+                            article_index=best_art.index,
+                            article_id=best_art.article_id,
+                            article_title=best_art.title_rus or best_art.title_eng or "Без названия",
+                            pdf_filename=Path(pe.arcname).name,
+                            score=1.0,
+                            method=MatchMethod.DOI_EXACT,
+                            doi=pdf_doi,
+                            confidence="high",
+                            details={
+                                "doi_match": "disambiguated",
+                                "disambiguation_score": best_score,
+                                "components": best_components,
+                            },
+                            pdf_metadata=self._pdf_metadata_to_dict(meta)
+                        )
+                        matches.append(match)
+
+                        logger.info(
+                            f"[OK] DOI exact match (disambiguated): article#{best_art.index+1} "
+                            f"<-> {pe.arcname} (score: {best_score:.3f})"
+                        )
+                    else:
+                        logger.warning(f"[WARN] DOI {pdf_doi} найден в {len(articles)} статьях, пропускаем")
             
             # 2. Частичное совпадение (PDF DOI - префикс XML DOI)
             else:
                 partial_match_found = False
-                
-                for xml_doi, articles in doi_index.items():
+
+                # Ищем XML DOI, которые начинаются с pdf_doi
+                if doi_keys_sorted:
+                    start = bisect.bisect_left(doi_keys_sorted, pdf_doi)
+                    end = bisect.bisect_left(doi_keys_sorted, pdf_doi + "\uffff")
+                else:
+                    start, end = 0, 0
+
+                for xml_doi in doi_keys_sorted[start:end]:
+                    articles = doi_index[xml_doi]
                     # Проверяем, является ли PDF DOI префиксом XML DOI
                     if xml_doi.startswith(pdf_doi) and len(xml_doi) > len(pdf_doi):
                         # Разница должна быть разумной (не более 50% длины)
@@ -1438,45 +1618,49 @@ class PDFMatcher:
 
                 if not partial_match_found:
                     # Проверяем обратное: XML DOI - префикс PDF DOI (PDF более полный)
-                    for xml_doi, articles in doi_index.items():
-                        if pdf_doi.startswith(xml_doi) and len(pdf_doi) > len(xml_doi):
-                            if len(pdf_doi) - len(xml_doi) <= len(xml_doi) * 0.5:
-                                if len(articles) == 1:
-                                    art = articles[0]
-                                    
-                                    if art.index not in matched_articles and pe.path not in matched_pdfs:
-                                        self.set_pdf_file_in_article(art.element, Path(pe.arcname).name)
-                                        matched_articles.add(art.index)
-                                        matched_pdfs.add(pe.path)
-                                        
-                                        match = MatchResult(
-                                            article_index=art.index,
-                                            article_id=art.article_id,
-                                            article_title=art.title_rus or art.title_eng or "Без названия",
-                                            pdf_filename=Path(pe.arcname).name,
-                                            score=0.95,
-                                            method=MatchMethod.DOI_PARTIAL,
-                                            doi=pdf_doi,
-                                            confidence="high",
-                                            details={
-                                                "doi_match": "partial_reverse",
-                                                "pdf_doi": pdf_doi,
-                                                "xml_doi": xml_doi
-                                            },
-                                            pdf_metadata=self._pdf_metadata_to_dict(meta)
-                                        )
-                                        matches.append(match)
-                                        
-                                        logger.info(f"~ DOI partial match (reverse): article#{art.index+1} <-> {pe.arcname}")
-                                        logger.info(f"  PDF DOI: {pdf_doi}")
-                                        logger.info(f"  XML DOI: {xml_doi}")
-                                        
-                                        partial_match_found = True
-                                        break
+                    # Проверяем только те префиксы, которые реально есть в индексе
+                    for i in range(len(pdf_doi), 1, -1):
+                        xml_doi = pdf_doi[:i]
+                        articles = doi_index.get(xml_doi)
+                        if not articles:
+                            continue
+                        if len(pdf_doi) - len(xml_doi) <= len(xml_doi) * 0.5:
+                            if len(articles) == 1:
+                                art = articles[0]
 
-        logger.info(f"Phase 1 завершена: {len(matched_articles)} сопоставлений по DOI")
+                                if art.index not in matched_articles and pe.path not in matched_pdfs:
+                                    self.set_pdf_file_in_article(art.element, Path(pe.arcname).name)
+                                    matched_articles.add(art.index)
+                                    matched_pdfs.add(pe.path)
+
+                                    match = MatchResult(
+                                        article_index=art.index,
+                                        article_id=art.article_id,
+                                        article_title=art.title_rus or art.title_eng or "Без названия",
+                                        pdf_filename=Path(pe.arcname).name,
+                                        score=0.95,
+                                        method=MatchMethod.DOI_PARTIAL,
+                                        doi=pdf_doi,
+                                        confidence="high",
+                                        details={
+                                            "doi_match": "partial_reverse",
+                                            "pdf_doi": pdf_doi,
+                                            "xml_doi": xml_doi
+                                        },
+                                        pdf_metadata=self._pdf_metadata_to_dict(meta)
+                                    )
+                                    matches.append(match)
+
+                                    logger.info(f"~ DOI partial match (reverse): article#{art.index+1} <-> {pe.arcname}")
+                                    logger.info(f"  PDF DOI: {pdf_doi}")
+                                    logger.info(f"  XML DOI: {xml_doi}")
+
+                                    partial_match_found = True
+                                    break
+
+        logger.info(f"Phase 1 завершена: {len(matches)} сопоставлений по DOI")
         
-        return matches, matched_articles, matched_pdfs
+        return matches
 
     def _match_fallback(
         self,
@@ -1529,7 +1713,8 @@ class PDFMatcher:
         # Статистика для адаптивной подстройки порогов
         all_scores = [s[0] for s in scored_pairs]
         if self.adaptive_thresholds and all_scores:
-            self._adjust_thresholds(all_scores)
+            new_high, new_medium, new_low = self._adjust_thresholds(all_scores)
+            self._apply_thresholds(new_high, new_medium, new_low)
 
         # Группируем по статьям для проверки неоднозначности
         by_article: Dict[int, List[Tuple[float, PDFEntry, Dict[str, float]]]] = {}
@@ -1538,20 +1723,25 @@ class PDFMatcher:
 
         # Определяем неоднозначные статьи (margin rule)
         ambiguous_articles = set()
+        effective_margin = self.MARGIN_SCORE_GAP
+        max_score = scored_pairs[0][0] if scored_pairs else 0.0
+        if max_score < 0.30:
+            effective_margin = min(self.MARGIN_SCORE_GAP, 0.05)
+
         for art_idx, candidates in by_article.items():
             if len(candidates) >= 2:
                 candidates_sorted = sorted(candidates, key=lambda x: x[0], reverse=True)
                 top1_score = candidates_sorted[0][0]
                 top2_score = candidates_sorted[1][0]
                 
-                if (top1_score - top2_score) < self.MARGIN_SCORE_GAP:
+                if (top1_score - top2_score) < effective_margin:
                     ambiguous_articles.add(art_idx)
                     
                     if self.verbose:
                         logger.info(f"  Статья #{art_idx+1}: неоднозначность")
                         logger.info(f"    Top-1: {candidates_sorted[0][1].arcname} (score={top1_score:.3f})")
                         logger.info(f"    Top-2: {candidates_sorted[1][1].arcname} (score={top2_score:.3f})")
-                        logger.info(f"    Gap: {top1_score - top2_score:.3f} < {self.MARGIN_SCORE_GAP}")
+                        logger.info(f"    Gap: {top1_score - top2_score:.3f} < {effective_margin}")
 
         # Greedy assignment с учётом уровней уверенности
         local_matched_articles = set()
@@ -1559,7 +1749,9 @@ class PDFMatcher:
 
         # Уровень 1: Высокая уверенность (не неоднозначные)
         for score, art, pe, components in scored_pairs:
-            if art.index in local_matched_articles or pe.path in local_matched_pdfs:
+            if art.index in matched_articles or art.index in local_matched_articles:
+                continue
+            if pe.path in matched_pdfs or pe.path in local_matched_pdfs:
                 continue
             
             if art.index in ambiguous_articles:
@@ -1577,7 +1769,9 @@ class PDFMatcher:
 
         # Уровень 2: Средняя уверенность
         for score, art, pe, components in scored_pairs:
-            if art.index in local_matched_articles or pe.path in local_matched_pdfs:
+            if art.index in matched_articles or art.index in local_matched_articles:
+                continue
+            if pe.path in matched_pdfs or pe.path in local_matched_pdfs:
                 continue
             
             if art.index in ambiguous_articles:
@@ -1593,14 +1787,37 @@ class PDFMatcher:
                     pdf_meta=meta
                 )
 
-        # Уровень 3: Низкая уверенность (только если единственный кандидат)
+        # Уровень 3: Низкая уверенность для не-неоднозначных статей
+        for score, art, pe, components in scored_pairs:
+            if art.index in matched_articles or art.index in local_matched_articles:
+                continue
+            if pe.path in matched_pdfs or pe.path in local_matched_pdfs:
+                continue
+
+            if art.index in ambiguous_articles:
+                continue
+
+            if self.MIN_SCORE_LOW_CONFIDENCE <= score < self.MIN_SCORE_MEDIUM_CONFIDENCE:
+                meta = pdf_metadata.get(pe.path, PDFMetadata())
+                self._assign_match(
+                    art, pe, score, components,
+                    matched_articles, matched_pdfs,
+                    local_matched_articles, local_matched_pdfs,
+                    matches, confidence="low",
+                    pdf_meta=meta
+                )
+
+        # Уровень 4: Низкая уверенность для неоднозначных статей (только если единственный кандидат)
         for art_idx in ambiguous_articles:
-            if art_idx in local_matched_articles:
+            if art_idx in matched_articles or art_idx in local_matched_articles:
                 continue
             
             candidates = by_article[art_idx]
-            # Фильтруем доступные PDF
-            available = [c for c in candidates if c[1].path not in local_matched_pdfs]
+            # Фильтруем доступные PDF (учитываем и глобальные, и локальные множества)
+            available = [
+                c for c in candidates 
+                if c[1].path not in matched_pdfs and c[1].path not in local_matched_pdfs
+            ]
             
             if len(available) == 1:
                 score, pe, components = available[0]
@@ -1616,14 +1833,35 @@ class PDFMatcher:
                         pdf_meta=meta
                     )
 
+        # Резервный режим: если ничего не сопоставлено, пробуем без фильтра неоднозначности
+        if not matches:
+            for score, art, pe, components in scored_pairs:
+                if art.index in matched_articles or art.index in local_matched_articles:
+                    continue
+                if pe.path in matched_pdfs or pe.path in local_matched_pdfs:
+                    continue
+                if score >= self.MIN_SCORE_LOW_CONFIDENCE:
+                    meta = pdf_metadata.get(pe.path, PDFMetadata())
+                    self._assign_match(
+                        art, pe, score, components,
+                        matched_articles, matched_pdfs,
+                        local_matched_articles, local_matched_pdfs,
+                        matches, confidence="low",
+                        pdf_meta=meta
+                    )
+
         logger.info(f"Phase 2 завершена: {len(matches)} новых сопоставлений")
         
         return matches
 
-    def _adjust_thresholds(self, scores: List[float]) -> None:
-        """Адаптивная подстройка порогов на основе распределения scores"""
+    def _adjust_thresholds(self, scores: List[float]) -> Tuple[float, float, float]:
+        """Рассчитать адаптивные пороги по распределению scores (без немедленного применения)."""
         if not scores:
-            return
+            return (
+                self.MIN_SCORE_HIGH_CONFIDENCE,
+                self.MIN_SCORE_MEDIUM_CONFIDENCE,
+                self.MIN_SCORE_LOW_CONFIDENCE,
+            )
         
         scores_sorted = sorted(scores, reverse=True)
         n = len(scores_sorted)
@@ -1638,14 +1876,21 @@ class PDFMatcher:
         new_medium = max(0.35, min(0.65, p50))
         new_low = max(0.15, min(0.45, p25))
         
-        # Обновляем только если изменения значительны
+        return new_high, new_medium, new_low
+
+    def _apply_thresholds(self, new_high: float, new_medium: float, new_low: float) -> None:
+        """Применить пороги, если изменения значительны."""
         if abs(new_high - self.MIN_SCORE_HIGH_CONFIDENCE) > 0.05:
             logger.info(f"Адаптивная подстройка порога high: {self.MIN_SCORE_HIGH_CONFIDENCE:.2f} -> {new_high:.2f}")
             self.MIN_SCORE_HIGH_CONFIDENCE = new_high
-        
+
         if abs(new_medium - self.MIN_SCORE_MEDIUM_CONFIDENCE) > 0.05:
             logger.info(f"Адаптивная подстройка порога medium: {self.MIN_SCORE_MEDIUM_CONFIDENCE:.2f} -> {new_medium:.2f}")
             self.MIN_SCORE_MEDIUM_CONFIDENCE = new_medium
+
+        if abs(new_low - self.MIN_SCORE_LOW_CONFIDENCE) > 0.05:
+            logger.info(f"Адаптивная подстройка порога low: {self.MIN_SCORE_LOW_CONFIDENCE:.2f} -> {new_low:.2f}")
+            self.MIN_SCORE_LOW_CONFIDENCE = new_low
 
     def _assign_match(
         self,
@@ -1687,7 +1932,7 @@ class PDFMatcher:
         matches.append(match)
         
         if self.verbose:
-            logger.info(f"✓ Match ({confidence}): article#{art.index+1} <-> {pe.arcname}")
+            logger.info(f"[OK] Match ({confidence}): article#{art.index+1} <-> {pe.arcname}")
             logger.info(f"  Score: {score:.3f}, Components: {components}")
 
     def _determine_match_method(self, components: Dict[str, float], total_score: float) -> MatchMethod:
@@ -1733,6 +1978,15 @@ class PDFMatcher:
         Returns:
             Словарь с результатами обработки
         """
+        if not zip_path.exists():
+            raise FileNotFoundError(f"ZIP файл не найден: {zip_path}")
+        if not zip_path.is_file():
+            raise ValueError(f"Указанный путь не является файлом: {zip_path}")
+        try:
+            extract_to.mkdir(parents=True, exist_ok=True)
+        except Exception as e:
+            raise PermissionError(f"Невозможно создать директорию для извлечения: {extract_to}") from e
+
         # Извлечение
         extracted = self.extract_zip(zip_path, extract_to)
         xml_path: Path = extracted["xml"]
@@ -1781,13 +2035,17 @@ class PDFMatcher:
             logger.info(f"  Authors: {meta.authors or 'не найдены'}")
             logger.info(f"  Quality: {meta.extraction_quality}")
 
+        matched_articles: Set[int] = set()
+        matched_pdfs: Set[Path] = set()
+
         # Сопоставление - Phase 0: EDN (приоритет над DOI)
-        matches_edn, matched_articles, matched_pdfs = self._match_by_edn(
-            pdf_entries, articles_info, pdf_metadata
+        matches_edn = self._match_by_edn(
+            pdf_entries, articles_info, pdf_metadata,
+            matched_articles, matched_pdfs
         )
 
         # Сопоставление - Phase 1: DOI
-        matches_doi, matched_articles, matched_pdfs = self._match_by_doi(
+        matches_doi = self._match_by_doi(
             pdf_entries, articles_info, pdf_metadata,
             matched_articles, matched_pdfs
         )
@@ -1818,7 +2076,7 @@ class PDFMatcher:
                 )
                 all_matches.append(match)
                 
-                logger.warning(f"⚠ Статья #{art.index+1} не сопоставлена")
+                logger.warning(f"[WARN] Статья #{art.index+1} не сопоставлена")
 
         # Сортируем по индексу статьи
         all_matches.sort(key=lambda x: x.article_index)
