@@ -6,6 +6,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from pathlib import Path
+from lxml import etree
 from ipsas.modules.pdf_matcher import PDFMatcher
 from ipsas.config.settings import get_settings
 from ipsas.utils.logger import get_logger
@@ -107,6 +108,73 @@ def process_pdf_matching():
         except Exception:
             pass
         
+        return redirect(url_for("pdf_matching.pdf_matching_page"))
+
+
+@pdf_matching_bp.route("/pdf-matching/manual-assign/<filename>", methods=["POST"])
+@login_required
+def manual_assign_and_download(filename):
+    """Ручная привязка PDF к статьям и скачивание обновленного XML."""
+    settings = get_settings()
+
+    file_path = None
+    for path in settings.temp_dir.rglob(filename):
+        if path.is_file() and path.suffix == ".xml":
+            file_path = path
+            break
+
+    if not file_path or not file_path.exists():
+        flash("Обработанный XML файл не найден", "error")
+        return redirect(url_for("pdf_matching.pdf_matching_page"))
+
+    try:
+        parser = etree.XMLParser(remove_blank_text=True)
+        tree = etree.parse(str(file_path), parser)
+        root = tree.getroot()
+        articles = root.findall(".//article")
+        available_pdfs = {p.name for p in file_path.parent.rglob("*.pdf")}
+
+        matcher = PDFMatcher(adaptive_thresholds=False, verbose=False)
+        applied = 0
+        skipped = 0
+
+        for field_name, pdf_name in request.form.items():
+            if not field_name.startswith("assign_article_"):
+                continue
+
+            pdf_name = (pdf_name or "").strip()
+            if not pdf_name:
+                continue
+
+            try:
+                article_index = int(field_name.replace("assign_article_", "", 1))
+            except ValueError:
+                skipped += 1
+                continue
+
+            if article_index < 0 or article_index >= len(articles):
+                skipped += 1
+                continue
+
+            if pdf_name not in available_pdfs:
+                skipped += 1
+                continue
+
+            matcher.set_pdf_file_in_article(articles[article_index], pdf_name)
+            applied += 1
+
+        tree.write(str(file_path), encoding="UTF-8", xml_declaration=True, pretty_print=True)
+
+        if applied > 0:
+            flash(f"Ручные привязки применены: {applied}", "success")
+        if skipped > 0:
+            flash(f"Пропущено привязок: {skipped}", "warning")
+
+        return redirect(url_for("pdf_matching.download_processed_xml", filename=filename))
+
+    except Exception as e:
+        logger.error(f"Ошибка ручной привязки PDF: {e}", exc_info=True)
+        flash("Ошибка при ручной привязке PDF", "error")
         return redirect(url_for("pdf_matching.pdf_matching_page"))
 
 

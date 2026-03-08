@@ -430,6 +430,19 @@
                                 Парсер загруженного выпуска
                             </a>
                         </li>
+                        {% set issue_pdf_csv_active = request.endpoint in [
+                            'issue_pdf_csv.issue_pdf_csv_page',
+                            'issue_pdf_csv.process_issue_pdf_csv',
+                            'issue_pdf_csv.manual_assign_issue_pdf_csv',
+                            'issue_pdf_csv.download_issue_pdf_csv'
+                        ] %}
+                        <li>
+                            <a href="{{ url_for('issue_pdf_csv.issue_pdf_csv_page') }}"
+                               class="{{ 'active' if issue_pdf_csv_active else '' }}"
+                               {{ 'aria-current="page"' if issue_pdf_csv_active else '' }}>
+                                Формирование csv файла выпуска для добавления пдф статей к опубликованному выпуску
+                            </a>
+                        </li>
                     </ul>
                 </div>
 

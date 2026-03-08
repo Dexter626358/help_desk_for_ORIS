@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Формирование csv файла выпуска для добавления пдф статей к опубликованному выпуску{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="margin-bottom: 2rem; color: #333;">Формирование csv файла выпуска для добавления пдф статей к опубликованному выпуску</h1>
+
+    <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem;">
+        <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.2rem;">Инструкция</h2>
+        <ol style="color: #666; line-height: 1.8; margin-left: 1.5rem;">
+            <li>Укажите ссылку на опубликованный выпуск (например, <code>https://journals.rcsi.science/2713-3192/issue/view/23830</code>).</li>
+            <li>Загрузите ZIP архив с PDF файлами статей.</li>
+            <li>Сервис найдет статьи выпуска, возьмет только статьи с DOI и сформирует CSV без заголовков.</li>
+        </ol>
+        <div style="margin-top: 1rem; padding: 1rem; background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+            <strong>Формат CSV:</strong> <code>doi;имя_pdf_файла;en_US</code><br>
+            Разделитель: <code>;</code>, заголовки не добавляются.
+        </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('issue_pdf_csv.process_issue_pdf_csv') }}" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="issue_url">Ссылка на выпуск *</label>
+            <input
+                type="url"
+                id="issue_url"
+                name="issue_url"
+                placeholder="https://journals.rcsi.science/2713-3192/issue/view/23830"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="zip_file">ZIP архив с PDF файлами *</label>
+            <input
+                type="file"
+                id="zip_file"
+                name="zip_file"
+                accept=".zip"
+                required
+            >
+            <small style="color: #666; display: block; margin-top: 0.5rem;">
+                Поддерживаются только файлы <code>.zip</code>
+            </small>
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary">Сформировать CSV</button>
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">Назад</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

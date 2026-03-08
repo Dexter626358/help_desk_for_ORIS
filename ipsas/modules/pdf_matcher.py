@@ -127,6 +127,8 @@ class PDFMatcher:
     MIN_SCORE_MEDIUM_CONFIDENCE = 0.45  # Средняя уверенность
     MIN_SCORE_LOW_CONFIDENCE = 0.25     # Низкая уверенность (требует ручной проверки)
     MARGIN_SCORE_GAP = 0.15             # Зазор между топ-1 и топ-2
+    MIN_DISAMBIGUATION_SCORE = 0.35     # Нижняя граница для авто-выбора при коллизии
+    MIN_DISAMBIGUATION_GAP = 0.08       # Минимальный разрыв top-1/top-2 при коллизии
     READ_PAGES_FOR_TEXT = 5             # Страниц для извлечения текста
     AUTHOR_SKIP_KEYWORDS = {
         "труды", "proceedings", "journal", "issn", "university", "bmv", "bmw"
@@ -138,11 +140,15 @@ class PDFMatcher:
     # Веса для комбинированного score
     WEIGHTS = {
         "doi": 1.0,
-        "title": 0.60,
-        "authors": 0.30,
+        "title": 0.50,
+        "authors": 0.25,
+        "article_num": 0.15,
         "pages": 0.05,
         "filename": 0.05,
     }
+    PDF_FILE_DESC_ALIASES = {"pdf", "fulltext"}
+    OUTPUT_PDF_DESC = "fullText"
+    OUTPUT_PDF_LANG = "RUS"
 
     def __init__(self, adaptive_thresholds: bool = True, verbose: bool = True):
         """
@@ -216,6 +222,54 @@ class PDFMatcher:
             raise ValueError("В архиве не найден XML файл")
 
         return {"xml": xml_path, "xml_arcname": xml_arcname, "pdfs": pdfs}
+
+    def _build_manual_review_candidates(
+        self,
+        pdf_entries: List[PDFEntry],
+        articles_info: List[ArticleInfo],
+        pdf_metadata: Dict[Path, PDFMetadata],
+        matched_articles: Set[int],
+        matched_pdfs: Set[Path],
+        top_n: int = 3,
+    ) -> List[Dict[str, Any]]:
+        """РЎРѕР±СЂР°С‚СЊ top-N РєР°РЅРґРёРґР°С‚РѕРІ РґР»СЏ СЂСѓС‡РЅРѕР№ РїСЂРѕРІРµСЂРєРё РїРѕ РєР°Р¶РґРѕРјСѓ РЅРµСЃРѕРїРѕСЃС‚Р°РІР»РµРЅРЅРѕРјСѓ PDF."""
+        manual_review: List[Dict[str, Any]] = []
+        remaining_articles = [a for a in articles_info if a.index not in matched_articles]
+        remaining_pdfs = [pe for pe in pdf_entries if pe.path not in matched_pdfs]
+
+        for pe in remaining_pdfs:
+            meta = pdf_metadata.get(pe.path, PDFMetadata())
+            pdf_name = Path(pe.arcname).name
+            candidates: List[Tuple[float, ArticleInfo, Dict[str, float]]] = []
+
+            for art in remaining_articles:
+                score, components = self._calculate_combined_score(meta, art, pdf_name)
+                if score > 0:
+                    candidates.append((score, art, components))
+
+            candidates.sort(key=lambda x: x[0], reverse=True)
+            top_candidates = candidates[:top_n]
+            if not top_candidates:
+                continue
+
+            manual_review.append(
+                {
+                    "pdf_filename": pdf_name,
+                    "pdf_metadata": self._pdf_metadata_to_dict(meta),
+                    "candidates": [
+                        {
+                            "article_index": art.index,
+                            "article_id": art.article_id,
+                            "article_title": art.title_rus or art.title_eng or "Р‘РµР· РЅР°Р·РІР°РЅРёСЏ",
+                            "score": score,
+                            "components": components,
+                        }
+                        for score, art, components in top_candidates
+                    ],
+                }
+            )
+
+        return manual_review
 
     # ===========================
     # Нормализация и парсинг
@@ -1217,7 +1271,7 @@ class PDFMatcher:
     # ===========================
 
     def cleanup_pdf_files_in_articles(self, root: etree.Element) -> int:
-        """Удалить все <file desc="PDF"> внутри <article>/<files>."""
+        """Удалить все PDF-ссылки (<file desc="PDF"> и <file desc="fullText">) внутри <article>/<files>."""
         removed = 0
         for article in root.findall(".//article"):
             files = article.find("./files")
@@ -1226,7 +1280,7 @@ class PDFMatcher:
 
             to_remove = []
             for fe in files.findall("./file"):
-                if (fe.get("desc") or "").strip().lower() == "pdf":
+                if (fe.get("desc") or "").strip().lower() in self.PDF_FILE_DESC_ALIASES:
                     to_remove.append(fe)
 
             for fe in to_remove:
@@ -1239,21 +1293,58 @@ class PDFMatcher:
         return removed
 
     def set_pdf_file_in_article(self, article_elem: etree.Element, pdf_filename: str) -> None:
-        """Установить/заменить <files>/<file desc="PDF">."""
+        """Установить/заменить ссылку на PDF в формате <file desc="fullText" lang="...">."""
+        detected_lang = self._detect_article_language(article_elem)
         files = article_elem.find("./files")
         if files is None:
             files = etree.SubElement(article_elem, "files")
 
         # Replace if exists
         for fe in files.findall("./file"):
-            if (fe.get("desc") or "").strip().lower() == "pdf":
+            if (fe.get("desc") or "").strip().lower() in self.PDF_FILE_DESC_ALIASES:
+                fe.set("desc", self.OUTPUT_PDF_DESC)
+                fe.set("lang", detected_lang)
                 fe.text = pdf_filename
                 return
 
         # Create new
         fe = etree.SubElement(files, "file")
-        fe.set("desc", "PDF")
+        fe.set("desc", self.OUTPUT_PDF_DESC)
+        fe.set("lang", detected_lang)
         fe.text = pdf_filename
+
+    def _detect_article_language(self, article_elem: etree.Element) -> str:
+        """
+        Определить язык статьи по текстовому содержимому XML-элемента article.
+
+        Возвращает:
+            "RUS" если преобладает кириллица,
+            "ENG" если преобладает латиница,
+            fallback "RUS" если данных недостаточно.
+        """
+        try:
+            text_chunks = []
+            for chunk in article_elem.itertext():
+                if not chunk:
+                    continue
+                chunk = chunk.strip()
+                if chunk:
+                    text_chunks.append(chunk)
+
+            if not text_chunks:
+                return self.OUTPUT_PDF_LANG
+
+            text = " ".join(text_chunks)
+            cyr_count = len(re.findall(r"[А-Яа-яЁё]", text))
+            lat_count = len(re.findall(r"[A-Za-z]", text))
+
+            if cyr_count == 0 and lat_count == 0:
+                return self.OUTPUT_PDF_LANG
+            if lat_count > cyr_count:
+                return "ENG"
+            return "RUS"
+        except Exception:
+            return self.OUTPUT_PDF_LANG
 
     # ===========================
     # Матчинг - Многоуровневая стратегия
@@ -1274,6 +1365,7 @@ class PDFMatcher:
         components = {
             "title": 0.0,
             "authors": 0.0,
+            "article_num": 0.0,
             "pages": 0.0,
             "filename": 0.0,
         }
@@ -1304,24 +1396,47 @@ class PDFMatcher:
         pdf_name_norm = self.normalize_text(Path(pdf_name).stem).replace("ё", "е")
         article_surnames = article.authors_rus or article.authors_eng
         if article_surnames:
+            first_surname = self._norm_surname(article_surnames[0])
+            if len(first_surname) >= 4 and first_surname in pdf_name_norm:
+                components["authors"] = max(components["authors"], 1.0)
+                components["filename"] = max(components["filename"], 1.0)
+
             surname_hits = 0
             for surname in article_surnames:
                 s_norm = self._norm_surname(surname)
                 if len(s_norm) >= 4 and s_norm in pdf_name_norm:
                     surname_hits += 1
             if surname_hits > 0:
-                components["authors"] = max(components["authors"], 0.90)
-                components["filename"] = max(components["filename"], 1.0)
+                components["authors"] = max(components["authors"], 0.85)
+                components["filename"] = max(components["filename"], 0.8)
+
+        # 2c. Article number in filename (article/@num or fallback article index + 1)
+        article_num_candidates = set()
+        if article.num:
+            num_text = str(article.num).strip()
+            if num_text.isdigit():
+                article_num_candidates.add(int(num_text))
+        article_num_candidates.add(article.index + 1)
+
+        pdf_stem = Path(pdf_name).stem.lower()
+        for num in article_num_candidates:
+            if re.search(rf"(?<!\d){num}(?!\d)", pdf_stem):
+                components["article_num"] = max(components["article_num"], 0.8)
+            if re.search(rf"^(?:article[_\-. ]*)?{num}(?!\d)", pdf_stem):
+                components["article_num"] = max(components["article_num"], 1.0)
 
         # 3. Pages match (from filename)
         if article.pages:
             start, end = article.pages
-            pages_pattern = f"{start}[-–—]{end}"
-            if pages_pattern in pdf_name.lower():
+            pdf_name_for_pages = pdf_name.lower().replace("–", "-").replace("—", "-")
+            pages_pattern = rf"(?<!\d){start}\s*-\s*{end}(?!\d)"
+            if re.search(pages_pattern, pdf_name_for_pages):
                 components["pages"] = 1.0
             else:
                 # Частичное совпадение (только start или end)
-                if f"{start}" in pdf_name or f"{end}" in pdf_name:
+                if re.search(rf"(?<!\d){start}(?!\d)", pdf_name_for_pages) or re.search(
+                    rf"(?<!\d){end}(?!\d)", pdf_name_for_pages
+                ):
                     components["pages"] = 0.5
 
         # 4. Filename similarity (по ключевым словам из title)
@@ -1342,11 +1457,25 @@ class PDFMatcher:
         total_score = (
             self.WEIGHTS["title"] * components["title"] +
             self.WEIGHTS["authors"] * components["authors"] +
+            self.WEIGHTS["article_num"] * components["article_num"] +
             self.WEIGHTS["pages"] * components["pages"] +
             self.WEIGHTS["filename"] * components["filename"]
         )
 
         return total_score, components
+
+    def _is_disambiguation_confident(
+        self, candidates: List[Tuple[float, ArticleInfo, Dict[str, float]]]
+    ) -> bool:
+        """Проверить, достаточно ли уверенности для авто-выбора среди нескольких кандидатов."""
+        if not candidates:
+            return False
+        if len(candidates) == 1:
+            return candidates[0][0] >= self.MIN_DISAMBIGUATION_SCORE
+
+        top1 = candidates[0][0]
+        top2 = candidates[1][0]
+        return top1 >= self.MIN_DISAMBIGUATION_SCORE and (top1 - top2) >= self.MIN_DISAMBIGUATION_GAP
 
     def _match_by_edn(
         self,
@@ -1422,6 +1551,12 @@ class PDFMatcher:
 
                     if candidates and pe.path not in matched_pdfs:
                         candidates.sort(key=lambda x: x[0], reverse=True)
+                        if not self._is_disambiguation_confident(candidates):
+                            logger.warning(
+                                f"[WARN] EDN {pdf_edn}: коллизия неразрешима автоматически "
+                                f"(top={candidates[0][0]:.3f}, next={candidates[1][0] if len(candidates) > 1 else 0:.3f})"
+                            )
+                            continue
                         best_score, best_art, best_components = candidates[0]
                         self.set_pdf_file_in_article(best_art.element, Path(pe.arcname).name)
                         matched_articles.add(best_art.index)
@@ -1536,6 +1671,12 @@ class PDFMatcher:
 
                     if candidates and pe.path not in matched_pdfs:
                         candidates.sort(key=lambda x: x[0], reverse=True)
+                        if not self._is_disambiguation_confident(candidates):
+                            logger.warning(
+                                f"[WARN] DOI {pdf_doi}: коллизия неразрешима автоматически "
+                                f"(top={candidates[0][0]:.3f}, next={candidates[1][0] if len(candidates) > 1 else 0:.3f})"
+                            )
+                            continue
                         best_score, best_art, best_components = candidates[0]
                         self.set_pdf_file_in_article(best_art.element, Path(pe.arcname).name)
                         matched_articles.add(best_art.index)
@@ -1721,6 +1862,11 @@ class PDFMatcher:
         for score, art, pe, comps in scored_pairs:
             by_article.setdefault(art.index, []).append((score, pe, comps))
 
+        # Дополнительно группируем по PDF, чтобы не привязывать неоднозначные файлы автоматически
+        by_pdf: Dict[Path, List[Tuple[float, ArticleInfo, Dict[str, float]]]] = {}
+        for score, art, pe, comps in scored_pairs:
+            by_pdf.setdefault(pe.path, []).append((score, art, comps))
+
         # Определяем неоднозначные статьи (margin rule)
         ambiguous_articles = set()
         effective_margin = self.MARGIN_SCORE_GAP
@@ -1743,6 +1889,15 @@ class PDFMatcher:
                         logger.info(f"    Top-2: {candidates_sorted[1][1].arcname} (score={top2_score:.3f})")
                         logger.info(f"    Gap: {top1_score - top2_score:.3f} < {effective_margin}")
 
+        ambiguous_pdfs: Set[Path] = set()
+        for pdf_path, candidates in by_pdf.items():
+            if len(candidates) >= 2:
+                candidates_sorted = sorted(candidates, key=lambda x: x[0], reverse=True)
+                top1_score = candidates_sorted[0][0]
+                top2_score = candidates_sorted[1][0]
+                if (top1_score - top2_score) < effective_margin:
+                    ambiguous_pdfs.add(pdf_path)
+
         # Greedy assignment с учётом уровней уверенности
         local_matched_articles = set()
         local_matched_pdfs = set()
@@ -1752,6 +1907,8 @@ class PDFMatcher:
             if art.index in matched_articles or art.index in local_matched_articles:
                 continue
             if pe.path in matched_pdfs or pe.path in local_matched_pdfs:
+                continue
+            if pe.path in ambiguous_pdfs:
                 continue
             
             if art.index in ambiguous_articles:
@@ -1773,6 +1930,8 @@ class PDFMatcher:
                 continue
             if pe.path in matched_pdfs or pe.path in local_matched_pdfs:
                 continue
+            if pe.path in ambiguous_pdfs:
+                continue
             
             if art.index in ambiguous_articles:
                 continue
@@ -1792,6 +1951,8 @@ class PDFMatcher:
             if art.index in matched_articles or art.index in local_matched_articles:
                 continue
             if pe.path in matched_pdfs or pe.path in local_matched_pdfs:
+                continue
+            if pe.path in ambiguous_pdfs:
                 continue
 
             if art.index in ambiguous_articles:
@@ -1839,6 +2000,8 @@ class PDFMatcher:
                 if art.index in matched_articles or art.index in local_matched_articles:
                     continue
                 if pe.path in matched_pdfs or pe.path in local_matched_pdfs:
+                    continue
+                if pe.path in ambiguous_pdfs:
                     continue
                 if score >= self.MIN_SCORE_LOW_CONFIDENCE:
                     meta = pdf_metadata.get(pe.path, PDFMetadata())
@@ -1973,7 +2136,7 @@ class PDFMatcher:
         Args:
             zip_path: Путь к ZIP архиву
             extract_to: Директория для извлечения
-            cleanup_old: Удалять старые <file desc="PDF"> перед обработкой
+            cleanup_old: Удалять старые PDF-ссылки перед обработкой
         
         Returns:
             Словарь с результатами обработки
@@ -2010,7 +2173,7 @@ class PDFMatcher:
         if cleanup_old:
             removed = self.cleanup_pdf_files_in_articles(root)
             if removed:
-                logger.info(f"Очистка: удалено {removed} старых <file desc='PDF'>")
+                logger.info(f"Очистка: удалено {removed} старых PDF-ссылок (<file desc='PDF'| 'fullText'>)")
 
         # Сбор информации о статьях
         articles_info = [self.get_article_info(a, idx) for idx, a in enumerate(articles)]
@@ -2079,6 +2242,14 @@ class PDFMatcher:
                 logger.warning(f"[WARN] Статья #{art.index+1} не сопоставлена")
 
         # Сортируем по индексу статьи
+        manual_review = self._build_manual_review_candidates(
+            pdf_entries=pdf_entries,
+            articles_info=articles_info,
+            pdf_metadata=pdf_metadata,
+            matched_articles=matched_articles,
+            matched_pdfs=matched_pdfs,
+            top_n=3,
+        )
         all_matches.sort(key=lambda x: x.article_index)
 
         # Сохраняем XML
@@ -2095,6 +2266,11 @@ class PDFMatcher:
             "output_xml": output_xml,
             "xml_arcname": xml_arcname,
             "matches": [self._match_result_to_dict(m) for m in all_matches],
+            "manual_review": manual_review,
+            "all_pdf_filenames": sorted([Path(pe.arcname).name for pe in pdf_entries]),
+            "unmatched_pdf_filenames": sorted(
+                [Path(pe.arcname).name for pe in pdf_entries if pe.path not in matched_pdfs]
+            ),
             "total_articles": len(articles_info),
             "matched_articles": len(matched_articles),
             "unmatched_articles": len(articles_info) - len(matched_articles),

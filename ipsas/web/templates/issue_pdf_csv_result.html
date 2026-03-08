@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+
+{% block title %}Проверка сопоставления CSV{% endblock %}
+
+{% block extra_css %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap');
+
+  .csv-check-wrap, .csv-check-wrap * { box-sizing: border-box; }
+
+  .csv-check-wrap {
+    --bg: #f0ede8;
+    --surface: #faf9f7;
+    --surface2: #ffffff;
+    --border: #ddd9d2;
+    --border-strong: #b8b2a8;
+    --text: #1a1814;
+    --text-muted: #7a756e;
+    --text-light: #a09b93;
+    --accent: #2563eb;
+    --ok: #16a34a;
+    --ok-light: #f0fdf4;
+    --ok-border: #bbf7d0;
+    --err: #dc2626;
+    --err-light: #fef2f2;
+    --err-border: #fecaca;
+    --warn: #d97706;
+    --warn-light: #fffbeb;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Manrope', sans-serif;
+    --radius: 10px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.1), 0 1px 4px rgba(0,0,0,0.06);
+    font-family: var(--sans);
+    color: var(--text);
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .csv-header {
+    margin-bottom: 22px;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .csv-header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; }
+  .csv-header p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+  .stats-bar { display: flex; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+  .stat-pill {
+    display: flex; align-items: center; gap: 7px;
+    padding: 7px 14px; border-radius: 100px; font-size: 13px; font-weight: 600; border: 1.5px solid;
+  }
+  .stat-pill strong { margin-left: 4px; }
+  .stat-pill.all { background: var(--surface2); border-color: var(--border); color: var(--text); }
+  .stat-pill.ok { background: var(--ok-light); border-color: var(--ok-border); color: var(--ok); }
+  .stat-pill.err { background: var(--err-light); border-color: var(--err-border); color: var(--err); }
+  .stat-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .all .stat-dot { background: var(--text-muted); }
+  .ok .stat-dot { background: var(--ok); }
+  .err .stat-dot { background: var(--err); }
+
+  .filter-bar {
+    display: flex; gap: 4px; margin-bottom: 18px; background: var(--surface2);
+    border: 1.5px solid var(--border); border-radius: var(--radius); padding: 4px; width: fit-content;
+  }
+  .filter-btn {
+    padding: 6px 16px; border-radius: 7px; border: none; background: none; font-family: var(--sans);
+    font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all 0.15s ease;
+  }
+  .filter-btn.active { background: var(--accent); color: #fff; font-weight: 600; }
+  .filter-btn:hover:not(.active) { background: var(--bg); color: var(--text); }
+
+  .article-card {
+    background: var(--surface2); border: 1.5px solid var(--border); border-radius: var(--radius);
+    margin-bottom: 10px; overflow: hidden; box-shadow: var(--shadow);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .article-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-md); }
+  .article-card.status-ok { border-left: 3px solid var(--ok); }
+  .article-card.status-err { border-left: 3px solid var(--err); }
+  .article-card.status-changed { border-left: 3px solid var(--warn); }
+  .article-card.hidden { display: none; }
+
+  .card-main {
+    display: grid; grid-template-columns: 220px 1fr auto auto; gap: 16px; align-items: center;
+    padding: 14px 18px;
+  }
+  .doi {
+    font-family: var(--mono); font-size: 11.5px; color: var(--text-muted); letter-spacing: -0.2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .authors {
+    font-size: 13.5px; font-weight: 500; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .pdf-status { display: flex; align-items: center; gap: 8px; font-size: 13px; white-space: nowrap; }
+  .pdf-status.found { color: var(--ok); }
+  .pdf-status.not-found { color: var(--err); font-weight: 600; }
+  .status-icon {
+    width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 11px; font-weight: 700;
+  }
+  .found .status-icon { background: var(--ok-light); color: var(--ok); border: 1.5px solid var(--ok-border); }
+  .not-found .status-icon { background: var(--err-light); color: var(--err); border: 1.5px solid var(--err-border); }
+  .pdf-name {
+    font-family: var(--mono); font-size: 11px; max-width: 220px; overflow: hidden; text-overflow: ellipsis;
+  }
+  .lang-badge {
+    font-family: var(--mono); font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 5px;
+    background: var(--bg); border: 1.5px solid var(--border); color: var(--text-muted); flex-shrink: 0;
+  }
+
+  .card-reassign {
+    display: flex; align-items: center; gap: 12px; padding: 10px 18px 14px;
+    border-top: 1.5px solid var(--border); background: var(--surface);
+  }
+  .reassign-label {
+    font-size: 12px; color: var(--text-muted); font-weight: 500; white-space: nowrap; flex-shrink: 0;
+  }
+  .reassign-select {
+    font-family: var(--sans); font-size: 13px; color: var(--text); background: var(--surface2);
+    border: 1.5px solid var(--border); border-radius: 7px; padding: 6px 30px 6px 10px;
+    flex: 1; max-width: 420px; cursor: pointer; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a756e' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+  }
+  .lang-select {
+    min-width: 120px;
+    max-width: 140px;
+  }
+  .reassign-select:focus {
+    outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+  }
+  .reassign-select.changed {
+    border-color: var(--warn); background-color: var(--warn-light); color: var(--warn); font-weight: 600;
+  }
+  .change-indicator {
+    font-size: 11px; font-weight: 600; color: var(--warn); background: var(--warn-light);
+    border: 1.5px solid #fde68a; border-radius: 5px; padding: 3px 8px; white-space: nowrap; display: none;
+  }
+  .change-indicator.visible { display: block; }
+
+  .alert-banner {
+    display: flex; align-items: flex-start; gap: 10px; padding: 10px 18px 10px 14px;
+    background: var(--err-light); border-top: 1.5px solid var(--err-border); font-size: 12.5px; color: #991b1b;
+  }
+  .alert-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+  .footer-bar {
+    position: sticky; bottom: 0; margin-top: 20px; background: var(--surface2);
+    border: 1.5px solid var(--border); border-radius: var(--radius); box-shadow: 0 -4px 24px rgba(0,0,0,0.08);
+    padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+  .footer-info { font-size: 13px; color: var(--text-muted); }
+  .footer-info span { font-weight: 600; color: var(--text); }
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px;
+    background: var(--accent); color: #fff; border: none; border-radius: 8px;
+    font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+  }
+  .btn-primary:hover { background: #1d4ed8; }
+
+  .bottom-actions { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+  @media (max-width: 700px) {
+    .card-main { grid-template-columns: 1fr auto; grid-template-rows: auto auto auto; }
+    .doi { grid-column: 1; grid-row: 1; }
+    .lang-badge { grid-column: 2; grid-row: 1; }
+    .authors { grid-column: 1 / 3; grid-row: 2; }
+    .pdf-status { grid-column: 1 / 3; grid-row: 3; }
+    .pdf-name { max-width: 100%; }
+    .card-reassign { flex-wrap: wrap; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if result.success %}
+<div class="csv-check-wrap">
+  <form id="manual-assign-form" method="POST" action="{{ url_for('issue_pdf_csv.manual_assign_issue_pdf_csv', filename=output_csv_filename) }}">
+    <input type="hidden" name="row_count" value="{{ result.rows|length }}">
+
+    <div class="csv-header">
+      <div>
+        <h1>Проверка сопоставления перед выгрузкой CSV</h1>
+        <p>Проверьте DOI, авторов и привязку PDF перед экспортом. Ссылка на выпуск: <a href="{{ issue_url }}" target="_blank" rel="noopener noreferrer">{{ issue_url }}</a></p>
+      </div>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-pill all"><div class="stat-dot"></div>Всего: <strong id="count-all">{{ result.total_articles_with_doi }}</strong></div>
+      <div class="stat-pill ok"><div class="stat-dot"></div>Найдено: <strong id="count-ok">{{ result.matched_articles }}</strong></div>
+      <div class="stat-pill err"><div class="stat-dot"></div>Не найдено: <strong id="count-err">{{ result.unmatched_articles }}</strong></div>
+    </div>
+
+    <div class="filter-bar">
+      <button type="button" class="filter-btn active" data-filter-btn="all">Все записи</button>
+      <button type="button" class="filter-btn" data-filter-btn="ok">✓ Найдены</button>
+      <button type="button" class="filter-btn" data-filter-btn="err">✗ Не найдены</button>
+      <button type="button" class="filter-btn" data-filter-btn="changed">⚡ Изменённые</button>
+    </div>
+
+    <div id="cards-container">
+      {% for row in result.rows %}
+      {% set current_pdf = row[2] %}
+      {% set status = 'ok' if current_pdf else 'err' %}
+      <div class="article-card status-{{ status }}" data-status="{{ status }}">
+        <input type="hidden" name="doi_{{ loop.index0 }}" value="{{ row[0] }}">
+        <input type="hidden" name="surnames_{{ loop.index0 }}" value="{{ row[1] }}">
+        <input type="hidden" name="pdf_{{ loop.index0 }}" value="{{ row[2] }}">
+        <input type="hidden" name="lang_{{ loop.index0 }}" value="{{ row[3] }}">
+
+        <div class="card-main">
+          <div class="doi" title="{{ row[0] }}">{{ row[0] }}</div>
+          <div class="authors" title="{{ row[1] }}">{{ row[1] }}</div>
+          <div class="pdf-status {{ 'found' if current_pdf else 'not-found' }}" data-pdf-status>
+            <div class="status-icon">{{ '✓' if current_pdf else '✗' }}</div>
+            <div class="pdf-name" data-pdf-name title="{{ current_pdf if current_pdf else 'Файл не найден' }}">
+              {{ current_pdf if current_pdf else 'Файл не найден' }}
+            </div>
+          </div>
+          <div class="lang-badge">{{ row[3] }}</div>
+        </div>
+
+        {% if not current_pdf %}
+        <div class="alert-banner">
+          <span class="alert-icon">⚠</span>
+          <span>PDF для этой статьи не был автоматически определён. Выберите файл вручную.</span>
+        </div>
+        {% endif %}
+
+        <div class="card-reassign">
+          <div class="reassign-label">Переназначить файл:</div>
+          <select class="reassign-select" name="assign_row_{{ loop.index0 }}" data-original="{{ row[2] or '' }}">
+            <option value="">Оставить как есть</option>
+            {% for pdf_name in result.all_pdf_filenames %}
+              <option value="{{ pdf_name }}" {% if row[2] == pdf_name %}selected{% endif %}>{{ pdf_name }}</option>
+            {% endfor %}
+          </select>
+          <div class="reassign-label">Язык:</div>
+          <select class="reassign-select lang-select" name="assign_lang_{{ loop.index0 }}" data-original-lang="{{ row[3] or 'en_US' }}">
+            <option value="en_US" {% if (row[3] or 'en_US') == 'en_US' %}selected{% endif %}>en_US</option>
+            <option value="ru_RUS" {% if row[3] == 'ru_RUS' %}selected{% endif %}>ru_RUS</option>
+          </select>
+          <div class="change-indicator">Изменено</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="footer-bar">
+      <div class="footer-info">Изменено вручную: <span id="changed-count">0</span> из <span>{{ result.total_articles_with_doi }}</span> записей</div>
+      <button type="submit" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Применить и скачать CSV
+      </button>
+    </div>
+  </form>
+
+  <div class="bottom-actions">
+    <a href="{{ url_for('issue_pdf_csv.download_issue_pdf_csv', filename=output_csv_filename) }}" class="btn btn-secondary">Скачать текущий CSV без изменений</a>
+    <a href="{{ url_for('issue_pdf_csv.issue_pdf_csv_page') }}" class="btn btn-secondary">Сформировать другой CSV</a>
+    <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">Вернуться на главную</a>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div style="background-color: #f8d7da; padding: 1rem; border-radius: 5px; border: 1px solid #f5c6cb;">
+    <h2 style="margin: 0; color: #721c24; font-size: 1.1rem;">✗ Ошибка при формировании CSV</h2>
+  </div>
+  <div style="margin-top: 1rem;">
+    <a href="{{ url_for('issue_pdf_csv.issue_pdf_csv_page') }}" class="btn btn-secondary">Назад</a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    const form = document.getElementById('manual-assign-form');
+    if (!form) return;
+
+    let currentFilter = 'all';
+
+    function updateCardState(card, select) {
+      const originalVal = select.dataset.original || '';
+      const selectedVal = select.value || '';
+      const effectiveVal = selectedVal || originalVal;
+      const langSelect = card.querySelector('[name^="assign_lang_"]');
+      const originalLang = (langSelect?.dataset.originalLang || 'en_US');
+      const selectedLang = (langSelect?.value || originalLang);
+      const langBadge = card.querySelector('.lang-badge');
+      const fileChanged = !!selectedVal && selectedVal !== originalVal;
+      const langChanged = selectedLang !== originalLang;
+      const changed = fileChanged || langChanged;
+
+      const indicator = card.querySelector('.change-indicator');
+      const status = card.querySelector('[data-pdf-status]');
+      const statusIcon = status.querySelector('.status-icon');
+      const statusName = status.querySelector('[data-pdf-name]');
+
+      select.classList.toggle('changed', !!changed);
+      indicator.classList.toggle('visible', !!changed);
+
+      if (effectiveVal) {
+        status.classList.remove('not-found');
+        status.classList.add('found');
+        statusIcon.textContent = '✓';
+        statusName.textContent = effectiveVal;
+        statusName.title = effectiveVal;
+      } else {
+        status.classList.remove('found');
+        status.classList.add('not-found');
+        statusIcon.textContent = '✗';
+        statusName.textContent = 'Файл не найден';
+        statusName.title = 'Файл не найден';
+      }
+
+      if (langBadge) {
+        langBadge.textContent = selectedLang;
+      }
+
+      card.classList.remove('status-ok', 'status-err', 'status-changed');
+      if (changed) {
+        card.classList.add('status-changed');
+      } else if (effectiveVal) {
+        card.classList.add('status-ok');
+      } else {
+        card.classList.add('status-err');
+      }
+
+      card.dataset.status = effectiveVal ? 'ok' : 'err';
+    }
+
+    function updateChangedCount() {
+      const count = document.querySelectorAll('.change-indicator.visible').length;
+      const node = document.getElementById('changed-count');
+      if (node) node.textContent = String(count);
+    }
+
+    function applyFilter() {
+      const cards = document.querySelectorAll('.article-card');
+      cards.forEach((card) => {
+        const status = card.dataset.status;
+        const changed = !!card.querySelector('.change-indicator.visible');
+        let show = false;
+        if (currentFilter === 'all') show = true;
+        else if (currentFilter === 'ok' && status === 'ok') show = true;
+        else if (currentFilter === 'err' && status === 'err') show = true;
+        else if (currentFilter === 'changed' && changed) show = true;
+        card.classList.toggle('hidden', !show);
+      });
+    }
+
+    document.querySelectorAll('[name^="assign_row_"]').forEach((select) => {
+      const card = select.closest('.article-card');
+      updateCardState(card, select);
+      select.addEventListener('change', () => {
+        updateCardState(card, select);
+        updateChangedCount();
+        applyFilter();
+      });
+    });
+
+    document.querySelectorAll('[name^="assign_lang_"]').forEach((select) => {
+      const card = select.closest('.article-card');
+      select.addEventListener('change', () => {
+        const fileSelect = card.querySelector('[name^="assign_row_"]');
+        updateCardState(card, fileSelect);
+        updateChangedCount();
+        applyFilter();
+      });
+    });
+
+    document.querySelectorAll('[data-filter-btn]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-filter-btn]').forEach((x) => x.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filterBtn;
+        applyFilter();
+      });
+    });
+
+    updateChangedCount();
+    applyFilter();
+  })();
+</script>
+{% endblock %}
