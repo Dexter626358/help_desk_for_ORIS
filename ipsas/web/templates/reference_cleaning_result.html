@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Дедупликация references + удаление нумерации - Результат - IPSAS{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="margin-bottom: 1.5rem; color: #667eea;">Дедупликация references + удаление нумерации</h1>
+
+    <div style="background-color: #d4edda; padding: 1.5rem; border-radius: 5px; margin-bottom: 1.5rem; border-left: 4px solid #28a745;">
+        <h2 style="margin-bottom: 1rem; color: #155724; font-size: 1.2rem;">
+            ✓ Обработка завершена успешно
+        </h2>
+        <div style="color: #155724;">
+            <p style="margin-bottom: 0.5rem;"><strong>Исходный файл:</strong> {{ filename }}</p>
+            {% if stats %}
+            <p style="margin-bottom: 0.5rem;"><strong>Найдено reference:</strong> {{ stats.total_references }}</p>
+            <p style="margin-bottom: 0.5rem;"><strong>Изменено reference:</strong> {{ stats.changed_references }}</p>
+            <p style="margin-bottom: 0.5rem;"><strong>Создано refinfo:</strong> {{ stats.created_refinfo }}</p>
+            <p style="margin-bottom: 0.5rem;"><strong>Создано text:</strong> {{ stats.created_text }}</p>
+            <p style="margin-bottom: 0.5rem;"><strong>Удалено лишних дочерних элементов:</strong> {{ stats.removed_children }}</p>
+            <p style="margin-bottom: 0.5rem;"><strong>Очищено reference.text:</strong> {{ stats.cleared_reference_text }}</p>
+            <p style="margin-bottom: 0.5rem;"><strong>Удалена нумерация:</strong> {{ stats.removed_numbering }}</p>
+            {% endif %}
+            <p style="margin: 0.75rem 0 0 0; color: #0c5460;">
+                Можно скачать обработанный XML. Файл будет автоматически удален после скачивания.
+            </p>
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 1rem;">
+        <a class="btn btn-primary"
+           href="{{ url_for('reference_cleaning.download_reference_cleaned_file', filename=processed_filename) }}">
+            Скачать обработанный XML
+        </a>
+        <a class="btn btn-secondary" href="{{ url_for('reference_cleaning.reference_cleaning_page') }}">
+            Обработать ещё файл
+        </a>
+        <a class="btn btn-secondary" href="{{ url_for('main.dashboard') }}">
+            На дашборд
+        </a>
+    </div>
+</div>
+{% endblock %}
+

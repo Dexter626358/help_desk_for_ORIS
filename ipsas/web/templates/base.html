@@ -395,6 +395,18 @@
                                 Удаление нумерации источников
                             </a>
                         </li>
+                        {% set ref_clean_active = request.endpoint in [
+                            'reference_cleaning.reference_cleaning_page',
+                            'reference_cleaning.process_reference_cleaning',
+                            'reference_cleaning.download_reference_cleaned_file'
+                        ] %}
+                        <li>
+                            <a href="{{ url_for('reference_cleaning.reference_cleaning_page') }}"
+                               class="{{ 'active' if ref_clean_active else '' }}"
+                               {{ 'aria-current="page"' if ref_clean_active else '' }}>
+                                Дедупликация references + удаление нумерации
+                            </a>
+                        </li>
                         {% set ref_format_active = request.endpoint in [
                             'reference_formatting.reference_formatting_page',
                             'reference_formatting.process_reference_formatting',

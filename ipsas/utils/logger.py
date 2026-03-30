@@ -36,7 +36,16 @@ def setup_logger(
     )
 
     # Консольный обработчик
-    console_handler = logging.StreamHandler(sys.stdout)
+    # На Windows sys.stdout часто в cp1251/cp866 и может падать на символах типа "✓".
+    # Делаем "best effort": переоткрываем stdout с UTF-8, если возможно.
+    stream = sys.stdout
+    try:
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
+    except Exception:
+        pass
+
+    console_handler = logging.StreamHandler(stream)
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
 

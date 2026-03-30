@@ -23,6 +23,11 @@ Flask-Login>=0.6.3
 # jsonschema>=4.17.0  # Для валидации JSON схем
 lxml>=5.0.0  # Для валидации XML по XSD схемам
 
+# XML сервис очистки reference (FastAPI)
+fastapi>=0.110.0
+uvicorn>=0.27.0
+python-multipart>=0.0.9
+
 # Обработка PDF
 PyPDF2>=3.0.0  # Для извлечения метаданных из PDF файлов
 
