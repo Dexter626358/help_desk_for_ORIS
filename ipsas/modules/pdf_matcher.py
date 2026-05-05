@@ -111,6 +111,9 @@ class MatchResult:
     article_id: Optional[str]
     article_title: str
     pdf_filename: Optional[str]
+    pdf_lang: Optional[str]
+    pages_start: int
+    pages_end: int
     score: float
     method: MatchMethod
     doi: Optional[str]
@@ -309,6 +312,63 @@ class PDFMatcher:
             return (a, b) if a <= b else (b, a)
 
         return None
+
+    def _article_pages_key(self, article_elem: etree.Element) -> Tuple[int, int]:
+        """
+        Ключ сортировки статьи по страницам.
+
+        Если pages не распарсились — ставим в конец.
+        """
+        pages_el = article_elem.find("./pages")
+        pages_str = pages_el.text if pages_el is not None and pages_el.text else ""
+        parsed = self.parse_article_pages(pages_str)
+        if not parsed:
+            return (10**9, 10**9)
+        return parsed
+
+    def reorder_articles_in_xml(self, root: etree.Element) -> int:
+        """
+        Переупорядочить статьи (<article>) в XML по возрастанию страниц.
+
+        Реализация консервативная:
+        - сортируем только непосредственных детей `<article>` внутри контейнеров,
+          где они реально лежат (`<articles>`, `<section>`),
+        - не переносим статьи между секциями.
+
+        Returns:
+            int: Кол-во контейнеров, где был изменён порядок.
+        """
+        changed = 0
+
+        # В большинстве случаев статьи лежат как прямые дети `<articles>`.
+        for container in root.findall(".//articles"):
+            articles = container.findall("./article")
+            if len(articles) < 2:
+                continue
+            sorted_articles = sorted(articles, key=self._article_pages_key)
+            if [a is b for a, b in zip(articles, sorted_articles)] == [True] * len(articles):
+                continue
+            for a in articles:
+                container.remove(a)
+            for a in sorted_articles:
+                container.append(a)
+            changed += 1
+
+        # Если внутри `<articles>` используется `<section>`, сортируем статьи внутри каждой секции.
+        for section in root.findall(".//section"):
+            articles = section.findall("./article")
+            if len(articles) < 2:
+                continue
+            sorted_articles = sorted(articles, key=self._article_pages_key)
+            if [a is b for a, b in zip(articles, sorted_articles)] == [True] * len(articles):
+                continue
+            for a in articles:
+                section.remove(a)
+            for a in sorted_articles:
+                section.append(a)
+            changed += 1
+
+        return changed
 
     def normalize_text(self, text: str) -> str:
         """Нормализация общего текста (для сравнения, НЕ для DOI)"""
@@ -1292,9 +1352,17 @@ class PDFMatcher:
 
         return removed
 
-    def set_pdf_file_in_article(self, article_elem: etree.Element, pdf_filename: str) -> None:
+    def set_pdf_file_in_article(
+        self,
+        article_elem: etree.Element,
+        pdf_filename: str,
+        lang_override: Optional[str] = None,
+    ) -> None:
         """Установить/заменить ссылку на PDF в формате <file desc="fullText" lang="...">."""
         detected_lang = self._detect_article_language(article_elem)
+        lang = (lang_override or detected_lang).upper()
+        if lang not in {"RUS", "ENG"}:
+            lang = detected_lang
         files = article_elem.find("./files")
         if files is None:
             files = etree.SubElement(article_elem, "files")
@@ -1303,15 +1371,51 @@ class PDFMatcher:
         for fe in files.findall("./file"):
             if (fe.get("desc") or "").strip().lower() in self.PDF_FILE_DESC_ALIASES:
                 fe.set("desc", self.OUTPUT_PDF_DESC)
-                fe.set("lang", detected_lang)
+                fe.set("lang", lang)
                 fe.text = pdf_filename
                 return
 
         # Create new
         fe = etree.SubElement(files, "file")
         fe.set("desc", self.OUTPUT_PDF_DESC)
-        fe.set("lang", detected_lang)
+        fe.set("lang", lang)
         fe.text = pdf_filename
+
+    def get_pdf_lang_from_article(self, article_elem: etree.Element) -> Optional[str]:
+        """Получить текущий `lang` у `<file desc=\"fullText\">` внутри статьи (если есть)."""
+        files = article_elem.find("./files")
+        if files is None:
+            return None
+
+        for fe in files.findall("./file"):
+            if (fe.get("desc") or "").strip().lower() in self.PDF_FILE_DESC_ALIASES:
+                lang = (fe.get("lang") or "").strip().upper()
+                if lang in {"RUS", "ENG"}:
+                    return lang
+                return None
+        return None
+
+    def set_pdf_lang_in_article(self, article_elem: etree.Element, lang: str) -> bool:
+        """
+        Установить атрибут `lang` для PDF-ссылки в статье (если PDF-ссылка есть).
+
+        Возвращает True, если обновление применено.
+        """
+        lang_norm = (lang or "").upper().strip()
+        if lang_norm not in {"RUS", "ENG"}:
+            return False
+
+        files = article_elem.find("./files")
+        if files is None:
+            return False
+
+        for fe in files.findall("./file"):
+            if (fe.get("desc") or "").strip().lower() in self.PDF_FILE_DESC_ALIASES:
+                fe.set("desc", self.OUTPUT_PDF_DESC)
+                fe.set("lang", lang_norm)
+                return True
+
+        return False
 
     def _detect_article_language(self, article_elem: etree.Element) -> str:
         """
@@ -1520,6 +1624,7 @@ class PDFMatcher:
                     
                     if art.index not in matched_articles and pe.path not in matched_pdfs:
                         self.set_pdf_file_in_article(art.element, Path(pe.arcname).name)
+                        pdf_lang = self.get_pdf_lang_from_article(art.element)
                         matched_articles.add(art.index)
                         matched_pdfs.add(pe.path)
                         
@@ -1528,6 +1633,9 @@ class PDFMatcher:
                             article_id=art.article_id,
                             article_title=art.title_rus or art.title_eng or "Без названия",
                             pdf_filename=Path(pe.arcname).name,
+                            pdf_lang=pdf_lang,
+                            pages_start=art.pages[0] if art.pages else 10**9,
+                            pages_end=art.pages[1] if art.pages else 10**9,
                             score=1.0,
                             method=MatchMethod.EDN_EXACT,
                             doi=art.doi,
@@ -1559,6 +1667,7 @@ class PDFMatcher:
                             continue
                         best_score, best_art, best_components = candidates[0]
                         self.set_pdf_file_in_article(best_art.element, Path(pe.arcname).name)
+                        pdf_lang = self.get_pdf_lang_from_article(best_art.element)
                         matched_articles.add(best_art.index)
                         matched_pdfs.add(pe.path)
 
@@ -1567,6 +1676,9 @@ class PDFMatcher:
                             article_id=best_art.article_id,
                             article_title=best_art.title_rus or best_art.title_eng or "Без названия",
                             pdf_filename=Path(pe.arcname).name,
+                            pdf_lang=pdf_lang,
+                            pages_start=best_art.pages[0] if best_art.pages else 10**9,
+                            pages_end=best_art.pages[1] if best_art.pages else 10**9,
                             score=1.0,
                             method=MatchMethod.EDN_EXACT,
                             doi=best_art.doi,
@@ -1640,6 +1752,7 @@ class PDFMatcher:
                     
                     if art.index not in matched_articles and pe.path not in matched_pdfs:
                         self.set_pdf_file_in_article(art.element, Path(pe.arcname).name)
+                        pdf_lang = self.get_pdf_lang_from_article(art.element)
                         matched_articles.add(art.index)
                         matched_pdfs.add(pe.path)
                         
@@ -1648,6 +1761,9 @@ class PDFMatcher:
                             article_id=art.article_id,
                             article_title=art.title_rus or art.title_eng or "Без названия",
                             pdf_filename=Path(pe.arcname).name,
+                            pdf_lang=pdf_lang,
+                            pages_start=art.pages[0] if art.pages else 10**9,
+                            pages_end=art.pages[1] if art.pages else 10**9,
                             score=1.0,
                             method=MatchMethod.DOI_EXACT,
                             doi=pdf_doi,
@@ -1679,6 +1795,7 @@ class PDFMatcher:
                             continue
                         best_score, best_art, best_components = candidates[0]
                         self.set_pdf_file_in_article(best_art.element, Path(pe.arcname).name)
+                        pdf_lang = self.get_pdf_lang_from_article(best_art.element)
                         matched_articles.add(best_art.index)
                         matched_pdfs.add(pe.path)
 
@@ -1687,6 +1804,9 @@ class PDFMatcher:
                             article_id=best_art.article_id,
                             article_title=best_art.title_rus or best_art.title_eng or "Без названия",
                             pdf_filename=Path(pe.arcname).name,
+                            pdf_lang=pdf_lang,
+                            pages_start=best_art.pages[0] if best_art.pages else 10**9,
+                            pages_end=best_art.pages[1] if best_art.pages else 10**9,
                             score=1.0,
                             method=MatchMethod.DOI_EXACT,
                             doi=pdf_doi,
@@ -1729,6 +1849,7 @@ class PDFMatcher:
                                 
                                 if art.index not in matched_articles and pe.path not in matched_pdfs:
                                     self.set_pdf_file_in_article(art.element, Path(pe.arcname).name)
+                                    pdf_lang = self.get_pdf_lang_from_article(art.element)
                                     matched_articles.add(art.index)
                                     matched_pdfs.add(pe.path)
                                     
@@ -1737,6 +1858,9 @@ class PDFMatcher:
                                         article_id=art.article_id,
                                         article_title=art.title_rus or art.title_eng or "Без названия",
                                         pdf_filename=Path(pe.arcname).name,
+                                        pdf_lang=pdf_lang,
+                                        pages_start=art.pages[0] if art.pages else 10**9,
+                                        pages_end=art.pages[1] if art.pages else 10**9,
                                         score=0.95,
                                         method=MatchMethod.DOI_PARTIAL,
                                         doi=xml_doi,
@@ -1771,6 +1895,7 @@ class PDFMatcher:
 
                                 if art.index not in matched_articles and pe.path not in matched_pdfs:
                                     self.set_pdf_file_in_article(art.element, Path(pe.arcname).name)
+                                    pdf_lang = self.get_pdf_lang_from_article(art.element)
                                     matched_articles.add(art.index)
                                     matched_pdfs.add(pe.path)
 
@@ -1779,6 +1904,9 @@ class PDFMatcher:
                                         article_id=art.article_id,
                                         article_title=art.title_rus or art.title_eng or "Без названия",
                                         pdf_filename=Path(pe.arcname).name,
+                                        pdf_lang=pdf_lang,
+                                        pages_start=art.pages[0] if art.pages else 10**9,
+                                        pages_end=art.pages[1] if art.pages else 10**9,
                                         score=0.95,
                                         method=MatchMethod.DOI_PARTIAL,
                                         doi=pdf_doi,
@@ -2071,6 +2199,7 @@ class PDFMatcher:
     ) -> None:
         """Вспомогательный метод для регистрации сопоставления"""
         self.set_pdf_file_in_article(art.element, Path(pe.arcname).name)
+        pdf_lang = self.get_pdf_lang_from_article(art.element)
         
         matched_articles.add(art.index)
         matched_pdfs.add(pe.path)
@@ -2085,6 +2214,9 @@ class PDFMatcher:
             article_id=art.article_id,
             article_title=art.title_rus or art.title_eng or "Без названия",
             pdf_filename=Path(pe.arcname).name,
+            pdf_lang=pdf_lang,
+            pages_start=art.pages[0] if art.pages else 10**9,
+            pages_end=art.pages[1] if art.pages else 10**9,
             score=score,
             method=method,
             doi=art.doi,
@@ -2230,6 +2362,9 @@ class PDFMatcher:
                     article_id=art.article_id,
                     article_title=art.title_rus or art.title_eng or "Без названия",
                     pdf_filename=None,
+                    pdf_lang=self.get_pdf_lang_from_article(art.element),
+                    pages_start=art.pages[0] if art.pages else 10**9,
+                    pages_end=art.pages[1] if art.pages else 10**9,
                     score=0.0,
                     method=MatchMethod.UNMATCHED,
                     doi=art.doi,
@@ -2250,7 +2385,13 @@ class PDFMatcher:
             matched_pdfs=matched_pdfs,
             top_n=3,
         )
-        all_matches.sort(key=lambda x: x.article_index)
+        # Сортировка для UI и отчётности: по возрастанию страниц.
+        all_matches.sort(key=lambda x: (x.pages_start, x.pages_end, x.article_index))
+
+        # Переупорядочиваем `<article>` в XML по страницам, чтобы итоговый файл соответствовал этому порядку.
+        reordered = self.reorder_articles_in_xml(root)
+        if reordered:
+            logger.info("Переупорядочены статьи по страницам в %s контейнерах", reordered)
 
         # Сохраняем XML
         tree.write(str(xml_path), encoding="UTF-8", xml_declaration=True, pretty_print=True)
@@ -2323,6 +2464,9 @@ class PDFMatcher:
             "article_id": match.article_id,
             "article_title": match.article_title,
             "pdf_filename": match.pdf_filename,
+            "pdf_lang": match.pdf_lang,
+            "pages_start": match.pages_start,
+            "pages_end": match.pages_end,
             "score": match.score,
             "method": match.method.value,
             "doi": match.doi,

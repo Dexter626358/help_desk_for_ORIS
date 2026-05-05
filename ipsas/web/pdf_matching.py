@@ -137,6 +137,8 @@ def manual_assign_and_download(filename):
         matcher = PDFMatcher(adaptive_thresholds=False, verbose=False)
         applied = 0
         skipped = 0
+        lang_applied = 0
+        lang_skipped = 0
 
         for field_name, pdf_name in request.form.items():
             if not field_name.startswith("assign_article_"):
@@ -163,12 +165,44 @@ def manual_assign_and_download(filename):
             matcher.set_pdf_file_in_article(articles[article_index], pdf_name)
             applied += 1
 
+        # Отдельно применяем ручную корректировку языка для PDF-тега.
+        for field_name, lang_value in request.form.items():
+            if not field_name.startswith("lang_article_"):
+                continue
+
+            lang_value = (lang_value or "").strip().upper()
+            if not lang_value:
+                continue
+
+            try:
+                article_index = int(field_name.replace("lang_article_", "", 1))
+            except ValueError:
+                lang_skipped += 1
+                continue
+
+            if article_index < 0 or article_index >= len(articles):
+                lang_skipped += 1
+                continue
+
+            if lang_value not in {"RUS", "ENG"}:
+                lang_skipped += 1
+                continue
+
+            if matcher.set_pdf_lang_in_article(articles[article_index], lang_value):
+                lang_applied += 1
+            else:
+                lang_skipped += 1
+
         tree.write(str(file_path), encoding="UTF-8", xml_declaration=True, pretty_print=True)
 
         if applied > 0:
             flash(f"Ручные привязки применены: {applied}", "success")
         if skipped > 0:
             flash(f"Пропущено привязок: {skipped}", "warning")
+        if lang_applied > 0:
+            flash(f"Язык PDF-тегов обновлён: {lang_applied}", "success")
+        if lang_skipped > 0:
+            flash(f"Пропущено обновлений языка: {lang_skipped}", "warning")
 
         return redirect(url_for("pdf_matching.download_processed_xml", filename=filename))
 

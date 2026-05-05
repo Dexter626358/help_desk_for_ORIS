@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Отчёт по XML (HTML) - IPSAS{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="margin-bottom: 2rem; color: #667eea;">Отчёт по XML (HTML)</h1>
+
+    <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem;">
+        <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.2rem;">Описание сервиса</h2>
+        <p style="color: #666; line-height: 1.6;">
+            Сервис анализирует загруженный XML-файл и формирует HTML‑отчёт по содержимому (названия, аннотации,
+            ключевые слова, источники, авторы и др.). На выходе вы получаете HTML‑файл отчёта для скачивания.
+        </p>
+        <small style="color: #666; display: block; margin-top: 0.5rem;">
+            Отчёт будет автоматически удалён с сервера после скачивания.
+        </small>
+    </div>
+
+    <form method="POST" action="{{ url_for('xml_report.generate_report') }}" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="xml_file">Выберите XML файл *</label>
+            <input
+                type="file"
+                id="xml_file"
+                name="xml_file"
+                accept=".xml"
+                required
+                style="padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px; width: 100%;"
+            >
+            <small style="color: #666; display: block; margin-top: 0.5rem;">
+                Поддерживаются только файлы с расширением .xml
+            </small>
+            <small style="color: #666; display: block; margin-top: 0.25rem;">
+                Максимальный размер файла: {{ (config.get('MAX_FILE_SIZE', 10485760) / (1024 * 1024)) | round(1) }} MB
+            </small>
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary">
+                Сформировать отчёт
+            </button>
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">
+                Назад
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

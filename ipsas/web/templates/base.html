@@ -383,6 +383,18 @@
                                 Валидация XML
                             </a>
                         </li>
+                        {% set xml_report_active = request.endpoint in [
+                            'xml_report.xml_report_page',
+                            'xml_report.generate_report',
+                            'xml_report.download_report'
+                        ] %}
+                        <li>
+                            <a href="{{ url_for('xml_report.xml_report_page') }}"
+                               class="{{ 'active' if xml_report_active else '' }}"
+                               {{ 'aria-current="page"' if xml_report_active else '' }}>
+                                Отчёт по XML (HTML)
+                            </a>
+                        </li>
                         {% set ref_active = request.endpoint in [
                             'reference_processing.reference_processing_page',
                             'reference_processing.process_references',

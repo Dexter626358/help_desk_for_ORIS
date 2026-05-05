@@ -38,12 +38,22 @@
         <form method="POST" action="{{ url_for('pdf_matching.manual_assign_and_download', filename=output_xml_filename) }}">
         <div class="table-container">
             <table>
+                <colgroup>
+                    <col style="width: 50px;">
+                    <col style="width: 110px;">
+                    <col style="width: 280px;">
+                    <col style="width: 260px;">
+                    <col style="width: 220px;">
+                    <col style="width: 150px;">
+                    <col style="width: 280px;">
+                </colgroup>
                 <thead>
                     <tr>
                         <th>№</th>
                         <th>ID статьи</th>
                         <th>Название статьи</th>
                         <th>PDF файл</th>
+                        <th>Язык PDF-тега</th>
                         <th>Оценка соответствия</th>
                         <th>Метаданные PDF</th>
                     </tr>
@@ -51,10 +61,10 @@
                 <tbody>
                     {% for match in result.matches %}
                     <tr>
-                        <td>{{ match.article_index + 1 }}</td>
-                        <td>{{ match.article_id or '—' }}</td>
+                        <td style="vertical-align: top;">{{ match.article_index + 1 }}</td>
+                        <td style="vertical-align: top; white-space: nowrap;">{{ match.article_id or '—' }}</td>
                         <td>{{ match.article_title[:50] }}{% if match.article_title|length > 50 %}...{% endif %}</td>
-                        <td>
+                        <td style="vertical-align: top;">
                             <div style="display: flex; flex-direction: column; gap: 0.35rem;">
                                 {% if match.pdf_filename %}
                                     <span style="color: #28a745;">✓ {{ match.pdf_filename }}</span>
@@ -62,7 +72,7 @@
                                     <span style="color: #dc3545;">Не сопоставлено</span>
                                 {% endif %}
                                 {% if result.all_pdf_filenames %}
-                                <select name="assign_article_{{ match.article_index }}" style="min-width: 170px;">
+                                <select name="assign_article_{{ match.article_index }}" style="width: 100%; max-width: 260px; display: block;">
                                     <option value="">Оставить как есть</option>
                                     {% for pdf_name in result.all_pdf_filenames %}
                                         <option value="{{ pdf_name }}" {% if match.pdf_filename == pdf_name %}selected{% endif %}>{{ pdf_name }}</option>
@@ -71,14 +81,24 @@
                                 {% endif %}
                             </div>
                         </td>
-                        <td>
+                        <td style="vertical-align: top;">
+                            <select name="lang_article_{{ match.article_index }}" style="width: 100%; max-width: 200px; display: block;">
+                                <option value="">Оставить как есть</option>
+                                <option value="RUS" {% if match.pdf_lang == 'RUS' %}selected{% endif %}>RUS</option>
+                                <option value="ENG" {% if match.pdf_lang == 'ENG' %}selected{% endif %}>ENG</option>
+                            </select>
+                            <small style="display: block; margin-top: 0.25rem; color: #999; line-height: 1.2;">
+                                Изменит <code>lang</code> у <code>&lt;file desc="fullText"&gt;</code>
+                            </small>
+                        </td>
+                        <td style="vertical-align: top; white-space: nowrap;">
                             {% if match.pdf_filename %}
                                 <span style="color: #666;">{{ "%.0f"|format(match.score * 100) }}%</span>
                             {% else %}
                                 <span style="color: #999;">—</span>
                             {% endif %}
                         </td>
-                        <td style="font-size: 0.85em;">
+                        <td style="vertical-align: top; font-size: 0.85em;">
                             {% if match.pdf_metadata %}
                                 {% if match.pdf_metadata.doi %}
                                     {% set doi_text = match.pdf_metadata.doi %}

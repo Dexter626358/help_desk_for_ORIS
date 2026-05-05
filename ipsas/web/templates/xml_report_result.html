@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Отчёт сформирован - IPSAS{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="margin-bottom: 2rem; color: #667eea;">Результат формирования отчёта</h1>
+
+    <div style="background-color: #d4edda; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem; border-left: 4px solid #28a745;">
+        <h2 style="margin-bottom: 1rem; color: #155724; font-size: 1.2rem;">
+            ✓ Отчёт сформирован успешно
+        </h2>
+        <div style="color: #155724;">
+            <p style="margin-bottom: 0.5rem;"><strong>Исходный файл:</strong> {{ filename }}</p>
+        </div>
+    </div>
+
+    {% if report_filename %}
+    <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem;">
+        <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.2rem;">HTML‑отчёт</h2>
+        <p style="color: #666; margin-bottom: 1rem;">
+            Отчёт готов к скачиванию. Файл будет автоматически удалён после скачивания.
+        </p>
+        <a href="{{ url_for('xml_report.download_report', filename=report_filename) }}"
+           class="btn btn-primary">
+            Скачать HTML‑отчёт
+        </a>
+        <small style="display: block; margin-top: 0.5rem; color: #999;">
+            ⚠️ Файл будет удалён после скачивания. Убедитесь, что сохранили его на свой компьютер.
+        </small>
+    </div>
+    {% endif %}
+
+    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+        <a href="{{ url_for('xml_report.xml_report_page') }}" class="btn btn-primary">
+            Сформировать другой отчёт
+        </a>
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">
+            На главную
+        </a>
+    </div>
+</div>
+{% endblock %}
+

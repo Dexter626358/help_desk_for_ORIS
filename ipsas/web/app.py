@@ -37,6 +37,7 @@ def create_app() -> Flask:
     from ipsas.web.routes import main_bp, admin_bp
     from ipsas.web.auth import auth_bp
     from ipsas.web.xml_validation import xml_validation_bp
+    from ipsas.web.xml_report import xml_report_bp
     from ipsas.web.reference_processing import reference_processing_bp
     from ipsas.web.reference_cleaning import reference_cleaning_bp
     from ipsas.web.pdf_matching import pdf_matching_bp
@@ -47,6 +48,7 @@ def create_app() -> Flask:
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(admin_bp, url_prefix="/admin")
     app.register_blueprint(xml_validation_bp, url_prefix="/services")
+    app.register_blueprint(xml_report_bp, url_prefix="/services")
     app.register_blueprint(reference_processing_bp, url_prefix="/services")
     app.register_blueprint(reference_cleaning_bp, url_prefix="/services")
     app.register_blueprint(pdf_matching_bp, url_prefix="/services")
