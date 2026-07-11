@@ -1,7 +1,6 @@
 """Роуты для валидации XML файлов."""
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
-from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from pathlib import Path
 import os
@@ -16,7 +15,6 @@ xml_validation_bp = Blueprint("xml_validation", __name__, template_folder="templ
 
 
 @xml_validation_bp.route("/xml-validator")
-@login_required
 def xml_validator_page():
     """Страница валидации XML файлов."""
     settings = get_settings()
@@ -31,7 +29,6 @@ def xml_validator_page():
 
 
 @xml_validation_bp.route("/xml-validator/validate", methods=["POST"])
-@login_required
 def validate_xml():
     """Валидация загруженного XML файла."""
     settings = get_settings()

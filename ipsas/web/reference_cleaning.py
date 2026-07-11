@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Optional
 
 from flask import Blueprint, Response, flash, redirect, render_template, request, url_for
-from flask_login import login_required
 from lxml import etree
 from werkzeug.utils import secure_filename
 
@@ -31,7 +30,6 @@ def _create_strict_parser() -> etree.XMLParser:
 
 
 @reference_cleaning_bp.route("/reference-cleaning")
-@login_required
 def reference_cleaning_page():
     return render_template("reference_cleaning.html")
 
@@ -45,7 +43,6 @@ def _build_temp_filename(original_filename: str, suffix: str) -> str:
 
 
 @reference_cleaning_bp.route("/reference-cleaning/process", methods=["POST"])
-@login_required
 def process_reference_cleaning():
     settings = get_settings()
 
@@ -118,7 +115,6 @@ def process_reference_cleaning():
 
 
 @reference_cleaning_bp.route("/reference-cleaning/download/<filename>")
-@login_required
 def download_reference_cleaned_file(filename: str) -> Response:
     settings = get_settings()
     file_path = settings.temp_dir / filename

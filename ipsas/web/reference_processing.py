@@ -3,7 +3,6 @@
 import uuid
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
-from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from pathlib import Path
 from ipsas.modules.reference_processor import remove_reference_numbering
@@ -17,14 +16,12 @@ reference_processing_bp = Blueprint("reference_processing", __name__, template_f
 
 
 @reference_processing_bp.route("/reference-processing")
-@login_required
 def reference_processing_page():
     """Страница обработки XML файлов: удаление нумерации источников."""
     return render_template("reference_processing.html")
 
 
 @reference_processing_bp.route("/reference-processing/process", methods=["POST"])
-@login_required
 def process_references():
     """Обработка загруженного XML файла: удаление нумерации из источников."""
     settings = get_settings()
@@ -98,7 +95,6 @@ def process_references():
 
 
 @reference_processing_bp.route("/reference-processing/download/<filename>")
-@login_required
 def download_processed_file(filename):
     """Скачивание обработанного файла."""
     settings = get_settings()
@@ -160,13 +156,8 @@ def download_processed_file(filename):
 
 
 @reference_processing_bp.route("/reference-processing/cleanup")
-@login_required
 def cleanup_old_files():
     """Очистка старых файлов из временной директории (старше 24 часов)."""
-    if not current_user.is_admin:
-        flash("Доступ запрещен", "error")
-        return redirect(url_for("main.dashboard"))
-    
     settings = get_settings()
     temp_dir = settings.temp_dir
     

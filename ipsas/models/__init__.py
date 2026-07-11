@@ -1,6 +1,3 @@
-"""Модели базы данных."""
+"""Модели данных IPSAS."""
 
-from ipsas.models.user import User, init_db
-
-__all__ = ["User", "init_db"]
-
+__all__: list[str] = []

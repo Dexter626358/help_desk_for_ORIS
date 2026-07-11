@@ -3,7 +3,6 @@
 import uuid
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
-from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from pathlib import Path
 from lxml import etree
@@ -18,14 +17,12 @@ pdf_matching_bp = Blueprint("pdf_matching", __name__, template_folder="templates
 
 
 @pdf_matching_bp.route("/pdf-matching")
-@login_required
 def pdf_matching_page():
     """Страница загрузки ZIP архива с XML и PDF файлами."""
     return render_template("pdf_matching.html")
 
 
 @pdf_matching_bp.route("/pdf-matching/process", methods=["POST"])
-@login_required
 def process_pdf_matching():
     """Обработка ZIP архива: сопоставление PDF файлов со статьями."""
     settings = get_settings()
@@ -112,7 +109,6 @@ def process_pdf_matching():
 
 
 @pdf_matching_bp.route("/pdf-matching/manual-assign/<filename>", methods=["POST"])
-@login_required
 def manual_assign_and_download(filename):
     """Ручная привязка PDF к статьям и скачивание обновленного XML."""
     settings = get_settings()
@@ -213,7 +209,6 @@ def manual_assign_and_download(filename):
 
 
 @pdf_matching_bp.route("/pdf-matching/download/<filename>")
-@login_required
 def download_processed_xml(filename):
     """Скачивание обработанного XML файла."""
     settings = get_settings()

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+
+<html lang="ru">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Отчёт по выпуску</title>
+
+  <style>
+
+    body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background:#f5f5f5; margin:0; padding:20px; }
+
+    .container { max-width: 1100px; margin:0 auto; background:#fff; border-radius: 12px; padding: 24px; box-shadow: 0 0 20px rgba(0,0,0,0.08); }
+
+    .header { border-bottom: 3px solid #007acc; padding-bottom: 14px; margin-bottom: 18px; }
+
+    .header h1 { margin:0; color:#007acc; font-size: 1.7rem; }
+
+    .meta { color:#666; margin-top: 6px; font-size: 0.95rem; }
+
+    .block { background:#f8f9fa; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+
+    .badge { display:inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.85rem; color:#fff; }
+
+    .badge.ok { background:#28a745; }
+
+    .badge.warn { background:#fd7e14; }
+
+    .badge.err { background:#dc3545; }
+
+    .card { border: 1px solid #e0e0e0; border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
+
+    .card.ok { border-left: 6px solid #28a745; background:#f7fff8; }
+
+    .card.warn { border-left: 6px solid #fd7e14; background:#fffaf0; }
+
+    .card.err { border-left: 6px solid #dc3545; background:#fff5f5; }
+
+    .k { font-weight: 700; color:#333; }
+
+    .row { margin: 6px 0; }
+
+    ul { margin: 8px 0 0 0; padding-left: 18px; }
+
+    li { margin-bottom: 4px; }
+
+    a { color:#007acc; text-decoration:none; }
+
+    a:hover { text-decoration:underline; }
+
+    details.ok-fold { margin-bottom: 8px; }
+
+    details.ok-fold > summary { cursor:pointer; padding: 10px 12px; border-radius: 8px; background:#eef8ef; border: 1px solid #c8e6c9; font-weight: 600; color:#2e7d32; }
+
+    details.ok-fold[open] > summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+
+    .abstract-box { margin-top:6px; padding:10px; border:1px solid #e0e0e0; border-radius:10px; background:#fff; white-space: pre-wrap; font-size: 0.95rem; }
+
+    .muted { color:#666; font-size: 0.9rem; }
+
+    .problem-link { font-weight: 600; }
+
+  </style>
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="header">
+
+      <h1>Отчёт по выпуску</h1>
+
+      <div class="meta">
+
+        <div><span class="k">Ссылка:</span> <a href="{{ issue_url }}">{{ issue_url }}</a></div>
+
+        <div><span class="k">Сформирован:</span> {{ generated_at }}</div>
+
+      </div>
+
+    </div>
+
+
+
+    {% set issue_warn_list = result.issue.warnings or [] %}
+
+    {% set issue_err_count = (issue_warn_list | selectattr('severity', 'equalto', 'error') | list | length) %}
+
+    {% set issue_warn_count = (issue_warn_list | selectattr('severity', 'equalto', 'warning') | list | length) %}
+
+
+
+    {% set ns = namespace(article_error_count=0, article_problem_count=0, articles_with_issues=0, total_articles=0) %}
+
+    {% if result.articles %}
+
+      {% set ns.total_articles = result.articles | length %}
+
+      {% for a in result.articles %}
+
+        {% set a_errors = (a.errors | length) if a.errors else 0 %}
+
+        {% set a_problems = (a.problems | length) if a.problems else 0 %}
+
+        {% set ns.article_error_count = ns.article_error_count + a_errors %}
+
+        {% set ns.article_problem_count = ns.article_problem_count + a_problems %}
+
+        {% if (a_errors + a_problems) > 0 %}
+
+          {% set ns.articles_with_issues = ns.articles_with_issues + 1 %}
+
+        {% endif %}
+
+      {% endfor %}
+
+    {% endif %}
+
+
+
+    <div class="block">
+
+      <div class="row">
+
+        <span class="k">Выпуск:</span>
+
+        <span class="badge {% if issue_err_count > 0 %}err{% elif issue_warn_count > 0 %}warn{% else %}ok{% endif %}">
+
+          ошибок {{ issue_err_count }}, предупреждений {{ issue_warn_count }}
+
+        </span>
+
+      </div>
+
+      <div class="row">
+
+        <span class="k">Статьи:</span>
+
+        <span class="badge {% if ns.article_error_count > 0 %}err{% elif ns.articles_with_issues > 0 %}warn{% else %}ok{% endif %}">
+
+          с проблемами {{ ns.articles_with_issues }} из {{ ns.total_articles }},
+
+          ошибок {{ ns.article_error_count }}, проблем {{ ns.article_problem_count }}
+
+        </span>
+
+      </div>
+
+
+
+      {% if issue_warn_list or ns.articles_with_issues > 0 %}
+
+        <div class="row" style="margin-top:12px;"><span class="k">Сводка проблем</span></div>
+
+        <ul>
+
+          {% for w in issue_warn_list %}
+
+            {% if w is mapping %}
+
+              <li>{% if w.severity == 'error' %}<span class="badge err">error</span>{% else %}<span class="badge warn">warn</span>{% endif %} {{ w.text }}</li>
+
+            {% endif %}
+
+          {% endfor %}
+
+          {% for a in result.articles or [] %}
+
+            {% set a_errors = (a.errors | length) if a.errors else 0 %}
+
+            {% set a_problems = (a.problems | length) if a.problems else 0 %}
+
+            {% if (a_errors + a_problems) > 0 %}
+
+              <li>
+
+                <a class="problem-link" href="#article-{{ loop.index }}">Статья {{ loop.index }}:</a>
+
+                {{ a.title_ru or a.title_en or "—" }}
+
+                {% if a_problems %}<span class="muted">({{ a_problems }} проблем)</span>{% endif %}
+
+              </li>
+
+            {% endif %}
+
+          {% endfor %}
+
+        </ul>
+
+      {% endif %}
+
+    </div>
+
+
+
+    <div class="block">
+
+      <div class="row"><span class="k">Метаданные выпуска</span></div>
+
+      <div class="row"><span class="k">Журнал (RU):</span> {{ result.issue.journal_title_ru or "—" }}</div>
+
+      <div class="row"><span class="k">Журнал (EN):</span> {{ result.issue.journal_title or "—" }}</div>
+
+      <div class="row"><span class="k">Заголовок выпуска:</span> {{ result.issue.issue_title or "—" }}</div>
+
+      <div class="row"><span class="k">ISSN (печатный):</span> {{ result.issue.issn or "—" }}</div>
+
+      <div class="row"><span class="k">ISSN (онлайн):</span>
+
+        {% if result.issue.eissn %}
+
+          {{ result.issue.eissn }}
+
+          {% if result.issue.issn and result.issue.eissn == result.issue.issn %}
+
+            <span class="muted">(совпадает с печатным)</span>
+
+          {% endif %}
+
+        {% else %}—{% endif %}
+
+      </div>
+
+      <div class="row"><span class="k">Год:</span> {{ result.issue.year or "—" }}{% if result.issue.volume %}, <span class="k">Том:</span> {{ result.issue.volume }}{% endif %}, <span class="k">Номер:</span> {{ result.issue.issue or "—" }}{% if result.issue.issue_serial %}, <span class="k">Сквозной №:</span> {{ result.issue.issue_serial }}{% endif %}</div>
+
+      <div class="row"><span class="k">Количество статей:</span> {{ result.issue.article_count or 0 }}</div>
+
+      <div class="row"><span class="k">Обложка выпуска:</span>
+
+        {% if result.issue.cover_url %}
+
+          <a href="{{ result.issue.cover_url }}">открыть</a>
+
+          {% if result.issue.cover_thumb_url %}
+
+            <img src="{{ result.issue.cover_thumb_url }}" alt="Обложка" style="height:48px; margin-left:8px; vertical-align:middle; border-radius:6px; border:1px solid #ddd;">
+
+          {% endif %}
+
+        {% else %}нет{% endif %}
+
+      </div>
+
+      <div class="row"><span class="k">Файл выпуска (PDF):</span>
+
+        {% set galleys = result.issue.issue_galleys or [] %}
+
+        {% if galleys and (galleys | length) > 0 %}
+
+          прикреплён ({{ galleys | length }})
+
+          <ul>{% for g in galleys %}<li>{% if g.lang %}<span class="k">{{ g.lang }}:</span> {% endif %}<a href="{{ g.url }}">{{ g.url }}</a></li>{% endfor %}</ul>
+
+        {% else %}нет{% endif %}
+
+      </div>
+
+    </div>
+
+
+
+    <div class="block">
+
+      <div class="row"><span class="k">Статьи</span></div>
+
+      {% if result.articles %}
+
+        {% for a in result.articles %}
+
+          {% set a_errors = (a.errors | length) if a.errors else 0 %}
+
+          {% set a_problems = (a.problems | length) if a.problems else 0 %}
+
+          {% set cls = 'ok' %}
+
+          {% if a_errors > 0 %}{% set cls = 'err' %}{% elif a_problems > 0 %}{% set cls = 'warn' %}{% endif %}
+
+          {% set has_issues = (a_errors + a_problems) > 0 %}
+
+          {% set ref_ru = a.references_ru_count or 0 %}
+
+          {% set ref_en = a.references_en_count or 0 %}
+
+          {% set ref_unk = a.references_unk_count or 0 %}
+
+          {% set has_ref_detail = ref_ru > 0 or ref_en > 0 or ref_unk > 0 %}
+
+
+
+          {% if has_issues %}
+
+          <div id="article-{{ loop.index }}" class="card {{ cls }}">
+
+          {% else %}
+
+          <details class="ok-fold" id="article-{{ loop.index }}">
+
+          <summary>Статья {{ loop.index }}: {{ a.title_ru or a.title_en or "—" }} — OK</summary>
+
+          <div class="card {{ cls }}">
+
+          {% endif %}
+
+
+
+            <div class="row">
+
+              <span class="k">Статья {{ loop.index }}:</span> {{ a.title_ru or a.title_en or "—" }}
+
+              {% if a_errors > 0 %}<span class="badge err" style="margin-left:8px;">ошибки {{ a_errors }}</span>{% endif %}
+
+              {% if a_problems > 0 %}<span class="badge warn" style="margin-left:6px;">проблемы {{ a_problems }}</span>{% endif %}
+
+              {% if not has_issues %}<span class="badge ok" style="margin-left:8px;">OK</span>{% endif %}
+
+            </div>
+
+            <div class="row"><span class="k">Ссылка:</span> {% if a.url %}<a href="{{ a.url }}">{{ a.url }}</a>{% else %}—{% endif %}</div>
+
+            <div class="row"><span class="k">RU/EN:</span> {{ a.title_ru or "—" }} / {{ a.title_en or "—" }}</div>
+
+            <div class="row"><span class="k">Дата:</span> {{ a.publication_date_display or a.publication_date or "—" }}, <span class="k">Тип:</span> {{ a.article_type or "—" }}</div>
+
+            <div class="row"><span class="k">DOI:</span> {{ a.identifiers.doi or "—" }}, <span class="k">EDN:</span> {{ a.identifiers.edn or "—" }}</div>
+
+            <div class="row"><span class="k">Авторы ({{ a.authors_count or 0 }}):</span>
+
+              {% if a.authors_ru %}{{ a.authors_ru | join('; ') }}{% elif a.authors %}{{ a.authors | join('; ') }}{% else %}—{% endif %}
+
+            </div>
+
+            {% if a.authors_en %}
+
+            <div class="row"><span class="k">Authors:</span> {{ a.authors_en | join('; ') }}</div>
+
+            {% endif %}
+
+            <div class="row"><span class="k">Организаций:</span> {{ a.organizations_count or 0 }}
+
+              {% if a.organizations %} — {{ a.organizations | join('; ') }}{% endif %}
+
+            </div>
+
+            <div class="row"><span class="k">PDF файлы:</span>
+
+              {% set pdfs = a.pdf_files or [] %}
+
+              {% if pdfs and (pdfs | length) > 0 %}
+
+                {{ pdfs | length }}
+
+                <ul>{% for p in pdfs %}<li>{% if p.lang %}{{ p.lang }}: {% endif %}<a href="{{ p.url }}">{{ p.url }}</a>{% if p.locked %} <span class="badge err">закрыт</span>{% endif %}</li>{% endfor %}</ul>
+
+              {% else %}нет{% endif %}
+
+            </div>
+
+            <div class="row"><span class="k">Ключевые слова:</span> RU {{ a.keywords_ru_count }}{% if a.keywords_ru %} — {{ a.keywords_ru | join(', ') }}{% endif %}</div>
+
+            <div class="row"><span class="k">Keywords:</span> EN {{ a.keywords_en_count }}{% if a.keywords_en %} — {{ a.keywords_en | join(', ') }}{% endif %}</div>
+
+            <div class="row"><span class="k">Источники:</span> всего {{ a.references_count or 0 }}{% if has_ref_detail %}, RU {{ ref_ru }}, EN {{ ref_en }}{% if ref_unk %}, без языка {{ ref_unk }}{% endif %}{% endif %}</div>
+
+            {% if has_ref_detail %}
+
+              {% if ref_ru %}<div class="row muted"><span class="k">Первый (RU):</span> {{ a.reference_ru_first or "—" }}</div>{% endif %}
+
+              {% if ref_en %}<div class="row muted"><span class="k">Первый (EN):</span> {{ a.reference_en_first or "—" }}</div>{% endif %}
+
+              {% if ref_unk and not ref_ru and not ref_en %}<div class="row muted"><span class="k">Первый:</span> {{ a.reference_unk_first or "—" }}</div>{% endif %}
+
+            {% elif (a.references_count or 0) > 0 %}
+
+              <div class="row muted">Языковая разбивка списка литературы недоступна (источники из HTML).</div>
+
+            {% endif %}
+
+
+
+            {% if a.abstract_ru or (a.abstract_ru_stats and a.abstract_ru_stats.length is not none) %}
+
+            <div class="row" style="margin-top:10px;"><span class="k">Аннотация (RU)</span></div>
+
+            {% if a.abstract_ru_stats and a.abstract_ru_stats.length is not none %}
+
+            <div class="row muted">Длина: {{ a.abstract_ru_stats.length }} слов · первые 10: {{ a.abstract_ru_stats.first_10 or "—" }}</div>
+
+            {% endif %}
+
+            {% if a.abstract_ru %}<div class="abstract-box">{{ a.abstract_ru }}</div>{% endif %}
+
+            {% endif %}
+
+
+
+            {% if a.abstract_en or (a.abstract_en_stats and a.abstract_en_stats.length is not none) %}
+
+            <div class="row" style="margin-top:10px;"><span class="k">Аннотация (EN)</span></div>
+
+            {% if a.abstract_en_stats and a.abstract_en_stats.length is not none %}
+
+            <div class="row muted">Длина: {{ a.abstract_en_stats.length }} слов · первые 10: {{ a.abstract_en_stats.first_10 or "—" }}</div>
+
+            {% endif %}
+
+            {% if a.abstract_en %}<div class="abstract-box">{{ a.abstract_en }}</div>{% endif %}
+
+            {% endif %}
+
+
+
+            {% if a.problems %}
+
+              <div class="row" style="margin-top:8px;"><span class="k">Проблемы</span></div>
+
+              <ul>{% for p in a.problems %}<li>{{ p }}</li>{% endfor %}</ul>
+
+            {% endif %}
+
+            {% if a.errors %}
+
+              <div class="row" style="margin-top:8px;"><span class="k">Ошибки</span></div>
+
+              <ul>{% for e in a.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+
+            {% endif %}
+
+
+
+          {% if has_issues %}
+
+          </div>
+
+          {% else %}
+
+          </div></details>
+
+          {% endif %}
+
+        {% endfor %}
+
+      {% else %}
+
+        <div class="row">Статьи не найдены.</div>
+
+      {% endif %}
+
+    </div>
+
+  </div>
+
+</body>
+
+</html>
+
+

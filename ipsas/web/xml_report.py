@@ -7,7 +7,6 @@ from datetime import datetime
 from pathlib import Path
 
 from flask import Blueprint, Response, flash, redirect, render_template, request, url_for
-from flask_login import login_required
 from werkzeug.utils import secure_filename
 
 from ipsas.config.settings import get_settings
@@ -20,14 +19,12 @@ xml_report_bp = Blueprint("xml_report", __name__, template_folder="templates")
 
 
 @xml_report_bp.route("/xml-report")
-@login_required
 def xml_report_page():
     """Страница генерации HTML-отчёта по XML."""
     return render_template("xml_report.html")
 
 
 @xml_report_bp.route("/xml-report/generate", methods=["POST"])
-@login_required
 def generate_report():
     """Принять XML, сгенерировать HTML-отчёт и показать страницу результата."""
     settings = get_settings()
@@ -104,7 +101,6 @@ def generate_report():
 
 
 @xml_report_bp.route("/xml-report/download/<filename>")
-@login_required
 def download_report(filename: str):
     """Скачать HTML-отчёт и удалить его после скачивания."""
     settings = get_settings()

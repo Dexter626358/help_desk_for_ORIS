@@ -33,7 +33,6 @@ def main():
     logger.info("Веб-приложение инициализировано")
     logger.info(f"Директория данных: {settings.data_dir}")
     logger.info(f"Директория логов: {settings.logs_dir}")
-    logger.info(f"База данных: {settings.database_uri}")
 
     # Запуск веб-сервера
     host = "0.0.0.0"

@@ -3,7 +3,6 @@
 import uuid
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
-from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from pathlib import Path
 from ipsas.modules.reference_formatter import ReferenceFormatter
@@ -17,14 +16,12 @@ reference_formatting_bp = Blueprint("reference_formatting", __name__, template_f
 
 
 @reference_formatting_bp.route("/reference-formatting")
-@login_required
 def reference_formatting_page():
     """Страница загрузки XML файла со списком литературы."""
     return render_template("reference_formatting.html")
 
 
 @reference_formatting_bp.route("/reference-formatting/process", methods=["POST"])
-@login_required
 def process_reference_formatting():
     """Обработка XML файла: форматирование списка литературы."""
     settings = get_settings()
@@ -98,7 +95,6 @@ def process_reference_formatting():
 
 
 @reference_formatting_bp.route("/reference-formatting/download/<filename>")
-@login_required
 def download_formatted_file(filename):
     """Скачивание отформатированного XML файла."""
     settings = get_settings()

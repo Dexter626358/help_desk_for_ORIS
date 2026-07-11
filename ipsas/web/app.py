@@ -2,9 +2,7 @@
 
 from flask import Flask
 from ipsas.config.settings import get_settings
-from ipsas.database import db
 from ipsas.utils.logger import setup_logger
-from ipsas.web.auth import login_manager
 
 
 def create_app() -> Flask:
@@ -17,25 +15,15 @@ def create_app() -> Flask:
     app = Flask(__name__)
     settings = get_settings()
 
-    # Конфигурация
     app.config["SECRET_KEY"] = settings.secret_key
-    app.config["SQLALCHEMY_DATABASE_URI"] = settings.database_uri
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    # Инициализация расширений
-    db.init_app(app)
-    login_manager.init_app(app)
-
-    # Настройка логирования
     logger = setup_logger(
         log_file=settings.log_file,
         log_level=settings.log_level
     )
     app.logger = logger
 
-    # Регистрация роутов
-    from ipsas.web.routes import main_bp, admin_bp
-    from ipsas.web.auth import auth_bp
+    from ipsas.web.routes import main_bp
     from ipsas.web.xml_validation import xml_validation_bp
     from ipsas.web.xml_report import xml_report_bp
     from ipsas.web.reference_processing import reference_processing_bp
@@ -44,9 +32,8 @@ def create_app() -> Flask:
     from ipsas.web.reference_formatting import reference_formatting_bp
     from ipsas.web.issue_metadata import issue_metadata_bp
     from ipsas.web.issue_pdf_csv import issue_pdf_csv_bp
+
     app.register_blueprint(main_bp)
-    app.register_blueprint(auth_bp, url_prefix="/auth")
-    app.register_blueprint(admin_bp, url_prefix="/admin")
     app.register_blueprint(xml_validation_bp, url_prefix="/services")
     app.register_blueprint(xml_report_bp, url_prefix="/services")
     app.register_blueprint(reference_processing_bp, url_prefix="/services")
@@ -55,9 +42,5 @@ def create_app() -> Flask:
     app.register_blueprint(reference_formatting_bp, url_prefix="/services")
     app.register_blueprint(issue_metadata_bp, url_prefix="/services")
     app.register_blueprint(issue_pdf_csv_bp, url_prefix="/services")
-
-    # Инициализация базы данных
-    from ipsas.models.user import init_db
-    init_db(app)
 
     return app

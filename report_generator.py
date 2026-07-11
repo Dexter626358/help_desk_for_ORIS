@@ -293,10 +293,12 @@ def validate_references_data(references_data: Dict[str, Any]) -> Dict[str, str]:
     Returns:
         Dict[str, str]: Статус валидации для каждого языка
     """
-    validation_status = {}
+    validation_status: Dict[str, str] = {}
     
-    rus_references = references_data.get('RUS', [])
-    eng_references = references_data.get('ENG', [])
+    rus_references = references_data.get("RUS", []) or []
+    eng_references = references_data.get("ENG", []) or []
+    unk_references = references_data.get("UNK", []) or []
+    any_references = references_data.get("ANY", []) or []
     
     # Проверяем русские источники
     if not rus_references:
@@ -309,15 +311,34 @@ def validate_references_data(references_data: Dict[str, Any]) -> Dict[str, str]:
         validation_status['ENG'] = "❌ Отсутствуют"
     else:
         validation_status['ENG'] = f"✅ {len(eng_references)} источников"
+
+    # Проверяем источники с универсальным языком ANY
+    if not any_references:
+        validation_status["ANY"] = "—"
+    else:
+        validation_status["ANY"] = f"⚠️ {len(any_references)} источников (универсальный язык: ANY)"
+
+    # Проверяем источники с универсальным / неизвестным языком
+    if not unk_references:
+        validation_status["UNK"] = "—"
+    else:
+        validation_status["UNK"] = f"⚠️ {len(unk_references)} источников (язык не указан: UNK)"
     
     # Сравниваем количество
-    if rus_references and eng_references:
+    if rus_references and eng_references and not unk_references and not any_references:
         rus_count = len(rus_references)
         eng_count = len(eng_references)
         if rus_count != eng_count:
             validation_status['comparison'] = f"⚠️ Разное количество: RUS={rus_count}, ENG={eng_count}"
         else:
             validation_status['comparison'] = f"✅ Одинаковое количество: {rus_count} источников"
+    elif (unk_references or any_references) and not rus_references and not eng_references:
+        present = ", ".join([k for k, v in (("ANY", any_references), ("UNK", unk_references)) if v])
+        validation_status["comparison"] = f"⚠️ Источники только с универсальным/неизвестным языком ({present})"
+    elif (unk_references or any_references) and (rus_references or eng_references):
+        present = ", ".join([k for k, v in (("RUS", rus_references), ("ENG", eng_references)) if v])
+        extra = ", ".join([k for k, v in (("ANY", any_references), ("UNK", unk_references)) if v])
+        validation_status["comparison"] = f"⚠️ Есть источники с {extra} вместе с {present}"
     elif rus_references or eng_references:
         validation_status['comparison'] = "⚠️ Источники только на одном языке"
     else:
@@ -764,6 +785,22 @@ def get_articles_info(xml_file: Path) -> List[Dict[str, Any]]:
         tree = ET.parse(xml_file)
         root = tree.getroot()
 
+        def _norm_lang(raw: str | None) -> str:
+            """
+            Нормализует язык для группировок в отчёте.
+            - пустое значение -> UNK
+            - UNK остаётся UNK
+            - ANY остаётся ANY (универсальный язык)
+            """
+            value = (raw or "").strip().upper()
+            if value == "":
+                return "UNK"
+            if value == "UNK":
+                return "UNK"
+            if value == "ANY":
+                return "ANY"
+            return value
+
         # Подготовка: быстрый доступ к extraction_info из JSON (если есть)
         jsons_dir = xml_file.parent / "jsons"
         extraction_by_pdf: Dict[str, Dict[str, Any]] = {}
@@ -888,7 +925,7 @@ def get_articles_info(xml_file: Path) -> List[Dict[str, Any]]:
                 keywords_data = {}
                 keywords_count = {}
                 for kwd_group in keywords.findall('kwdGroup'):
-                    lang = kwd_group.get('lang', '')
+                    lang = _norm_lang(kwd_group.get('lang', ''))
                     keyword_list = []
                     for kw in kwd_group.findall('keyword'):
                         if kw.text:
@@ -907,7 +944,7 @@ def get_articles_info(xml_file: Path) -> List[Dict[str, Any]]:
                     # Ищем refInfo с атрибутом lang
                     ref_info = ref_elem.find('refInfo')
                     if ref_info is not None:
-                        lang = ref_info.get('lang', '')
+                        lang = _norm_lang(ref_info.get('lang', ''))
                         if lang not in refs_data:
                             refs_data[lang] = []
                             refs_count[lang] = 0
@@ -2071,17 +2108,25 @@ def generate_html_content(issue_info: Dict[str, Any],
         
         rus_references = references_data.get('RUS', [])
         eng_references = references_data.get('ENG', [])
+        any_references = references_data.get("ANY", [])
+        unk_references = references_data.get("UNK", [])
         rus_status = references_validation.get('RUS', '❌ Отсутствуют')
         eng_status = references_validation.get('ENG', '❌ Отсутствуют')
+        any_status = references_validation.get("ANY", "—")
+        unk_status = references_validation.get("UNK", "—")
         comparison_status = references_validation.get('comparison', '')
         
         rus_style = "color: #dc3545;" if "❌" in rus_status else "color: #28a745;"
         eng_style = "color: #dc3545;" if "❌" in eng_status else "color: #28a745;"
+        any_style = "color: #6c757d;" if any_status == "—" else "color: #fd7e14;"
+        unk_style = "color: #6c757d;" if unk_status == "—" else "color: #fd7e14;"
         comparison_style = "color: #dc3545;" if "❌" in comparison_status else "color: #fd7e14;" if "⚠️" in comparison_status else "color: #28a745;"
         
         # Получаем первый и последний источник (полностью, без сокращений)
         rus_first_last = get_first_last_references(rus_references, max_length=None)
         eng_first_last = get_first_last_references(eng_references, max_length=None)
+        any_first_last = get_first_last_references(any_references, max_length=None)
+        unk_first_last = get_first_last_references(unk_references, max_length=None)
         
         # Русские источники - отдельная строка на всю ширину
         html += f"""
@@ -2123,6 +2168,50 @@ def generate_html_content(issue_info: Dict[str, Any],
                             </div>
                         </div>"""
         
+        html += """
+                    </div>
+"""
+
+        # ANY / универсальные источники - отдельная строка на всю ширину
+        html += f"""
+                    <div class="stat-item full-width">
+                        <div class="stat-number" style="{any_style}">{len(any_references)}</div>
+                        <div class="stat-label">🌐 Источники (ANY)</div>
+                        <div class="stat-status" style="{any_style}">{any_status}</div>"""
+
+        if any_references:
+            html += f"""
+                        <div class="reference-examples">
+                            <div class="reference-item">
+                                <strong>Первый:</strong> {any_first_last['first']}
+                            </div>
+                            <div class="reference-item">
+                                <strong>Последний:</strong> {any_first_last['last']}
+                            </div>
+                        </div>"""
+
+        html += """
+                    </div>
+"""
+
+        # UNK / универсальные источники - отдельная строка на всю ширину
+        html += f"""
+                    <div class="stat-item full-width">
+                        <div class="stat-number" style="{unk_style}">{len(unk_references)}</div>
+                        <div class="stat-label">🌐 Источники (UNK)</div>
+                        <div class="stat-status" style="{unk_style}">{unk_status}</div>"""
+
+        if unk_references:
+            html += f"""
+                        <div class="reference-examples">
+                            <div class="reference-item">
+                                <strong>Первый:</strong> {unk_first_last['first']}
+                            </div>
+                            <div class="reference-item">
+                                <strong>Последний:</strong> {unk_first_last['last']}
+                            </div>
+                        </div>"""
+
         html += """
                     </div>
 """

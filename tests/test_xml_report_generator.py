@@ -55,6 +55,8 @@ def test_generate_xml_html_report_creates_html(tmp_path: Path):
       <references>
         <reference><refInfo lang="RUS"><text>Источник 1</text></refInfo></reference>
         <reference><refInfo lang="ENG"><text>Reference 1</text></refInfo></reference>
+        <reference><refInfo lang="ANY"><text>Any ref</text></refInfo></reference>
+        <reference><refInfo lang="UNK"><text>Universal ref</text></refInfo></reference>
       </references>
     </article>
   </articles>
@@ -72,6 +74,8 @@ def test_generate_xml_html_report_creates_html(tmp_path: Path):
     html = out_path.read_text(encoding="utf-8")
     assert "<!DOCTYPE html>" in html
     assert "Отчет по XML файлу" in html
+    assert "Источники (ANY)" in html
+    assert "Источники (UNK)" in html
 
 
 def test_generate_xml_html_report_missing_input_raises(tmp_path: Path):

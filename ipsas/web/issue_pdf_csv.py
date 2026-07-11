@@ -6,7 +6,6 @@ from datetime import datetime
 from pathlib import Path
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for, Response
-from flask_login import login_required
 from werkzeug.utils import secure_filename
 
 from ipsas.config.settings import get_settings
@@ -20,14 +19,12 @@ issue_pdf_csv_bp = Blueprint("issue_pdf_csv", __name__, template_folder="templat
 
 
 @issue_pdf_csv_bp.route("/issue-pdf-csv")
-@login_required
 def issue_pdf_csv_page():
     """Service page."""
     return render_template("issue_pdf_csv.html")
 
 
 @issue_pdf_csv_bp.route("/issue-pdf-csv/process", methods=["POST"])
-@login_required
 def process_issue_pdf_csv():
     """Build CSV for issue + ZIP with PDFs."""
     settings = get_settings()
@@ -97,7 +94,6 @@ def process_issue_pdf_csv():
 
 
 @issue_pdf_csv_bp.route("/issue-pdf-csv/manual-assign/<filename>", methods=["POST"])
-@login_required
 def manual_assign_issue_pdf_csv(filename: str):
     """Apply manual PDF assignment in CSV rows and download updated CSV."""
     settings = get_settings()
@@ -159,7 +155,6 @@ def manual_assign_issue_pdf_csv(filename: str):
 
 
 @issue_pdf_csv_bp.route("/issue-pdf-csv/download/<filename>")
-@login_required
 def download_issue_pdf_csv(filename: str):
     """Download generated CSV and remove it after download."""
     settings = get_settings()

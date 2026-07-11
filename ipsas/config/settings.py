@@ -35,10 +35,6 @@ class Settings:
             "SECRET_KEY",
             "dev-secret-key-change-in-production-please"
         )
-        self.database_uri: str = os.getenv(
-            "DATABASE_URI",
-            f"sqlite:///{self.base_dir / 'ipsas.db'}"
-        )
 
     def _create_directories(self) -> None:
         """Создание необходимых директорий, если они не существуют."""

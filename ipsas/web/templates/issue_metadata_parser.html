@@ -15,25 +15,51 @@
         </p>
     </div>
 
-    <form method="POST" action="{{ url_for('issue_metadata.process_issue_metadata') }}">
+    <form
+        method="POST"
+        action="{{ url_for('issue_metadata.process_issue_metadata') }}"
+        novalidate
+        onsubmit="
+          const form = this;
+          const buttons = form.querySelectorAll('button, input[type=submit]');
+          buttons.forEach(b => { try { b.disabled = true; } catch (e) {} });
+        "
+    >
         <div class="form-group">
             <label for="issue_url">Ссылка на выпуск *</label>
             <input
-                type="url"
+                type="text"
                 id="issue_url"
                 name="issue_url"
                 placeholder="https://journals.rcsi.science/2782-4004/issue/view/24558"
                 required
             >
             <small style="color: #666; display: block; margin-top: 0.5rem;">
-                Укажите страницу выпуска (issue/view/...) для анализа статей.
+                Укажите страницу выпуска (issue/view/...) для анализа статей. Лучше вставлять ссылку целиком, начиная с https://
             </small>
         </div>
 
         <div style="display: flex; gap: 1rem; margin-top: 2rem;">
             <button type="submit" class="btn btn-primary">Анализировать выпуск</button>
+            <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="
+                  const el = document.getElementById('issue_url');
+                  const v = (el && el.value ? el.value : '').trim();
+                  if (!v) { alert('Введите ссылку на выпуск'); if (el) el.focus(); return; }
+                  window.location.href = '{{ url_for('issue_metadata.process_issue_metadata') }}' + '?issue_url=' + encodeURIComponent(v);
+                "
+            >
+                Запустить через ссылку (GET)
+            </button>
             <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">Назад</a>
         </div>
     </form>
+
+    <div style="margin-top: 1.25rem; color:#666; font-size: 0.9rem;">
+        Если кнопка не запускает анализ (редко, из-за ограничений браузера), можно открыть обработку через GET:
+        <code>/services/issue-metadata-parser/process?issue_url=...</code>
+    </div>
 </div>
 {% endblock %}
