@@ -60,7 +60,7 @@ class HttpClient:
         return urllib.request.Request(url, headers=self.headers)
 
     @staticmethod
-    def _read_response_limited(
+    def read_response_limited(
         response: Any,
         *,
         limit_bytes: int = 0,
@@ -142,7 +142,7 @@ class HttpClient:
                         time.monotonic() - t0,
                         url,
                     )
-                    return self._read_response_limited(
+                    return HttpClient.read_response_limited(
                         response,
                         limit_bytes=int(self.max_bytes or 0),
                         read_timeout_s=float(effective_timeout),
@@ -209,7 +209,7 @@ class HttpClient:
             try:
                 with urllib.request.urlopen(req, timeout=effective_timeout) as response:
                     content_type = response.headers.get("Content-Type")
-                    body = self._read_response_limited(
+                    body = HttpClient.read_response_limited(
                         response,
                         limit_bytes=int(self.max_bytes or 0),
                         read_timeout_s=float(effective_timeout),

@@ -521,7 +521,7 @@ class IssueMetadataParser:
 
             logger.info("Locale switch finished in %.2fs, fetching page: %s", time.monotonic() - t0, url)
             with opener.open(url) as response:
-                data = HttpClient._read_response_limited(  # type: ignore[attr-defined]
+                data = self.http.read_response_limited(
                     response,
                     limit_bytes=int(self.http.max_bytes or 0),
                     read_timeout_s=float(locale_timeout_s),
