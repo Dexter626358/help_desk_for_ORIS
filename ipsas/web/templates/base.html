@@ -383,7 +383,7 @@
                             <a href="{{ url_for('xml_report.xml_report_page') }}"
                                class="{{ 'active' if xml_report_active else '' }}"
                                {{ 'aria-current="page"' if xml_report_active else '' }}>
-                                Отчёт по XML (HTML)
+                                Анализ XML журнала
                             </a>
                         </li>
                         {% set ref_active = request.endpoint in [

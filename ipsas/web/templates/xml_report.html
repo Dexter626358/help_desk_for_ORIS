@@ -1,19 +1,25 @@
 {% extends "base.html" %}
 
-{% block title %}Отчёт по XML (HTML) - IPSAS{% endblock %}
+{% block title %}Анализ XML журнала - IPSAS{% endblock %}
 
 {% block content %}
 <div class="card">
-    <h1 style="margin-bottom: 2rem; color: #667eea;">Отчёт по XML (HTML)</h1>
+    <h1 style="margin-bottom: 2rem; color: #667eea;">Анализ XML журнала</h1>
 
     <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem;">
         <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.2rem;">Описание сервиса</h2>
-        <p style="color: #666; line-height: 1.6;">
-            Сервис анализирует загруженный XML-файл и формирует HTML‑отчёт по содержимому (названия, аннотации,
-            ключевые слова, источники, авторы и др.). На выходе вы получаете HTML‑файл отчёта для скачивания.
+        <p style="color: #666; line-height: 1.6; margin-bottom: 0.75rem;">
+            Сервис принимает XML по схеме <strong>journal</strong> (elibrary / journals) и проверяет
+            заполненность полей выпуска и статей, а также наличие англоязычных метаданных.
         </p>
-        <small style="color: #666; display: block; margin-top: 0.5rem;">
-            Отчёт будет автоматически удалён с сервера после скачивания.
+        <ul style="color: #666; line-height: 1.7; margin: 0 0 0.75rem 1.25rem;">
+            <li>названия, аннотации и ключевые слова (RUS / ENG);</li>
+            <li>ФИО авторов и аффилиации на русском и английском;</li>
+            <li>количество источников с тегами <code>RUS</code>, <code>ENG</code>, <code>UNK</code> (и <code>ANY</code>); ошибка — только если источников нет совсем;</li>
+            <li>сводка проблем по выпуску и детальный отчёт по каждой статье.</li>
+        </ul>
+        <small style="color: #666; display: block;">
+            Результат показывается на экране; дополнительно можно скачать полный HTML‑отчёт.
         </small>
     </div>
 
@@ -29,16 +35,13 @@
                 style="padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px; width: 100%;"
             >
             <small style="color: #666; display: block; margin-top: 0.5rem;">
-                Поддерживаются только файлы с расширением .xml
-            </small>
-            <small style="color: #666; display: block; margin-top: 0.25rem;">
-                Максимальный размер файла: {{ (config.get('MAX_FILE_SIZE', 10485760) / (1024 * 1024)) | round(1) }} MB
+                Поддерживаются только файлы с расширением .xml (корневой элемент <code>journal</code>).
             </small>
         </div>
 
         <div style="display: flex; gap: 1rem; margin-top: 2rem;">
             <button type="submit" class="btn btn-primary">
-                Сформировать отчёт
+                Проанализировать
             </button>
             <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">
                 Назад
@@ -47,4 +50,3 @@
     </form>
 </div>
 {% endblock %}
-

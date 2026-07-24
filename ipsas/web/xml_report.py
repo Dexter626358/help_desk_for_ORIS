@@ -1,4 +1,4 @@
-"""Роуты для анализа XML и генерации HTML-отчёта."""
+"""Роуты для анализа XML журнала и генерации отчёта."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from flask import Blueprint, Response, flash, redirect, render_template, request
 from werkzeug.utils import secure_filename
 
 from ipsas.config.settings import get_settings
+from ipsas.modules.journal_xml_analyzer import analyze_journal_xml
 from ipsas.modules.xml_report_generator import generate_xml_html_report
 from ipsas.utils.logger import get_logger
 
@@ -20,13 +21,13 @@ xml_report_bp = Blueprint("xml_report", __name__, template_folder="templates")
 
 @xml_report_bp.route("/xml-report")
 def xml_report_page():
-    """Страница генерации HTML-отчёта по XML."""
+    """Страница загрузки XML журнала для анализа метаданных."""
     return render_template("xml_report.html")
 
 
 @xml_report_bp.route("/xml-report/generate", methods=["POST"])
 def generate_report():
-    """Принять XML, сгенерировать HTML-отчёт и показать страницу результата."""
+    """Принять XML, проанализировать и показать отчёт в интерфейсе."""
     settings = get_settings()
 
     if "xml_file" not in request.files:
@@ -55,7 +56,6 @@ def generate_report():
     try:
         file.save(str(xml_temp_path))
 
-        # Контроль размера после сохранения (надёжнее, чем request.content_length для multipart).
         try:
             size = xml_temp_path.stat().st_size
         except OSError:
@@ -70,9 +70,9 @@ def generate_report():
             flash(f"Файл слишком большой. Максимальный размер: {max_mb:.1f} MB", "error")
             return redirect(url_for("xml_report.xml_report_page"))
 
+        analysis = analyze_journal_xml(xml_temp_path)
         generate_xml_html_report(xml_temp_path, report_temp_path)
 
-        # Исходный XML больше не нужен.
         try:
             if xml_temp_path.exists():
                 xml_temp_path.unlink()
@@ -80,16 +80,26 @@ def generate_report():
             logger.warning("Не удалось удалить временный XML %s: %s", xml_temp_path.name, e)
 
         return render_template(
-            "xml_report_result.html",
+            "xml_report_view.html",
             filename=original_filename,
             report_filename=report_temp_path.name,
+            report=analysis,
         )
 
+    except ValueError as e:
+        flash(str(e), "error")
+        for p in (xml_temp_path, report_temp_path):
+            try:
+                if p.exists():
+                    p.unlink()
+            except Exception:
+                pass
+        return redirect(url_for("xml_report.xml_report_page"))
+
     except Exception as e:
-        logger.error("Ошибка при генерации HTML-отчёта: %s", e)
+        logger.error("Ошибка при анализе XML: %s", e)
         flash(f"Ошибка при обработке файла: {str(e)}", "error")
 
-        # Чистим временные файлы в случае ошибки.
         for p in (xml_temp_path, report_temp_path):
             try:
                 if p.exists():
@@ -110,11 +120,9 @@ def download_report(filename: str):
         flash("Файл отчёта не найден", "error")
         return redirect(url_for("xml_report.xml_report_page"))
 
-    # Попытаемся вернуть пользователю «красивое» имя.
     download_name = filename
     parts = filename.split("_", 2)
     if len(parts) >= 3:
-        # parts[2] содержит <original_stem>_report.html
         download_name = parts[2]
         if not download_name.lower().endswith(".html"):
             download_name = f"{download_name}.html"
@@ -136,4 +144,3 @@ def download_report(filename: str):
         mimetype="text/html",
         headers={"Content-Disposition": f'attachment; filename="{download_name}"'},
     )
-

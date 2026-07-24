@@ -69,19 +69,9 @@ def collect_article_issues(article: Dict[str, Any]) -> List[tuple[str, str]]:
 
     if not rus_full_s:
         issues.append(("critical", "аннотация RUS: отсутствует"))
-    else:
-        rus_len_check = annotation_length_check(rus_full_s)
-        if rus_len_check:
-            severity = "critical" if "❌" in rus_len_check else "secondary"
-            issues.append(("secondary" if severity == "secondary" else "critical", f"аннотация RUS: {rus_len_check.replace('❌ ', '').replace('⚠️ ', '')}"))
 
     if not eng_full_s:
         issues.append(("critical", "аннотация ENG: отсутствует"))
-    else:
-        eng_len_check = annotation_length_check(eng_full_s)
-        if eng_len_check:
-            severity = "critical" if "❌" in eng_len_check else "secondary"
-            issues.append(("secondary" if severity == "secondary" else "critical", f"аннотация ENG: {eng_len_check.replace('❌ ', '').replace('⚠️ ', '')}"))
 
     keywords_data = article.get("keywords", {}) or {}
     kw_status = validate_keywords_data(keywords_data)
@@ -93,13 +83,12 @@ def collect_article_issues(article: Dict[str, Any]) -> List[tuple[str, str]]:
         issues.append(("secondary", kw_status["comparison"].replace("⚠️ ", "")))
 
     references_data = article.get("references", {}) or {}
-    ref_status = validate_references_data(references_data)
-    if "❌" in ref_status.get("RUS", ""):
-        issues.append(("critical", "нет источников (RUS)"))
-    if "❌" in ref_status.get("ENG", ""):
-        issues.append(("critical", "нет источников (ENG)"))
-    if "⚠️" in ref_status.get("comparison", ""):
-        issues.append(("secondary", ref_status["comparison"].replace("⚠️ ", "")))
+    total_refs = sum(
+        len(references_data.get(lang) or [])
+        for lang in ("RUS", "ENG", "UNK", "ANY")
+    )
+    if total_refs == 0:
+        issues.append(("critical", "нет источников"))
 
     # Сигнализируем, если хотя бы один автор без данных на каком-то языке
     authors = article.get("authors", []) or []
@@ -218,28 +207,6 @@ def split_organizations(org_text: str) -> List[str]:
     return orgs
 
 
-def annotation_length_check(text: str) -> str:
-    """
-    Проверяет длину аннотации и возвращает соответствующую пометку
-    
-    Args:
-        text: Текст аннотации
-        
-    Returns:
-        str: Пометка о длине аннотации или пустая строка
-    """
-    if not text or not text.strip():
-        return "❌ Отсутствует"
-    
-    n_words = len(text.split())
-    if n_words < 70:
-        return f"❌ Слишком короткая аннотация ({n_words} слов)"
-    elif n_words > 250:
-        return f"⚠️ Аннотация слишком длинная ({n_words} слов)"
-    else:
-        return ""  # Нормальная длина
-
-
 def validate_keywords_data(keywords_data: Dict[str, Any]) -> Dict[str, str]:
     """
     Валидирует данные ключевых слов и возвращает статус валидации
@@ -285,65 +252,53 @@ def validate_keywords_data(keywords_data: Dict[str, Any]) -> Dict[str, str]:
 
 def validate_references_data(references_data: Dict[str, Any]) -> Dict[str, str]:
     """
-    Валидирует данные источников и возвращает статус валидации
-    
-    Args:
-        references_data: Словарь с источниками по языкам
-        
-    Returns:
-        Dict[str, str]: Статус валидации для каждого языка
+    Валидирует источники литературы.
+
+    RUS / ENG / UNK / ANY — допустимые языковые метки.
+    Критично только полное отсутствие источников.
     """
     validation_status: Dict[str, str] = {}
-    
+
     rus_references = references_data.get("RUS", []) or []
     eng_references = references_data.get("ENG", []) or []
     unk_references = references_data.get("UNK", []) or []
     any_references = references_data.get("ANY", []) or []
-    
-    # Проверяем русские источники
-    if not rus_references:
-        validation_status['RUS'] = "❌ Отсутствуют"
-    else:
-        validation_status['RUS'] = f"✅ {len(rus_references)} источников"
-    
-    # Проверяем английские источники
-    if not eng_references:
-        validation_status['ENG'] = "❌ Отсутствуют"
-    else:
-        validation_status['ENG'] = f"✅ {len(eng_references)} источников"
+    total = (
+        len(rus_references)
+        + len(eng_references)
+        + len(unk_references)
+        + len(any_references)
+    )
 
-    # Проверяем источники с универсальным языком ANY
-    if not any_references:
-        validation_status["ANY"] = "—"
-    else:
-        validation_status["ANY"] = f"⚠️ {len(any_references)} источников (универсальный язык: ANY)"
+    validation_status["RUS"] = (
+        f"✅ {len(rus_references)} источников" if rus_references else "—"
+    )
+    validation_status["ENG"] = (
+        f"✅ {len(eng_references)} источников" if eng_references else "—"
+    )
+    validation_status["ANY"] = (
+        f"✅ {len(any_references)} источников" if any_references else "—"
+    )
+    validation_status["UNK"] = (
+        f"✅ {len(unk_references)} источников" if unk_references else "—"
+    )
+    validation_status["total"] = str(total)
 
-    # Проверяем источники с универсальным / неизвестным языком
-    if not unk_references:
-        validation_status["UNK"] = "—"
+    if total == 0:
+        validation_status["comparison"] = "❌ Источники отсутствуют"
     else:
-        validation_status["UNK"] = f"⚠️ {len(unk_references)} источников (язык не указан: UNK)"
-    
-    # Сравниваем количество
-    if rus_references and eng_references and not unk_references and not any_references:
-        rus_count = len(rus_references)
-        eng_count = len(eng_references)
-        if rus_count != eng_count:
-            validation_status['comparison'] = f"⚠️ Разное количество: RUS={rus_count}, ENG={eng_count}"
-        else:
-            validation_status['comparison'] = f"✅ Одинаковое количество: {rus_count} источников"
-    elif (unk_references or any_references) and not rus_references and not eng_references:
-        present = ", ".join([k for k, v in (("ANY", any_references), ("UNK", unk_references)) if v])
-        validation_status["comparison"] = f"⚠️ Источники только с универсальным/неизвестным языком ({present})"
-    elif (unk_references or any_references) and (rus_references or eng_references):
-        present = ", ".join([k for k, v in (("RUS", rus_references), ("ENG", eng_references)) if v])
-        extra = ", ".join([k for k, v in (("ANY", any_references), ("UNK", unk_references)) if v])
-        validation_status["comparison"] = f"⚠️ Есть источники с {extra} вместе с {present}"
-    elif rus_references or eng_references:
-        validation_status['comparison'] = "⚠️ Источники только на одном языке"
-    else:
-        validation_status['comparison'] = "❌ Источники отсутствуют на обоих языках"
-    
+        parts = [
+            f"{label}={count}"
+            for label, count in (
+                ("RUS", len(rus_references)),
+                ("ENG", len(eng_references)),
+                ("UNK", len(unk_references)),
+                ("ANY", len(any_references)),
+            )
+            if count
+        ]
+        validation_status["comparison"] = f"✅ Источники есть ({', '.join(parts)})"
+
     return validation_status
 
 
@@ -1848,9 +1803,9 @@ def generate_html_content(issue_info: Dict[str, Any],
         rus_abs_full = _safe_strip(rus_abs_full)
         eng_abs_full = _safe_strip(eng_abs_full)
 
-        # Длина аннотации: '' / '❌ ...' / '⚠️ ...'
-        rus_abs_len_status = annotation_length_check(rus_abs_full) if rus_abs_full else "❌ Отсутствует"
-        eng_abs_len_status = annotation_length_check(eng_abs_full) if eng_abs_full else "❌ Отсутствует"
+        # Аннотации: только наличие (длину не проверяем)
+        rus_abs_status = "" if rus_abs_full else "❌ Отсутствует"
+        eng_abs_status = "" if eng_abs_full else "❌ Отсутствует"
 
         keywords_data = article.get("keywords", {}) or {}
         kw_status = validate_keywords_data(keywords_data)
@@ -1876,10 +1831,6 @@ def generate_html_content(issue_info: Dict[str, Any],
             title_status = "❌ Отсутствует"
             title_label = "Название"
 
-        # Аннотации: отдельно по языкам
-        rus_abs_status = "" if rus_abs_len_status == "" else rus_abs_len_status
-        eng_abs_status = "" if eng_abs_len_status == "" else eng_abs_len_status
-
         # Ключевые слова: error если нет на любом языке, warning если только на одном языке или разное количество
         kw_overall_status = ""
         if "❌" in kw_status.get("RUS", "") or "❌" in kw_status.get("ENG", ""):
@@ -1887,12 +1838,9 @@ def generate_html_content(issue_info: Dict[str, Any],
         elif "⚠️" in kw_status.get("comparison", ""):
             kw_overall_status = "⚠️"
 
-        # Источники: error если нет на любом языке, warning если только на одном языке или разное количество
-        ref_overall_status = ""
-        if "❌" in ref_status.get("RUS", "") or "❌" in ref_status.get("ENG", ""):
-            ref_overall_status = "❌"
-        elif "⚠️" in ref_status.get("comparison", ""):
-            ref_overall_status = "⚠️"
+        # Источники: критично только полное отсутствие (RUS/ENG/UNK/ANY — норма)
+        ref_total = int(ref_status.get("total") or "0")
+        ref_overall_status = "❌" if ref_total == 0 else ""
 
         html += """
                 <div class="article-checklist">
@@ -1901,15 +1849,7 @@ def generate_html_content(issue_info: Dict[str, Any],
         html += _as_check_item("Аннотация (RUS)", rus_abs_status)
         html += _as_check_item("Аннотация (ENG)", eng_abs_status)
         html += _as_check_item("Ключевые слова", kw_overall_status)
-        # Источники: показываем более точно, если отсутствует один язык
-        if "❌" in ref_status.get("RUS", "") and "❌" in ref_status.get("ENG", ""):
-            html += _as_check_item("Источники", "❌")
-        elif "❌" in ref_status.get("RUS", ""):
-            html += _as_check_item("Источники (RUS)", "❌")
-        elif "❌" in ref_status.get("ENG", ""):
-            html += _as_check_item("Источники (ENG)", "❌")
-        else:
-            html += _as_check_item("Источники", ref_overall_status)
+        html += _as_check_item("Источники", ref_overall_status)
 
         html += """
                 </div>
@@ -2012,23 +1952,13 @@ def generate_html_content(issue_info: Dict[str, Any],
             rus_full_text = rus_abstract_data
             rus_summary = rus_abstract_data
         
-        rus_length_check = annotation_length_check(rus_full_text)
-        
         html += f"""
                     <div class="title-lang">🇷🇺 RUS</div>"""
         
         if rus_full_text:
-            # Показываем выжимку аннотации
             html += f"""
                     <div class="abstract-text">{rus_summary}</div>"""
-            
-            # Если есть проблемы с длиной, показываем пометку
-            if rus_length_check:
-                style = "color: #dc3545; font-style: italic;" if "❌" in rus_length_check else "color: #fd7e14; font-style: italic;"
-                html += f"""
-                    <div class="abstract-text" style="{style}">{rus_length_check}</div>"""
         else:
-            # Аннотация отсутствует
             html += f"""
                     <div class="abstract-text" style="color: #dc3545; font-style: italic;">❌ Отсутствует</div>"""
         
@@ -2042,23 +1972,13 @@ def generate_html_content(issue_info: Dict[str, Any],
             eng_full_text = eng_abstract_data
             eng_summary = eng_abstract_data
         
-        eng_length_check = annotation_length_check(eng_full_text)
-        
         html += f"""
                     <div class="title-lang">🇬🇧 ENG</div>"""
         
         if eng_full_text:
-            # Показываем выжимку аннотации
             html += f"""
                     <div class="abstract-text">{eng_summary}</div>"""
-            
-            # Если есть проблемы с длиной, показываем пометку
-            if eng_length_check:
-                style = "color: #dc3545; font-style: italic;" if "❌" in eng_length_check else "color: #fd7e14; font-style: italic;"
-                html += f"""
-                    <div class="abstract-text" style="{style}">{eng_length_check}</div>"""
         else:
-            # Аннотация отсутствует
             html += f"""
                     <div class="abstract-text" style="color: #dc3545; font-style: italic;">❌ Отсутствует</div>"""
         
@@ -2110,17 +2030,17 @@ def generate_html_content(issue_info: Dict[str, Any],
         eng_references = references_data.get('ENG', [])
         any_references = references_data.get("ANY", [])
         unk_references = references_data.get("UNK", [])
-        rus_status = references_validation.get('RUS', '❌ Отсутствуют')
-        eng_status = references_validation.get('ENG', '❌ Отсутствуют')
+        rus_status = references_validation.get('RUS', '—')
+        eng_status = references_validation.get('ENG', '—')
         any_status = references_validation.get("ANY", "—")
         unk_status = references_validation.get("UNK", "—")
         comparison_status = references_validation.get('comparison', '')
         
-        rus_style = "color: #dc3545;" if "❌" in rus_status else "color: #28a745;"
-        eng_style = "color: #dc3545;" if "❌" in eng_status else "color: #28a745;"
-        any_style = "color: #6c757d;" if any_status == "—" else "color: #fd7e14;"
-        unk_style = "color: #6c757d;" if unk_status == "—" else "color: #fd7e14;"
-        comparison_style = "color: #dc3545;" if "❌" in comparison_status else "color: #fd7e14;" if "⚠️" in comparison_status else "color: #28a745;"
+        rus_style = "color: #6c757d;" if rus_status == "—" else "color: #28a745;"
+        eng_style = "color: #6c757d;" if eng_status == "—" else "color: #28a745;"
+        any_style = "color: #6c757d;" if any_status == "—" else "color: #28a745;"
+        unk_style = "color: #6c757d;" if unk_status == "—" else "color: #28a745;"
+        comparison_style = "color: #dc3545;" if "❌" in comparison_status else "color: #28a745;"
         
         # Получаем первый и последний источник (полностью, без сокращений)
         rus_first_last = get_first_last_references(rus_references, max_length=None)
