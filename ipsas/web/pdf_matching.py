@@ -67,12 +67,26 @@ def process_pdf_matching():
         except Exception as e:
             logger.warning(f"Не удалось удалить исходный ZIP файл: {e}")
         
-        # Отображение результатов
+        from ipsas.utils.operation_history import record_operation
+
+        if result.get("success"):
+            record_operation(
+                tool="pdf",
+                title="Сопоставление PDF",
+                status="ok",
+                detail=(
+                    f"{original_filename}: "
+                    f"{result.get('matched_articles', 0)}/"
+                    f"{result.get('total_articles', 0)}"
+                ),
+                url=url_for("pdf_matching.pdf_matching_page"),
+            )
+
         return render_template(
             "pdf_matching_result.html",
             result=result,
             original_filename=original_filename,
-            output_xml_filename=result['output_xml'].name
+            output_xml_filename=result["output_xml"].name,
         )
         
     except ValueError as e:
@@ -224,17 +238,15 @@ def download_processed_xml(filename):
         flash("Файл не найден", "error")
         return redirect(url_for("pdf_matching.pdf_matching_page"))
     
-    # Определяем оригинальное имя для скачивания
-    if "_processed.xml" in filename:
-        original_name = filename.replace("_processed.xml", ".xml")
-    else:
-        # Убираем timestamp и UUID из начала имени
-        parts = filename.split("_", 2)
-        if len(parts) >= 3:
-            original_name = parts[2]
-        else:
-            original_name = filename
-    
+    from ipsas.utils.download_names import (
+        attachment_filename_from_xml,
+        content_disposition_attachment,
+    )
+
+    download_name = attachment_filename_from_xml(
+        file_path, extension=".xml", fallback="processed"
+    )
+
     # Отправляем файл и удаляем его после скачивания
     try:
         def generate():
@@ -261,7 +273,7 @@ def download_processed_xml(filename):
             generate(),
             mimetype='application/xml',
             headers={
-                'Content-Disposition': f'attachment; filename="{original_name}"'
+                'Content-Disposition': content_disposition_attachment(download_name)
             }
         )
     except Exception as e:

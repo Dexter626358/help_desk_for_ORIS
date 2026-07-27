@@ -4,40 +4,11 @@
 Flask>=3.0.0
 Werkzeug>=3.0.0
 
-# Логирование (встроено в Python, но можно добавить colorlog для улучшения)
-# colorlog>=6.7.0
-
-# Обработка данных
-# pandas>=2.0.0  # Для работы с табличными данными
-# openpyxl>=3.1.0  # Для работы с Excel файлами
-
-# Валидация
-# pydantic>=2.0.0  # Для валидации данных по схемам
-# jsonschema>=4.17.0  # Для валидации JSON схем
-lxml>=5.0.0  # Для валидации XML по XSD схемам
-
-# XML сервис очистки reference (FastAPI)
-fastapi>=0.110.0
-uvicorn>=0.27.0
-python-multipart>=0.0.9
+# Валидация XML по XSD
+lxml>=5.0.0
 
 # Обработка PDF
-PyPDF2>=3.0.0  # Для извлечения метаданных из PDF файлов
-
-# Утилиты
-python-dotenv>=1.0.0  # Для работы с .env файлами
+PyPDF2>=3.0.0
 
 # Production сервер
-gunicorn>=21.2.0  # WSGI HTTP сервер для production
-
-# Тестирование (dev зависимости)
-# pytest>=7.4.0
-# pytest-cov>=4.1.0
-# pytest-mock>=3.11.0
-
-# Линтинг и форматирование (dev зависимости)
-# black>=23.7.0
-# flake8>=6.1.0
-# mypy>=1.5.0
-# pylint>=2.17.0
-
+gunicorn>=21.2.0

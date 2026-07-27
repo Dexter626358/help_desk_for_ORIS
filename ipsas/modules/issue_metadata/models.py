@@ -28,6 +28,7 @@ class ArticleIdentifiers:
     edn: Optional[str] = None
     pdf_url: Optional[str] = None
     internal_id: Optional[str] = None
+    invalid_edn: Optional[str] = None
 
     @classmethod
     def from_mapping(cls, data: Any) -> "ArticleIdentifiers":
@@ -38,6 +39,7 @@ class ArticleIdentifiers:
             edn=(data.get("edn") or None),
             pdf_url=(data.get("pdf_url") or None),
             internal_id=(data.get("internal_id") or None),
+            invalid_edn=(data.get("invalid_edn") or None),
         )
 
     def to_dict(self) -> dict[str, Optional[str]]:
@@ -46,6 +48,7 @@ class ArticleIdentifiers:
             "edn": self.edn,
             "pdf_url": self.pdf_url,
             "internal_id": self.internal_id,
+            "invalid_edn": self.invalid_edn,
         }
 
 
@@ -84,6 +87,9 @@ class Article:
     authors_ru: list[str] = field(default_factory=list)
     authors_en: list[str] = field(default_factory=list)
     authors: list[str] = field(default_factory=list)
+    orcids: list[str] = field(default_factory=list)
+    emails: list[str] = field(default_factory=list)
+    has_corresponding_author: Optional[bool] = None
     affiliations: list[str] = field(default_factory=list)
     organizations: list[str] = field(default_factory=list)
     organizations_count: int = 0
@@ -104,6 +110,11 @@ class Article:
     references_ru_count: int = 0
     references_en_count: int = 0
     references_unk_count: int = 0
+    references: list[str] = field(default_factory=list)
+    references_mode: Optional[str] = "single_list"
+    references_analysis: dict[str, object] = field(default_factory=dict)
+    references_parallel_ru_count: Optional[int] = None
+    references_parallel_en_count: Optional[int] = None
     reference_first: Optional[str] = None
     reference_last: Optional[str] = None
     reference_ru_first: Optional[str] = None
@@ -115,8 +126,18 @@ class Article:
 
     pdf_files: list[dict[str, object]] = field(default_factory=list)
 
+    page_start: Optional[int] = None
+    page_end: Optional[int] = None
+    pages: Optional[str] = None
+    pages_sources: dict[str, object] = field(default_factory=dict)
+    pages_source: Optional[str] = None
+    pages_from_doi_unconfirmed: bool = False
+    pages_elocation: Optional[str] = None
+    doi_check: dict[str, object] = field(default_factory=dict)
+
     problems: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
+    issues: list[dict[str, object]] = field(default_factory=list)
 
     @classmethod
     def from_mapping(cls, data: Any) -> "Article":
@@ -136,6 +157,24 @@ class Article:
                 if isinstance(item, dict):
                     pdf_files.append(dict(item))
 
+        issues_raw = data.get("issues") or []
+        issues: list[dict[str, object]] = []
+        if isinstance(issues_raw, list):
+            for item in issues_raw:
+                if isinstance(item, dict):
+                    issues.append(dict(item))
+
+        page_start = data.get("page_start")
+        page_end = data.get("page_end")
+        try:
+            page_start_i = int(page_start) if page_start is not None else None
+        except (TypeError, ValueError):
+            page_start_i = None
+        try:
+            page_end_i = int(page_end) if page_end is not None else None
+        except (TypeError, ValueError):
+            page_end_i = None
+
         return cls(
             url=url,
             title_ru=(data.get("title_ru") or None),
@@ -148,6 +187,13 @@ class Article:
             authors_ru=list(data.get("authors_ru") or []),
             authors_en=list(data.get("authors_en") or []),
             authors=list(data.get("authors") or []),
+            orcids=list(data.get("orcids") or []),
+            emails=list(data.get("emails") or []),
+            has_corresponding_author=(
+                data.get("has_corresponding_author")
+                if data.get("has_corresponding_author") is None
+                else bool(data.get("has_corresponding_author"))
+            ),
             affiliations=list(affiliations),
             organizations=list(data.get("organizations") or []),
             organizations_count=int(data.get("organizations_count") or 0),
@@ -164,6 +210,21 @@ class Article:
             references_ru_count=int(data.get("references_ru_count") or 0),
             references_en_count=int(data.get("references_en_count") or 0),
             references_unk_count=int(data.get("references_unk_count") or 0),
+            references=list(data.get("references") or []),
+            references_mode=(data.get("references_mode") or "single_list"),
+            references_analysis=dict(data.get("references_analysis") or {})
+            if isinstance(data.get("references_analysis"), dict)
+            else {},
+            references_parallel_ru_count=(
+                int(data["references_parallel_ru_count"])
+                if data.get("references_parallel_ru_count") is not None
+                else None
+            ),
+            references_parallel_en_count=(
+                int(data["references_parallel_en_count"])
+                if data.get("references_parallel_en_count") is not None
+                else None
+            ),
             reference_first=(data.get("reference_first") or None),
             reference_last=(data.get("reference_last") or None),
             reference_ru_first=(data.get("reference_ru_first") or None),
@@ -173,8 +234,17 @@ class Article:
             reference_unk_first=(data.get("reference_unk_first") or None),
             reference_unk_last=(data.get("reference_unk_last") or None),
             pdf_files=pdf_files,
+            page_start=page_start_i,
+            page_end=page_end_i,
+            pages=(data.get("pages") or None),
+            pages_sources=dict(data.get("pages_sources") or {}) if isinstance(data.get("pages_sources"), dict) else {},
+            pages_source=(data.get("pages_source") or None),
+            pages_from_doi_unconfirmed=bool(data.get("pages_from_doi_unconfirmed")),
+            pages_elocation=(data.get("pages_elocation") or None),
+            doi_check=dict(data.get("doi_check") or {}) if isinstance(data.get("doi_check"), dict) else {},
             problems=list(data.get("problems") or []),
             errors=list(data.get("errors") or []),
+            issues=issues,
         )
 
     def to_dict(self) -> dict[str, object]:
@@ -190,6 +260,9 @@ class Article:
             "authors_ru": self.authors_ru,
             "authors_en": self.authors_en,
             "authors": self.authors,
+            "orcids": self.orcids,
+            "emails": self.emails,
+            "has_corresponding_author": self.has_corresponding_author,
             "affiliations": self.affiliations,
             "organizations": self.organizations,
             "organizations_count": self.organizations_count,
@@ -206,6 +279,11 @@ class Article:
             "references_ru_count": self.references_ru_count,
             "references_en_count": self.references_en_count,
             "references_unk_count": self.references_unk_count,
+            "references": self.references,
+            "references_mode": self.references_mode,
+            "references_analysis": self.references_analysis,
+            "references_parallel_ru_count": self.references_parallel_ru_count,
+            "references_parallel_en_count": self.references_parallel_en_count,
             "reference_first": self.reference_first,
             "reference_last": self.reference_last,
             "reference_ru_first": self.reference_ru_first,
@@ -215,8 +293,17 @@ class Article:
             "reference_unk_first": self.reference_unk_first,
             "reference_unk_last": self.reference_unk_last,
             "pdf_files": self.pdf_files,
+            "page_start": self.page_start,
+            "page_end": self.page_end,
+            "pages": self.pages,
+            "pages_sources": self.pages_sources,
+            "pages_source": self.pages_source,
+            "pages_from_doi_unconfirmed": self.pages_from_doi_unconfirmed,
+            "pages_elocation": self.pages_elocation,
+            "doi_check": self.doi_check,
             "problems": self.problems,
             "errors": self.errors,
+            "issues": self.issues,
         }
 
 
@@ -232,6 +319,10 @@ class Issue:
     volume: Optional[object] = None
     issue: Optional[object] = None
     issue_serial: Optional[object] = None
+    uses_volume: Optional[bool] = None
+    expects_issue_serial: bool = False
+    issue_language: Optional[str] = None
+    publication_date: Optional[str] = None
     article_count: Optional[int] = None
     article_urls: list[str] = field(default_factory=list)
     cover_url: Optional[str] = None
@@ -264,6 +355,17 @@ class Issue:
                 if isinstance(g, dict):
                     issue_galleys.append(dict(g))
 
+        uses_volume_raw = data.get("uses_volume")
+        uses_volume: Optional[bool]
+        if uses_volume_raw is True or uses_volume_raw is False:
+            uses_volume = uses_volume_raw
+        elif uses_volume_raw in ("1", 1, "true", "True"):
+            uses_volume = True
+        elif uses_volume_raw in ("0", 0, "false", "False"):
+            uses_volume = False
+        else:
+            uses_volume = None
+
         return cls(
             issue_url=(data.get("issue_url") or None),
             journal_title_ru=(data.get("journal_title_ru") or None),
@@ -275,6 +377,10 @@ class Issue:
             volume=data.get("volume"),
             issue=data.get("issue"),
             issue_serial=data.get("issue_serial"),
+            uses_volume=uses_volume,
+            expects_issue_serial=bool(data.get("expects_issue_serial")),
+            issue_language=(data.get("issue_language") or None),
+            publication_date=(data.get("publication_date") or None),
             article_count=(int(data.get("article_count")) if data.get("article_count") is not None else None),
             article_urls=list(data.get("article_urls") or []),
             cover_url=(data.get("cover_url") or None),
@@ -295,6 +401,10 @@ class Issue:
             "volume": self.volume,
             "issue": self.issue,
             "issue_serial": self.issue_serial,
+            "uses_volume": self.uses_volume,
+            "expects_issue_serial": self.expects_issue_serial,
+            "issue_language": self.issue_language,
+            "publication_date": self.publication_date,
             "article_count": self.article_count,
             "article_urls": self.article_urls,
             "cover_url": self.cover_url,

@@ -56,9 +56,15 @@ def _collect_reference_text(reference_elem: etree._Element) -> str:
     return " ".join(parts).strip()
 
 
-def _cleanup_reference(reference_elem: etree._Element, stats: ReferenceCleaningStats) -> None:
+def _cleanup_reference(
+    reference_elem: etree._Element,
+    stats: ReferenceCleaningStats,
+    samples: list[dict[str, str]] | None = None,
+    max_samples: int = 12,
+) -> None:
     # 1) собрать текст до удаления узлов
     raw_text = _collect_reference_text(reference_elem)
+    before_snapshot = etree.tostring(reference_elem, encoding="unicode")
     before_text = reference_elem.text
 
     # 2) удалить reference.text и все дочерние элементы кроме <refinfo>
@@ -76,7 +82,8 @@ def _cleanup_reference(reference_elem: etree._Element, stats: ReferenceCleaningS
         stats.removed_children += removed_now
 
     # 3) если <refinfo> отсутствует — создать
-    if refinfo is None:
+    created_refinfo = refinfo is None
+    if created_refinfo:
         stats.created_refinfo += 1
     refinfo = _ensure_refinfo(reference_elem)
 
@@ -96,22 +103,31 @@ def _cleanup_reference(reference_elem: etree._Element, stats: ReferenceCleaningS
         (before_text or "").strip() != ""
         or removed_now > 0
         or cleaned != before_refinfo_text
-        or refinfo is None
+        or created_refinfo
     )
     if changed:
         stats.changed_references += 1
+        if samples is not None and len(samples) < max_samples:
+            after_snapshot = etree.tostring(reference_elem, encoding="unicode")
+            samples.append(
+                {
+                    "before": before_snapshot.strip()[:700],
+                    "after": after_snapshot.strip()[:700],
+                }
+            )
 
 
 def clean_references_with_stats(
     xml_tree: etree._ElementTree,
-) -> tuple[etree._ElementTree, ReferenceCleaningStats]:
+) -> tuple[etree._ElementTree, ReferenceCleaningStats, list[dict[str, str]]]:
     stats = ReferenceCleaningStats()
+    samples: list[dict[str, str]] = []
     root = xml_tree.getroot()
     refs = root.findall(".//references/reference")
     stats.total_references = len(refs)
     for ref in refs:
-        _cleanup_reference(ref, stats)
-    return xml_tree, stats
+        _cleanup_reference(ref, stats, samples=samples)
+    return xml_tree, stats, samples
 
 
 def clean_references(xml_tree: etree._ElementTree) -> etree._ElementTree:
@@ -122,6 +138,6 @@ def clean_references(xml_tree: etree._ElementTree) -> etree._ElementTree:
     - удалить нумерацию в начале текста
     Возвращает то же дерево (мутирует in-place).
     """
-    xml_tree, _ = clean_references_with_stats(xml_tree)
+    xml_tree, _, _ = clean_references_with_stats(xml_tree)
     return xml_tree
 

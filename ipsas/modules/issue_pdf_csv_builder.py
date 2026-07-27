@@ -70,6 +70,7 @@ class IssuePdfCsvBuilder:
                 # authors are kept only for UI verification, not for export
                 writer.writerow([row[0], row[2], row[3]])
 
+        issue_meta = parsed.get("issue") if isinstance(parsed.get("issue"), dict) else {}
         return {
             "success": True,
             "total_articles_with_doi": len(articles),
@@ -82,6 +83,7 @@ class IssuePdfCsvBuilder:
             "unmatched_dois": unmatched_articles,
             "unused_pdf_filenames": sorted(unused_pdfs),
             "output_csv": output_csv_path,
+            "issue": issue_meta,
         }
 
     def _collect_issue_articles(self, parsed: Dict[str, object]) -> List[IssueArticle]:

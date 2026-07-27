@@ -1,0 +1,166 @@
+{# Общие UI-макросы IPSAS #}
+
+{% macro alert(level, title, text=None) -%}
+  {% set icon = {
+    'success': '✓',
+    'info': 'ℹ',
+    'warning': '!',
+    'error': '✕',
+    'danger': '✕'
+  }.get(level, 'ℹ') %}
+  <div class="alert alert-{{ level }}" role="alert">
+    <div class="alert-ico" aria-hidden="true">{{ icon }}</div>
+    <div class="alert-body">
+      {% if title %}<p class="alert-title">{{ title }}</p>{% endif %}
+      {% if text %}<p class="alert-text">{{ text }}</p>{% endif %}
+      {% if caller is defined %}{{ caller() }}{% endif %}
+    </div>
+  </div>
+{%- endmacro %}
+
+{% macro flashes() -%}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div aria-live="polite">
+        {% for category, message in messages %}
+          {% set level = 'error' if category in ['error', 'danger'] else category %}
+          {% if level not in ['success', 'info', 'warning', 'error'] %}
+            {% set level = 'info' %}
+          {% endif %}
+          {{ alert(level, None, message) }}
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+{%- endmacro %}
+
+{% macro breadcrumbs(items) -%}
+  <nav class="breadcrumbs" aria-label="Навигация по разделам">
+    {% for item in items %}
+      {% if not loop.first %}<span class="sep" aria-hidden="true">/</span>{% endif %}
+      {% if item.url and not loop.last %}
+        <a href="{{ item.url }}">{{ item.label }}</a>
+      {% else %}
+        <span{% if loop.last %} aria-current="page"{% endif %}>{{ item.label }}</span>
+      {% endif %}
+    {% endfor %}
+  </nav>
+{%- endmacro %}
+
+{% macro file_upload(
+  name='xml_file',
+  input_id='xml_file',
+  accept='.xml',
+  label='XML-файл',
+  help_text='Перетащите файл сюда или выберите на компьютере',
+  max_size_mb=None,
+  required=true
+) -%}
+  {% set max_mb = max_size_mb if max_size_mb is not none else ((max_file_size or 10485760) / (1024 * 1024))|round(1) %}
+  <div class="form-group" data-file-upload
+       data-accept="{{ accept }}"
+       data-max-bytes="{{ ((max_mb|float) * 1024 * 1024)|int }}">
+    <label for="{{ input_id }}">{{ label }}{% if required %} *{% endif %}</label>
+    <div class="dropzone" tabindex="0" role="button"
+         aria-controls="{{ input_id }}"
+         aria-label="{{ label }}: перетащите файл или нажмите Enter для выбора">
+      <p class="dropzone-title">Перетащите файл сюда</p>
+      <p class="dropzone-sub">{{ help_text }}</p>
+      <p class="dropzone-sub">Допустимо: {{ accept }} · до {{ max_mb }} МБ</p>
+      <input
+        type="file"
+        id="{{ input_id }}"
+        name="{{ name }}"
+        accept="{{ accept }}"
+        {% if required %}required{% endif %}
+        data-file-input
+      >
+    </div>
+    <div class="file-card" data-file-card hidden>
+      <div class="file-card-meta">
+        <div class="file-card-name" data-file-name></div>
+        <div class="file-card-sub">
+          <span data-file-meta></span>
+          · <span data-file-status>Готов к обработке</span>
+        </div>
+        <div class="file-card-sub" data-file-error style="color: var(--color-danger);" hidden></div>
+      </div>
+      <button type="button" class="btn btn-ghost" data-file-clear aria-label="Удалить выбранный файл">Удалить</button>
+    </div>
+  </div>
+{%- endmacro %}
+
+{% macro result_summary(status, title, lead=None, stats=None) -%}
+  {% set cls = 'is-ok' if status == 'ok' else ('is-warn' if status == 'warning' else 'is-error') %}
+  <section class="result-summary {{ cls }}" aria-live="polite">
+    <h2>{{ title }}</h2>
+    {% if lead %}<p class="muted" style="margin:0;">{{ lead }}</p>{% endif %}
+    {% if stats %}
+      <ul class="result-stats">
+        {% for item in stats %}
+          <li>
+            <strong>{{ item.value }}</strong>
+            <span>{{ item.label }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% if caller is defined %}
+      <div style="margin-top:0.85rem;">{{ caller() }}</div>
+    {% endif %}
+  </section>
+{%- endmacro %}
+
+{% macro diff_samples(samples, title='Примеры изменений') -%}
+  {% if samples %}
+  <div class="card">
+    <h2 class="section-title">{{ title }}</h2>
+    <p class="muted">Показаны первые {{ samples|length }} изменённых фрагментов.</p>
+    {% for sample in samples %}
+    <details class="details-box" {% if loop.first %}open{% endif %}>
+      <summary>Изменение {{ loop.index }}</summary>
+      <div class="diff-grid">
+        <div class="diff-pane">
+          <div class="diff-label">До</div>
+          <pre>{{ sample.before }}</pre>
+        </div>
+        <div class="diff-pane">
+          <div class="diff-label">После</div>
+          <pre>{{ sample.after }}</pre>
+        </div>
+      </div>
+    </details>
+    {% endfor %}
+  </div>
+  {% endif %}
+{%- endmacro %}
+
+{% macro process_status(title, steps) -%}
+  <div class="card" aria-live="polite">
+    <h2 class="section-title" style="margin-bottom:0.35rem;">{{ title }}</h2>
+    <p class="muted" style="margin:0;">Дождитесь завершения. Не закрывайте страницу.</p>
+    <ul class="process-list">
+      {% for step in steps %}
+        <li class="{{ step.state|default('') }}">
+          <span aria-hidden="true">{% if step.state == 'is-done' %}✓{% elif step.state == 'is-current' %}●{% else %}○{% endif %}</span>
+          <span>{{ step.label }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{%- endmacro %}
+
+{# Lucide-compatible outline icons (единый набор, stroke 2) #}
+{% macro icon(name, size=20) -%}
+  {%- set paths = {
+    'home': '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+    'file-check': '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m9 15 2 2 4-4"/>',
+    'list-checks': '<path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>',
+    'book-open': '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
+    'file-plus': '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="M9 15h6"/>',
+    'globe': '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+    'table': '<path d="M12 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/>',
+    'external-link': '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>'
+  } -%}
+  <svg class="icon icon-{{ name }}" width="{{ size }}" height="{{ size }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">{{ paths.get(name, '')|safe }}</svg>
+{%- endmacro %}

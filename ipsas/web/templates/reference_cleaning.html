@@ -1,67 +1,41 @@
 {% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs, file_upload %}
 
-{% block title %}Дедупликация references + удаление нумерации - IPSAS{% endblock %}
+{% block title %}Очистка библиографии — IPSAS{% endblock %}
+{% block topbar %}Исправление XML{% endblock %}
 
 {% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Обработка списка литературы', 'url': url_for('main.bibliography_hub')},
+  {'label': 'Очистка библиографии'}
+]) }}
+
 <div class="card">
-    <h1 style="margin-bottom: 2rem; color: #667eea;">Дедупликация references + удаление нумерации</h1>
+  <h1 class="page-title">Очистка библиографии</h1>
+  <p class="page-lead">
+    Удаляет дублирующий текст внутри элементов списка литературы и нумерацию в начале источника.
+  </p>
 
-    <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem;">
-        <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.2rem;">Что делает сервис</h2>
-        <p style="color: #666; line-height: 1.6;">
-            Сервис приводит каждый <code>&lt;reference&gt;</code> к единому виду:
-            <code>&lt;reference&gt;&lt;refinfo&gt;&lt;text&gt;...&lt;/text&gt;&lt;/refinfo&gt;&lt;/reference&gt;</code>.
-            Удаляется дублирующий текст и элементы, а также нумерация в начале текста (например, <code>1.</code>, <code>23.</code>).
-        </p>
-
-        <div style="margin-top: 1rem; padding: 1rem; background-color: #e7f3ff; border-left: 4px solid #2196F3; border-radius: 4px;">
-            <strong>Пример:</strong>
-            <pre style="margin: 0.5rem 0; font-size: 0.9rem; color: #333;">
-&lt;reference&gt;
-1. Текст...
-  &lt;refinfo&gt;
-    &lt;text&gt;Текст...&lt;/text&gt;
-  &lt;/refinfo&gt;
-&lt;/reference&gt;
-            </pre>
-            <p style="margin: 0.5rem 0 0 0; color: #666; font-size: 0.9rem;">
-                Будет преобразовано в:
-            </p>
-            <pre style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: #333;">
-&lt;reference&gt;
-  &lt;refinfo&gt;
-    &lt;text&gt;Текст...&lt;/text&gt;
-  &lt;/refinfo&gt;
-&lt;/reference&gt;
-            </pre>
-        </div>
+  <form method="POST"
+        action="{{ url_for('reference_cleaning.process_reference_cleaning') }}"
+        enctype="multipart/form-data"
+        data-loading-form>
+    {{ file_upload(name='xml_file', input_id='xml_file', accept='.xml', label='XML-файл') }}
+    <div class="btn-row">
+      <button type="submit" class="btn btn-primary" data-submit-btn data-loading-text="Очистка…" disabled>
+        Обработать XML
+      </button>
+      <span class="hint-inline" data-submit-hint>Загрузите XML-файл, чтобы начать обработку</span>
     </div>
+  </form>
 
-    <form method="POST" action="{{ url_for('reference_cleaning.process_reference_cleaning') }}" enctype="multipart/form-data">
-        <div class="form-group">
-            <label for="xml_file">Выберите XML файл *</label>
-            <input
-                type="file"
-                id="xml_file"
-                name="xml_file"
-                accept=".xml"
-                required
-                style="padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px; width: 100%;"
-            >
-            <small style="color: #666; display: block; margin-top: 0.5rem;">
-                Поддерживаются только файлы с расширением .xml
-            </small>
-        </div>
-
-        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-            <button type="submit" class="btn btn-primary">
-                Обработать файл
-            </button>
-            <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">
-                Назад
-            </a>
-        </div>
-    </form>
+  <details class="details-box">
+    <summary>Пример преобразования</summary>
+    <div class="example-box">
+      <pre>До: дублирующий текст рядом с &lt;refinfo&gt;&lt;text&gt;…
+После: остаётся единый &lt;refinfo&gt;&lt;text&gt;…</pre>
+    </div>
+  </details>
 </div>
 {% endblock %}
-

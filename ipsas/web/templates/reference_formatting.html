@@ -1,54 +1,45 @@
 {% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs, file_upload %}
 
-{% block title %}Форматирование списков литературы{% endblock %}
+{% block title %}Преобразование библиографии — IPSAS{% endblock %}
+{% block topbar %}Исправление XML{% endblock %}
 
 {% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Обработка списка литературы', 'url': url_for('main.bibliography_hub')},
+  {'label': 'Преобразование библиографии'}
+]) }}
+
 <div class="card">
-    <h1 style="margin-bottom: 2rem; color: #333;">Форматирование списков литературы</h1>
-    
-    <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem;">
-        <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.2rem;">Инструкция</h2>
-        <ol style="color: #666; line-height: 1.8; margin-left: 1.5rem;">
-            <li>Подготовьте XML файл со списком литературы в формате:
-                <pre style="background-color: #fff; padding: 1rem; border-radius: 5px; margin-top: 0.5rem; overflow-x: auto;"><code>&lt;references&gt;
-  &lt;reference&gt;Николис Г., Пригожин И. Самоорганизация...&lt;/reference&gt;
-  &lt;reference&gt;Вольтер Б.В., Сальников И.Е. Устойчивость...&lt;/reference&gt;
-&lt;/references&gt;</code></pre>
-            </li>
-            <li>Загрузите XML файл через форму ниже</li>
-            <li>Система автоматически преобразует ссылки в формат согласно схеме journal3.xsd:
-                <pre style="background-color: #fff; padding: 1rem; border-radius: 5px; margin-top: 0.5rem; overflow-x: auto;"><code>&lt;reference&gt;
-  &lt;refInfo lang="ANY"&gt;
-    &lt;text&gt;Николис Г., Пригожин И. Самоорганизация...&lt;/text&gt;
-  &lt;/refInfo&gt;
-&lt;/reference&gt;</code></pre>
-            </li>
-        </ol>
+  <h1 class="page-title">Преобразование библиографии</h1>
+  <p class="page-lead">
+    Приводит записи списка литературы к структуре
+    <span class="mono">&lt;refInfo lang="ANY"&gt;&lt;text&gt;…&lt;/text&gt;&lt;/refInfo&gt;</span>.
+  </p>
+
+  <form method="POST"
+        action="{{ url_for('reference_formatting.process_reference_formatting') }}"
+        enctype="multipart/form-data"
+        data-loading-form>
+    {{ file_upload(name='xml_file', input_id='xml_file', accept='.xml', label='XML-файл') }}
+    <div class="btn-row">
+      <button type="submit" class="btn btn-primary" data-submit-btn data-loading-text="Преобразование…" disabled>
+        Обработать XML
+      </button>
+      <span class="hint-inline" data-submit-hint>Загрузите XML-файл, чтобы начать обработку</span>
     </div>
-    
-    <form method="POST" action="{{ url_for('reference_formatting.process_reference_formatting') }}" enctype="multipart/form-data">
-        <div class="form-group">
-            <label for="xml_file">XML файл со списком литературы</label>
-            <input 
-                type="file" 
-                id="xml_file" 
-                name="xml_file"
-                accept=".xml"
-                required
-            >
-            <small style="color: #666; display: block; margin-top: 0.5rem;">
-                Максимальный размер файла: 10 МБ
-            </small>
-        </div>
-        
-        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-            <button type="submit" class="btn btn-primary">
-                Обработать файл
-            </button>
-            <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">
-                Отмена
-            </a>
-        </div>
-    </form>
+  </form>
+
+  <details class="details-box">
+    <summary>Пример структуры</summary>
+    <div class="example-box">
+      <pre>&lt;reference&gt;
+  &lt;refInfo lang="ANY"&gt;
+    &lt;text&gt;Николис Г., Пригожин И. …&lt;/text&gt;
+  &lt;/refInfo&gt;
+&lt;/reference&gt;</pre>
+    </div>
+  </details>
 </div>
 {% endblock %}

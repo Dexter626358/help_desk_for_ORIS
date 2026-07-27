@@ -1,0 +1,304 @@
+{# Тело отчёта метаданных выпуска — структура как у Валидатора XML #}
+{% set issue = result.issue if result and result.issue else {} %}
+{% set articles = result.articles if result and result.articles else [] %}
+{% set issue_warn_list = issue.warnings or [] %}
+{% set issue_err_count = (issue_warn_list | selectattr('severity', 'equalto', 'error') | list | length) %}
+{% set issue_warn_count = (issue_warn_list | selectattr('severity', 'equalto', 'warning') | list | length) %}
+{% set ns = namespace(
+  article_error_count=0,
+  article_problem_count=0,
+  articles_with_errors=0,
+  articles_with_warn_only=0,
+  ok_articles=0,
+  total_articles=0
+) %}
+{% set ns.total_articles = articles | length %}
+{% for a in articles %}
+  {% set a_errors = (a.errors | length) if a.errors else 0 %}
+  {% set a_problems = (a.problems | length) if a.problems else 0 %}
+  {% set ns.article_error_count = ns.article_error_count + a_errors %}
+  {% set ns.article_problem_count = ns.article_problem_count + a_problems %}
+  {% if a_errors > 0 %}
+    {% set ns.articles_with_errors = ns.articles_with_errors + 1 %}
+  {% elif a_problems > 0 %}
+    {% set ns.articles_with_warn_only = ns.articles_with_warn_only + 1 %}
+  {% else %}
+    {% set ns.ok_articles = ns.ok_articles + 1 %}
+  {% endif %}
+{% endfor %}
+{% set total_errors = issue_err_count + ns.article_error_count %}
+{% set total_warnings = issue_warn_count + ns.article_problem_count %}
+
+<div class="card">
+  <h1 class="page-title">Отчёт о качестве метаданных выпуска</h1>
+  <p class="xr-muted" style="margin-bottom: 1.25rem;">
+    {{ issue.journal_title_ru or issue.journal_title or "—" }} ·
+    {{ issue.issue_title or "—" }} ·
+    {% if issue_url %}
+      <a href="{{ issue_url }}" target="_blank" rel="noopener noreferrer">открыть выпуск</a> ·
+    {% endif %}
+    сформирован: {{ generated_at }}
+  </p>
+
+  <div class="xr-meta">
+    <h2 class="section-title">Журнал и выпуск</h2>
+    <div class="xr-row"><span class="xr-k">Журнал (RUS):</span> {{ issue.journal_title_ru or "—" }}</div>
+    <div class="xr-row"><span class="xr-k">Журнал (ENG):</span> {{ issue.journal_title or "—" }}</div>
+    <div class="xr-row">
+      <span class="xr-k">ISSN:</span> {{ issue.issn or "—" }}
+      {% if issue.eissn %} · <span class="xr-k">eISSN:</span> {{ issue.eissn }}{% endif %}
+      {% if issue.issn and issue.eissn and issue.issn == issue.eissn %}
+        <span class="xr-muted"> (печатный = электронный)</span>
+      {% endif %}
+    </div>
+    <div class="xr-row">
+      <span class="xr-k">Выпуск:</span>
+      {% if issue.year %}{{ issue.year }}{% endif %}
+      {% if issue.uses_volume != false and issue.volume %}{% if issue.year %}, {% endif %}том {{ issue.volume }}{% endif %}
+      {% if issue.issue %}{% if issue.year or (issue.uses_volume != false and issue.volume) %}, {% endif %}№ {{ issue.issue }}{% endif %}
+      {% if issue.issue_serial %} (сквозной № {{ issue.issue_serial }}){% endif %}
+      {% if not issue.year and not issue.volume and not issue.issue %}—{% endif %}
+    </div>
+    <div class="xr-row"><span class="xr-k">Язык выпуска:</span> {{ issue.issue_language or "—" }}</div>
+    <div class="xr-row"><span class="xr-k">Дата публикации:</span> {{ issue.publication_date or "—" }}</div>
+    <div class="xr-row"><span class="xr-k">Статей:</span> {{ issue.article_count or ns.total_articles or 0 }}</div>
+    <div class="xr-row">
+      <span class="xr-k">Обложка:</span>
+      {% if issue.cover_url %}
+        Есть — <a href="{{ issue.cover_url }}" target="_blank" rel="noopener noreferrer">открыть</a>
+      {% else %}Нет{% endif %}
+    </div>
+    <div class="xr-row">
+      <span class="xr-k">PDF выпуска:</span>
+      {% set galleys = issue.issue_galleys or [] %}
+      {% if galleys %}
+        Есть ({{ galleys | length }})
+        {% for g in galleys %}
+          {% if g.url %}
+            · {% if g.lang %}<strong>{{ g.lang }}:</strong> {% endif %}
+            <a href="{{ g.url }}" target="_blank" rel="noopener noreferrer">PDF</a>
+            {% if g.access_restricted %}<span class="xr-badge warn">закрыт</span>{% endif %}
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        Нет
+      {% endif %}
+    </div>
+    {% if issue_warn_list %}
+    <ul class="xr-problems">
+      {% for w in issue_warn_list %}
+        <li class="{{ 'is-critical' if w.severity == 'error' else 'is-secondary' }}">{{ w.text }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+
+  <div class="xr-meta">
+    <h2 class="section-title">Сводка</h2>
+    <div class="xr-grid">
+      <div class="xr-stat"><div class="n">{{ ns.total_articles }}</div><div class="l">статей</div></div>
+      <div class="xr-stat"><div class="n is-ok">{{ ns.ok_articles }}</div><div class="l">без замечаний</div></div>
+      <div class="xr-stat"><div class="n is-err">{{ ns.articles_with_errors }}</div><div class="l">с ошибками</div></div>
+      <div class="xr-stat"><div class="n is-warn">{{ ns.articles_with_warn_only }}</div><div class="l">с предупреждениями</div></div>
+      <div class="xr-stat"><div class="n is-err">{{ total_errors }}</div><div class="l">ошибок всего</div></div>
+      <div class="xr-stat"><div class="n is-warn">{{ total_warnings }}</div><div class="l">предупреждений всего</div></div>
+    </div>
+  </div>
+
+  {% set has_problem_articles = ns.articles_with_errors + ns.articles_with_warn_only > 0 %}
+  {% if has_problem_articles or issue_warn_list %}
+  <div class="xr-meta" style="border-left:4px solid var(--color-danger);">
+    <h2 class="section-title">
+      {% if has_problem_articles %}
+        Статьи с проблемами ({{ ns.articles_with_errors + ns.articles_with_warn_only }})
+      {% else %}
+        Замечания по выпуску
+      {% endif %}
+    </h2>
+    {% if issue_warn_list and not has_problem_articles %}
+    <ul class="xr-problems">
+      {% for w in issue_warn_list %}
+        <li class="{{ 'is-critical' if w.severity == 'error' else 'is-secondary' }}">{{ w.text }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% if has_problem_articles %}
+    <ol style="margin:0; padding-left:1.25rem;">
+      {% for a in articles %}
+        {% set a_errors = (a.errors | length) if a.errors else 0 %}
+        {% set a_problems = (a.problems | length) if a.problems else 0 %}
+        {% if a_errors + a_problems > 0 %}
+        {% set title = a.title_ru or a.title_en or "Без названия" %}
+        <li style="margin-bottom:0.6rem;">
+          <a href="#article-{{ loop.index }}"><strong>#{{ loop.index }}.</strong> {{ title }}</a>
+          {% if a.pages %}<span class="xr-muted"> (с. {{ a.pages }})</span>{% endif %}
+          <ul class="xr-problems">
+            {% if a.issues %}
+              {% for i in a.issues %}
+                <li class="{{ 'is-critical' if i.severity == 'error' else 'is-secondary' }}">{{ i.text }}</li>
+              {% endfor %}
+            {% else %}
+              {% for e in a.errors or [] %}<li class="is-critical">{{ e }}</li>{% endfor %}
+              {% for p in a.problems or [] %}<li class="is-secondary">{{ p }}</li>{% endfor %}
+            {% endif %}
+          </ul>
+        </li>
+        {% endif %}
+      {% endfor %}
+    </ol>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <h2 class="section-title">Статьи ({{ ns.total_articles }})</h2>
+
+  {% if articles %}
+    {% for a in articles %}
+      {% set a_errors = (a.errors | length) if a.errors else 0 %}
+      {% set a_problems = (a.problems | length) if a.problems else 0 %}
+      {% set severity = 'ok' %}
+      {% if a_errors > 0 %}{% set severity = 'error' %}{% elif a_problems > 0 %}{% set severity = 'warning' %}{% endif %}
+      {% set title = a.title_ru or a.title_en or "Без названия" %}
+      {% set doi = a.identifiers.doi if a.identifiers else None %}
+      {% set edn = a.identifiers.edn if a.identifiers else None %}
+      {% set pdfs = a.pdf_files or [] %}
+      {% set is_ok = severity == 'ok' %}
+
+      <div class="xr-card {{ severity }}" id="article-{{ loop.index }}">
+        <div style="display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; align-items:flex-start;">
+          <div>
+            <strong>#{{ loop.index }}.</strong> {{ title }}
+            {% if a.pages %}<span class="xr-muted"> · с. {{ a.pages }}</span>{% endif %}
+            {% if a.article_type %}<span class="xr-muted"> · {{ a.article_type }}</span>{% endif %}
+            {% if a.url and a.url != '-' %}
+              <div class="xr-muted"><a href="{{ a.url }}" target="_blank" rel="noopener noreferrer">открыть статью</a></div>
+            {% endif %}
+          </div>
+          <span class="xr-badge {{ severity }}">
+            {% if severity == 'ok' %}OK{% elif severity == 'warning' %}Замечания{% else %}Ошибки{% endif %}
+          </span>
+        </div>
+
+        {% if a_errors or a_problems %}
+        <ul class="xr-problems">
+          {% if a.issues %}
+            {% for i in a.issues %}
+              <li class="{{ 'is-critical' if i.severity == 'error' else 'is-secondary' }}">{{ i.text }}</li>
+            {% endfor %}
+          {% else %}
+            {% for e in a.errors or [] %}<li class="is-critical">{{ e }}</li>{% endfor %}
+            {% for p in a.problems or [] %}<li class="is-secondary">{{ p }}</li>{% endfor %}
+          {% endif %}
+        </ul>
+        {% endif %}
+
+        {% if is_ok %}
+        <details class="xr-fold" style="margin-top:0.5rem;">
+          <summary>Статья без критических замечаний — детали</summary>
+          <div class="xr-article-details" style="margin-top:0.6rem;">
+        {% else %}
+          <div class="xr-article-details" style="margin-top:0.6rem;">
+        {% endif %}
+
+            <table class="xr-table">
+              <tr>
+                <th style="width:28%;">Поле</th>
+                <th>RUS</th>
+                <th>ENG</th>
+              </tr>
+              <tr>
+                <td>Название</td>
+                <td>{{ a.title_ru or "—" }}</td>
+                <td>{{ a.title_en or "—" }}</td>
+              </tr>
+              <tr>
+                <td>Аннотация</td>
+                <td>
+                  {% if a.abstract_ru %}
+                    <div class="xr-fulltext">{{ a.abstract_ru[:500] }}{% if a.abstract_ru|length > 500 %}…{% endif %}</div>
+                    {% if a.abstract_ru_stats and a.abstract_ru_stats.length is not none %}
+                      <div class="xr-muted">{{ a.abstract_ru_stats.length }} слов</div>
+                    {% endif %}
+                  {% else %}—{% endif %}
+                </td>
+                <td>
+                  {% if a.abstract_en %}
+                    <div class="xr-fulltext">{{ a.abstract_en[:500] }}{% if a.abstract_en|length > 500 %}…{% endif %}</div>
+                    {% if a.abstract_en_stats and a.abstract_en_stats.length is not none %}
+                      <div class="xr-muted">{{ a.abstract_en_stats.length }} слов</div>
+                    {% endif %}
+                  {% else %}—{% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td>Ключевые слова</td>
+                <td>{% if a.keywords_ru %}{{ a.keywords_ru | join(', ') }}{% else %}—{% endif %}</td>
+                <td>{% if a.keywords_en %}{{ a.keywords_en | join(', ') }}{% else %}—{% endif %}</td>
+              </tr>
+              <tr>
+                <td>Авторы</td>
+                <td>{% if a.authors_ru %}{{ a.authors_ru | join('; ') }}{% else %}—{% endif %}</td>
+                <td>{% if a.authors_en %}{{ a.authors_en | join('; ') }}{% else %}—{% endif %}</td>
+              </tr>
+            </table>
+
+            <div class="xr-row" style="margin-top:0.75rem;">
+              <span class="xr-k">Идентификаторы:</span>
+              DOI {{ doi or "—" }} · EDN {{ edn or "—" }}
+              {% if a.identifiers and a.identifiers.internal_id %} · ID {{ a.identifiers.internal_id }}{% endif %}
+            </div>
+            <div class="xr-row">
+              <span class="xr-k">Дата / страницы:</span>
+              {{ a.publication_date_display or a.publication_date or "—" }}
+              · стр. {{ a.pages or "—" }}
+              {% if a.pages_source %}<span class="xr-muted">({{ a.pages_source }})</span>{% endif %}
+            </div>
+            <div class="xr-row">
+              <span class="xr-k">Организации:</span>
+              {% if a.organizations %}{{ a.organizations | join('; ') }}
+              {% elif a.affiliations %}{{ a.affiliations | join('; ') }}
+              {% else %}—{% endif %}
+            </div>
+            <div class="xr-row">
+              <span class="xr-k">Авторы ({{ a.authors_count or 0 }}):</span>
+              {% if a.authors_ru %}{{ a.authors_ru | join('; ') }}
+              {% elif a.authors %}{{ a.authors | join('; ') }}
+              {% else %}—{% endif %}
+            </div>
+            <div class="xr-row">
+              <span class="xr-k">Источники:</span>
+              всего {{ a.references_count or 0 }}
+              · RU {{ a.references_ru_count or 0 }}
+              · EN {{ a.references_en_count or 0 }}
+              {% if a.references_unk_count %} · прочие {{ a.references_unk_count }}{% endif %}
+              {% if a.references_source %}<span class="xr-muted"> ({{ a.references_source }})</span>{% endif %}
+              {% if a.reference_first or a.reference_ru_first %}
+              <div class="xr-muted" style="margin-top:0.35rem;">Первый: {{ a.reference_first or a.reference_ru_first }}</div>
+              {% endif %}
+            </div>
+            <div class="xr-row">
+              <span class="xr-k">PDF:</span>
+              {% if pdfs %}
+                {% for p in pdfs %}
+                  {% if p.lang %}<strong>{{ p.lang }}:</strong> {% endif %}
+                  {% if p.url %}<a href="{{ p.url }}" target="_blank" rel="noopener noreferrer">открыть</a>{% else %}без ссылки{% endif %}
+                  {% if p.locked %}<span class="xr-badge warn">закрыт</span>{% endif %}
+                  {% if not loop.last %} · {% endif %}
+                {% endfor %}
+              {% else %}
+                нет
+              {% endif %}
+            </div>
+
+        {% if is_ok %}
+          </div>
+        </details>
+        {% else %}
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="xr-muted">Статьи не найдены.</p>
+  {% endif %}
+</div>

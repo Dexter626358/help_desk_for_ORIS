@@ -119,8 +119,15 @@ def test_analyze_journal_xml_summary_and_articles(tmp_path: Path):
     assert ok_article["references_eng"] == 1
     assert ok_article["references_unk"] == 1
     assert ok_article["authors_count"] == 1
+    assert ok_article["unique_affiliations_ru"] == 1
+    assert ok_article["unique_affiliations_en"] == 1
+    assert ok_article["unique_affiliations_ru_items"] == ["Организация"]
+    assert ok_article["unique_affiliations_en_items"] == ["Organization"]
     assert ok_article["authors"][0]["name_ru"] == "Иванов И.И."
     assert ok_article["authors"][0]["affiliation_en"] == "Organization"
+    assert ok_article["keywords_ru_preview"]["preview"] == "тест ... наука"
+    assert ok_article["keywords_en_preview"]["preview"] == "test ... science"
+    assert ok_article["keywords_ru_preview"]["count"] == 2
     assert not any("источник" in t.lower() for t in ok_article["critical_issues"])
     assert not any("UNK" in t for _, t in ok_article["issues"])
     preview_langs = {p["lang"] for p in ok_article["references_preview"]}
@@ -136,6 +143,34 @@ def test_analyze_journal_xml_summary_and_articles(tmp_path: Path):
     assert any("аффилиац" in t for t in bad_article["secondary_issues"])
     # Только RUS-источники — не ошибка
     assert not any("нет источников" in t for t in bad_article["critical_issues"])
+
+
+def test_numbered_references_are_secondary_warning():
+    from ipsas.modules.journal_xml_report import collect_article_issues
+
+    article = {
+        "titles": {"RUS": "Т", "ENG": "T"},
+        "abstracts": {
+            "RUS": {"full_text": "a " * 80},
+            "ENG": {"full_text": "b " * 80},
+        },
+        "keywords": {"RUS": ["а"], "ENG": ["b"]},
+        "references": {
+            "RUS": ["1. Источник А", "2. Источник Б"],
+            "ENG": ["Reference without number"],
+        },
+        "authors": [
+            {
+                "RUS": {"surname": "Иванов", "initials": "И.И.", "orgName": "Орг"},
+                "ENG": {"surname": "Ivanov", "initials": "I.I.", "orgName": "Org"},
+            }
+        ],
+    }
+    issues = collect_article_issues(article)
+    assert any(
+        s == "secondary" and "нумерац" in t and "2 из 3" in t
+        for s, t in issues
+    )
 
 
 def test_references_unk_only_is_ok():
@@ -189,6 +224,154 @@ def test_references_empty_is_critical():
     assert ("critical", "нет источников") in issues
 
 
+def test_nested_markup_in_title_and_abstract_is_fully_extracted(tmp_path: Path):
+    xml_path = tmp_path / "nested.xml"
+    xml_path.write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+<journal>
+  <titleid>1</titleid>
+  <issue><articles>
+    <article>
+      <pages>1</pages>
+      <artTitles>
+        <artTitle lang="RUS">Наночастицы меди и ее оксидов в синтезе <i>N</i>-гетероциклов</artTitle>
+        <artTitle lang="ENG">Copper and Copper Oxide Nanoparticles in the Synthesis of <i>N</i>-Heterocycles</artTitle>
+      </artTitles>
+      <authors>
+        <author>
+          <individInfo lang="RUS"><surname>Иванов</surname><initials>И.И.</initials><orgName>Орг</orgName></individInfo>
+          <individInfo lang="ENG"><surname>Ivanov</surname><initials>I.I.</initials><orgName>Org</orgName></individInfo>
+        </author>
+      </authors>
+      <abstracts>
+        <abstract lang="RUS">Изучено <b>влияние</b> наночастиц на синтез гетероциклов в различных условиях.</abstract>
+        <abstract lang="ENG">The <b>effect</b> of nanoparticles on the synthesis of heterocycles was studied.</abstract>
+      </abstracts>
+      <keywords>
+        <kwdGroup lang="RUS"><keyword>а</keyword></kwdGroup>
+        <kwdGroup lang="ENG"><keyword>b</keyword></kwdGroup>
+      </keywords>
+      <references>
+        <reference><refInfo lang="UNK"><text>Ref</text></refInfo></reference>
+      </references>
+    </article>
+  </articles></issue>
+</journal>
+""",
+        encoding="utf-8",
+    )
+    report = analyze_journal_xml(xml_path)
+    article = report["articles"][0]
+    assert "N-гетероциклов" in article["title_ru"]
+    assert "N-Heterocycles" in article["title_en"]
+    assert article["title_ru"].startswith("Наночастицы меди")
+    assert "влияние" in article["abstract_ru"]["full_text"]
+    assert article["abstract_ru"]["full_text"].startswith("Изучено")
+    assert "effect" in article["abstract_en"]["full_text"]
+    with pytest.raises(FileNotFoundError):
+        analyze_journal_xml(tmp_path / "missing.xml")
+
+
+def test_unique_affiliations_count_across_authors(tmp_path: Path):
+    xml_path = tmp_path / "aff.xml"
+    xml_path.write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+<journal>
+  <titleid>1</titleid>
+  <issue><articles>
+    <article>
+      <pages>1</pages>
+      <artTitles>
+        <artTitle lang="RUS">Заголовок</artTitle>
+        <artTitle lang="ENG">Title</artTitle>
+      </artTitles>
+      <authors>
+        <author>
+          <individInfo lang="RUS"><surname>Иванов</surname><initials>И.И.</initials><orgName>МГУ; ИОХ РАН</orgName></individInfo>
+          <individInfo lang="ENG"><surname>Ivanov</surname><initials>I.I.</initials><orgName>MSU; IOC RAS</orgName></individInfo>
+        </author>
+        <author>
+          <individInfo lang="RUS"><surname>Петров</surname><initials>П.П.</initials><orgName>МГУ</orgName></individInfo>
+          <individInfo lang="ENG"><surname>Petrov</surname><initials>P.P.</initials><orgName>MSU</orgName></individInfo>
+        </author>
+      </authors>
+      <abstracts>
+        <abstract lang="RUS">слово слово слово</abstract>
+        <abstract lang="ENG">word word word</abstract>
+      </abstracts>
+      <keywords>
+        <kwdGroup lang="RUS"><keyword>а</keyword></kwdGroup>
+        <kwdGroup lang="ENG"><keyword>b</keyword></kwdGroup>
+      </keywords>
+      <references>
+        <reference><refInfo lang="UNK"><text>Ref</text></refInfo></reference>
+      </references>
+    </article>
+  </articles></issue>
+</journal>
+""",
+        encoding="utf-8",
+    )
+    article = analyze_journal_xml(xml_path)["articles"][0]
+    assert article["authors_count"] == 2
+    assert article["unique_affiliations_ru"] == 2
+    assert article["unique_affiliations_en"] == 2
+    assert set(article["unique_affiliations_ru_items"]) == {"МГУ", "ИОХ РАН"}
+    assert set(article["unique_affiliations_en_items"]) == {"MSU", "IOC RAS"}
+
+
+def test_duplicate_reference_text_is_secondary_warning(tmp_path: Path):
+    xml_path = tmp_path / "dup_refs.xml"
+    xml_path.write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+<journal>
+  <titleid>1</titleid>
+  <issue><articles>
+    <article>
+      <pages>1</pages>
+      <artTitles>
+        <artTitle lang="RUS">Заголовок</artTitle>
+        <artTitle lang="ENG">Title</artTitle>
+      </artTitles>
+      <authors>
+        <author>
+          <individInfo lang="RUS"><surname>Иванов</surname><initials>И.И.</initials><orgName>Орг</orgName></individInfo>
+          <individInfo lang="ENG"><surname>Ivanov</surname><initials>I.I.</initials><orgName>Org</orgName></individInfo>
+        </author>
+      </authors>
+      <abstracts>
+        <abstract lang="RUS">слово слово слово</abstract>
+        <abstract lang="ENG">word word word</abstract>
+      </abstracts>
+      <keywords>
+        <kwdGroup lang="RUS"><keyword>а</keyword></kwdGroup>
+        <kwdGroup lang="ENG"><keyword>b</keyword></kwdGroup>
+      </keywords>
+      <references>
+        <reference>
+1. Акжигитова Н.И. 1982. Галофильная растительность.
+          <refinfo lang="ANY">
+            <text>Акжигитова Н.И. 1982. Галофильная растительность.</text>
+          </refinfo>
+        </reference>
+        <reference>
+          <refInfo lang="UNK"><text>Чистый источник без дубля</text></refInfo>
+        </reference>
+      </references>
+    </article>
+  </articles></issue>
+</journal>
+""",
+        encoding="utf-8",
+    )
+    article = analyze_journal_xml(xml_path)["articles"][0]
+    assert article["references_duplicate_text_count"] == 1
+    assert article["references_numbered_count"] >= 1
+    issues_text = " ".join(t for _, t in article["issues"])
+    assert "дублирование текста источников" in issues_text
+    assert "нумерац" in issues_text
+
+
 def test_analyze_journal_xml_missing_file(tmp_path: Path):
     with pytest.raises(FileNotFoundError):
         analyze_journal_xml(tmp_path / "missing.xml")
@@ -210,10 +393,88 @@ def test_generate_xml_html_report_creates_html(tmp_path: Path):
     assert out_path.exists()
     html = out_path.read_text(encoding="utf-8")
     assert "<!DOCTYPE html>" in html
-    assert "Отчет по XML файлу" in html
-    assert "Источники (UNK)" in html
+    assert "Отчёт о качестве XML" in html
+    assert "Сводка" in html
+    assert "Журнал и выпуск" in html
+    assert "Тестовый журнал" in html
+    assert "English title" in html
+    # Тот же partial, что и web: без UI-кнопок
+    assert "Новая проверка" not in html
+    assert "На главную" not in html
 
 
 def test_generate_xml_html_report_missing_input_raises(tmp_path: Path):
     with pytest.raises(FileNotFoundError):
         generate_xml_html_report(tmp_path / "missing.xml", tmp_path / "out.html")
+
+
+def test_keywords_missing_eng_is_secondary_not_critical():
+    from ipsas.modules.journal_xml_report import collect_article_issues
+
+    article = {
+        "titles": {"RUS": "Т", "ENG": "T"},
+        "abstracts": {
+            "RUS": {"full_text": "a " * 80},
+            "ENG": {"full_text": "b " * 80},
+        },
+        "keywords": {"RUS": ["а"]},
+        "references": {"UNK": ["Ref"]},
+        "authors": [
+            {
+                "RUS": {"surname": "Иванов", "initials": "И.И.", "orgName": "Орг"},
+                "ENG": {"surname": "Ivanov", "initials": "I.I.", "orgName": "Org"},
+            }
+        ],
+    }
+    issues = collect_article_issues(article)
+    assert not any(s == "critical" and "ключев" in t for s, t in issues)
+    assert any(s == "secondary" and "ключев" in t for s, t in issues)
+
+
+def test_references_lang_case_normalized(tmp_path: Path):
+    """lang='rus'/'eng' должны нормализоваться в RUS/ENG."""
+    xml_path = tmp_path / "case.xml"
+    xml_path.write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+<journal>
+  <titleid>1</titleid>
+  <issue><articles>
+    <article>
+      <pages>1</pages>
+      <artTitles>
+        <artTitle lang="rus">Заголовок</artTitle>
+        <artTitle lang="eng">Title</artTitle>
+      </artTitles>
+      <authors>
+        <author>
+          <individInfo lang="rus"><surname>Иванов</surname><initials>И.И.</initials><orgName>Орг</orgName></individInfo>
+          <individInfo lang="eng"><surname>Ivanov</surname><initials>I.I.</initials><orgName>Org</orgName></individInfo>
+        </author>
+      </authors>
+      <abstracts>
+        <abstract lang="rus">слово слово слово</abstract>
+        <abstract lang="eng">word word word</abstract>
+      </abstracts>
+      <keywords>
+        <kwdGroup lang="rus"><keyword>а</keyword></kwdGroup>
+        <kwdGroup lang="eng"><keyword>b</keyword></kwdGroup>
+      </keywords>
+      <references>
+        <reference><refInfo lang="unk"><text>Ref</text></refInfo></reference>
+      </references>
+    </article>
+  </articles></issue>
+</journal>
+""",
+        encoding="utf-8",
+    )
+    report = analyze_journal_xml(xml_path)
+    article = report["articles"][0]
+    assert article["has_title_ru"] is True
+    assert article["has_title_en"] is True
+    assert article["abstract_ru"]["present"] is True
+    assert article["abstract_en"]["present"] is True
+    assert article["keywords_ru"] == 1
+    assert article["keywords_en"] == 1
+    assert article["references_unk"] == 1
+    assert article["authors"][0]["name_ru"] == "Иванов И.И."

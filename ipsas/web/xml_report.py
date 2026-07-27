@@ -1,146 +1,89 @@
-"""Роуты для анализа XML журнала и генерации отчёта."""
+"""Роуты для скачивания HTML-отчёта по метаданным XML (совместимость)."""
 
 from __future__ import annotations
 
-import uuid
-from datetime import datetime
+import os
 from pathlib import Path
 
-from flask import Blueprint, Response, flash, redirect, render_template, request, url_for
-from werkzeug.utils import secure_filename
+from flask import Blueprint, Response, flash, redirect, url_for
 
 from ipsas.config.settings import get_settings
-from ipsas.modules.journal_xml_analyzer import analyze_journal_xml
 from ipsas.modules.xml_report_generator import generate_xml_html_report
 from ipsas.utils.logger import get_logger
+from ipsas.utils.temp_files import cleanup_temp_dir, safe_temp_path
 
 logger = get_logger(__name__)
 
 xml_report_bp = Blueprint("xml_report", __name__, template_folder="templates")
 
 
+def _unlink_quiet(*paths: Path) -> None:
+    for path in paths:
+        try:
+            if path.exists():
+                path.unlink()
+        except OSError as e:
+            logger.warning("Не удалось удалить временный файл %s: %s", path.name, e)
+
+
+def _temp_ttl_seconds() -> int:
+    try:
+        return int(os.getenv("TEMP_FILE_TTL_SECONDS", str(6 * 60 * 60)))
+    except ValueError:
+        return 6 * 60 * 60
+
+
 @xml_report_bp.route("/xml-report")
 def xml_report_page():
-    """Страница загрузки XML журнала для анализа метаданных."""
-    return render_template("xml_report.html")
+    """Совместимость: старый URL ведёт в объединённый валидатор XML."""
+    return redirect(url_for("xml_validation.xml_validator_page"))
 
 
 @xml_report_bp.route("/xml-report/generate", methods=["POST"])
 def generate_report():
-    """Принять XML, проанализировать и показать отчёт в интерфейсе."""
-    settings = get_settings()
-
-    if "xml_file" not in request.files:
-        flash("Файл не был загружен", "error")
-        return redirect(url_for("xml_report.xml_report_page"))
-
-    file = request.files["xml_file"]
-    if file.filename == "":
-        flash("Файл не выбран", "error")
-        return redirect(url_for("xml_report.xml_report_page"))
-
-    if not file.filename.lower().endswith(".xml"):
-        flash("Поддерживаются только XML файлы", "error")
-        return redirect(url_for("xml_report.xml_report_page"))
-
-    original_filename = secure_filename(file.filename)
-    unique_id = uuid.uuid4().hex[:8]
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-    xml_temp_name = f"{timestamp}_{unique_id}_{original_filename}"
-    xml_temp_path = settings.temp_dir / xml_temp_name
-
-    report_temp_name = f"{timestamp}_{unique_id}_{Path(original_filename).stem}_report.html"
-    report_temp_path = settings.temp_dir / report_temp_name
-
-    try:
-        file.save(str(xml_temp_path))
-
-        try:
-            size = xml_temp_path.stat().st_size
-        except OSError:
-            size = None
-
-        if size is not None and size > settings.max_file_size:
-            try:
-                xml_temp_path.unlink()
-            except Exception:
-                pass
-            max_mb = settings.max_file_size / (1024 * 1024)
-            flash(f"Файл слишком большой. Максимальный размер: {max_mb:.1f} MB", "error")
-            return redirect(url_for("xml_report.xml_report_page"))
-
-        analysis = analyze_journal_xml(xml_temp_path)
-        generate_xml_html_report(xml_temp_path, report_temp_path)
-
-        try:
-            if xml_temp_path.exists():
-                xml_temp_path.unlink()
-        except Exception as e:
-            logger.warning("Не удалось удалить временный XML %s: %s", xml_temp_path.name, e)
-
-        return render_template(
-            "xml_report_view.html",
-            filename=original_filename,
-            report_filename=report_temp_path.name,
-            report=analysis,
-        )
-
-    except ValueError as e:
-        flash(str(e), "error")
-        for p in (xml_temp_path, report_temp_path):
-            try:
-                if p.exists():
-                    p.unlink()
-            except Exception:
-                pass
-        return redirect(url_for("xml_report.xml_report_page"))
-
-    except Exception as e:
-        logger.error("Ошибка при анализе XML: %s", e)
-        flash(f"Ошибка при обработке файла: {str(e)}", "error")
-
-        for p in (xml_temp_path, report_temp_path):
-            try:
-                if p.exists():
-                    p.unlink()
-            except Exception:
-                pass
-
-        return redirect(url_for("xml_report.xml_report_page"))
+    """Совместимость: POST старого маршрута перенаправляет на единый валидатор."""
+    return redirect(url_for("xml_validation.xml_validator_page"))
 
 
 @xml_report_bp.route("/xml-report/download/<filename>")
 def download_report(filename: str):
-    """Скачать HTML-отчёт и удалить его после скачивания."""
+    """Сгенерировать HTML из сохранённого XML и отдать на скачивание."""
     settings = get_settings()
-    file_path = settings.temp_dir / filename
+    cleanup_temp_dir(settings.temp_dir, ttl_seconds=_temp_ttl_seconds())
 
-    if not file_path.exists():
-        flash("Файл отчёта не найден", "error")
-        return redirect(url_for("xml_report.xml_report_page"))
+    xml_path = safe_temp_path(settings.temp_dir, filename)
+    if xml_path is None or not xml_path.exists() or xml_path.suffix.lower() != ".xml":
+        flash("Исходный XML для отчёта не найден или устарел. Загрузите файл снова.", "error")
+        return redirect(url_for("xml_validation.xml_validator_page"))
 
-    download_name = filename
-    parts = filename.split("_", 2)
-    if len(parts) >= 3:
-        download_name = parts[2]
-        if not download_name.lower().endswith(".html"):
-            download_name = f"{download_name}.html"
+    report_temp_path = xml_path.with_name(f"{xml_path.stem}_report.html")
+    try:
+        generate_xml_html_report(xml_path, report_temp_path)
+        html_bytes = report_temp_path.read_bytes()
+    except Exception as e:
+        logger.error("Ошибка ленивой генерации HTML: %s", e)
+        flash(f"Не удалось сформировать HTML-отчёт: {e}", "error")
+        return redirect(url_for("xml_validation.xml_validator_page"))
+    finally:
+        _unlink_quiet(report_temp_path)
+
+    from ipsas.utils.download_names import (
+        attachment_filename_from_xml,
+        content_disposition_attachment,
+    )
+
+    download_name = attachment_filename_from_xml(
+        xml_path, extension=".html", fallback="report"
+    )
 
     def generate():
         try:
-            with open(file_path, "rb") as f:
-                yield f.read()
+            yield html_bytes
         finally:
-            try:
-                if file_path.exists():
-                    file_path.unlink()
-                    logger.info("Удалён HTML-отчёт после скачивания: %s", file_path.name)
-            except Exception as e:
-                logger.warning("Не удалось удалить HTML-отчёт %s: %s", file_path.name, e)
+            _unlink_quiet(xml_path)
 
     return Response(
         generate(),
         mimetype="text/html",
-        headers={"Content-Disposition": f'attachment; filename="{download_name}"'},
+        headers={"Content-Disposition": content_disposition_attachment(download_name)},
     )

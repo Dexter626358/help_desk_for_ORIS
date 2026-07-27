@@ -2,18 +2,35 @@
 
 from __future__ import annotations
 
+import logging
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import report_generator as rg
+from ipsas.modules.journal_xml_report import (
+    collect_article_issues,
+    extract_first_last_words,
+    format_article_title,
+    get_articles_info,
+    get_first_last_references,
+    safe_strip,
+    validate_author_data,
+    validate_keywords_data,
+    validate_references_data,
+)
+from ipsas.modules.journal_xml_report.text_utils import split_organizations
+
+logger = logging.getLogger(__name__)
+
+_REF_LANGS = ("RUS", "ENG", "UNK", "ANY")
 
 
 def _text(el: ET.Element | None) -> str:
-    if el is None or el.text is None:
+    """Полный текст элемента, включая вложенные теги."""
+    if el is None:
         return ""
-    return el.text.strip()
+    return " ".join("".join(el.itertext()).split()).strip()
 
 
 def _norm_lang(raw: str | None) -> str:
@@ -29,11 +46,13 @@ def _word_count(text: str) -> int:
     return len(text.split()) if text and text.strip() else 0
 
 
-def _extract_journal_issue(xml_path: Path) -> dict[str, Any]:
-    """Журнал и выпуск: titleid, ISSN, названия RU/EN, том/номер/год."""
-    tree = ET.parse(xml_path)
-    root = tree.getroot()
+def _root_local_name(root: ET.Element) -> str:
+    tag = root.tag
+    return tag.split("}")[-1] if "}" in tag else tag
 
+
+def _extract_journal_issue(root: ET.Element) -> dict[str, Any]:
+    """Журнал и выпуск: titleid, ISSN, названия RU/EN, том/номер/год."""
     journal_titles: dict[str, str] = {}
     for ji in root.findall("journalInfo"):
         lang = _norm_lang(ji.get("lang"))
@@ -41,12 +60,12 @@ def _extract_journal_issue(xml_path: Path) -> dict[str, Any]:
         if title:
             journal_titles[lang] = title
 
-    # Fallback на одиночный journalInfo без lang / из старого парсера
     if not journal_titles:
-        legacy = rg.get_issue_info(xml_path)
-        jt = (legacy.get("journal_title") or "").strip()
-        if jt:
-            journal_titles[_norm_lang(legacy.get("journal_lang"))] = jt
+        journal_info = root.find("journalInfo")
+        if journal_info is not None:
+            title = _text(journal_info.find("title"))
+            if title:
+                journal_titles[_norm_lang(journal_info.get("lang"))] = title
 
     issue_el = root.find("issue")
     issue: dict[str, str] = {
@@ -68,7 +87,7 @@ def _extract_journal_issue(xml_path: Path) -> dict[str, Any]:
 
 
 def _title_of(article: dict[str, Any]) -> str:
-    return rg._format_article_title(article.get("titles") or {})
+    return format_article_title(article.get("titles") or {})
 
 
 def _abstract_payload(article: dict[str, Any], lang: str) -> dict[str, Any]:
@@ -79,13 +98,32 @@ def _abstract_payload(article: dict[str, Any], lang: str) -> dict[str, Any]:
         summary = (raw.get("summary") or "").strip()
     else:
         full = str(raw or "").strip()
-        summary = rg.extract_first_last_words(full, 10) if full else ""
+        summary = ""
+    if full and not summary:
+        summary = extract_first_last_words(full, 10)
     return {
         "present": bool(full),
         "word_count": _word_count(full),
         "summary": summary,
+        "full_text": full,
         "ok": bool(full),
     }
+
+
+def _unique_affiliations(authors: list[dict[str, Any]], lang: str) -> dict[str, Any]:
+    """Уникальные аффилиации авторов (с учётом нескольких org через ';')."""
+    unique: set[str] = set()
+    for author in authors or []:
+        lang_data = author.get(lang) or {}
+        orgs = lang_data.get("organizations")
+        if isinstance(orgs, list) and orgs:
+            values = [safe_strip(o) for o in orgs if safe_strip(o)]
+        else:
+            values = split_organizations(safe_strip(lang_data.get("orgName", "")))
+        for value in values:
+            unique.add(value)
+    items = sorted(unique)
+    return {"count": len(items), "items": items}
 
 
 def _author_checks(article: dict[str, Any]) -> list[dict[str, Any]]:
@@ -93,11 +131,11 @@ def _author_checks(article: dict[str, Any]) -> list[dict[str, Any]]:
     for idx, author in enumerate(article.get("authors") or [], 1):
         rus = author.get("RUS") or {}
         eng = author.get("ENG") or {}
-        rus_name = f"{rg._safe_strip(rus.get('surname', ''))} {rg._safe_strip(rus.get('initials', ''))}".strip()
-        eng_name = f"{rg._safe_strip(eng.get('surname', ''))} {rg._safe_strip(eng.get('initials', ''))}".strip()
-        rus_aff = rg._safe_strip(rus.get("orgName", ""))
-        eng_aff = rg._safe_strip(eng.get("orgName", ""))
-        status = rg.validate_author_data(
+        rus_name = f"{safe_strip(rus.get('surname', ''))} {safe_strip(rus.get('initials', ''))}".strip()
+        eng_name = f"{safe_strip(eng.get('surname', ''))} {safe_strip(eng.get('initials', ''))}".strip()
+        rus_aff = safe_strip(rus.get("orgName", ""))
+        eng_aff = safe_strip(eng.get("orgName", ""))
+        status = validate_author_data(
             {
                 "RUS": {"name": rus_name, "affiliation": rus_aff},
                 "ENG": {"name": eng_name, "affiliation": eng_aff},
@@ -128,64 +166,78 @@ def _author_checks(article: dict[str, Any]) -> list[dict[str, Any]]:
     return result
 
 
-def _extra_affiliation_issues(authors: list[dict[str, Any]]) -> list[tuple[str, str]]:
-    issues: list[tuple[str, str]] = []
-    for a in authors:
-        for p in a.get("problems") or []:
-            if "аффилиац" in p:
-                issues.append(("secondary", f"автор {a['index']}: {p}"))
-    return issues
-
-
-def _references_preview(references: dict[str, Any]) -> list[dict[str, str]]:
+def _references_preview(references: dict[str, Any]) -> list[dict[str, Any]]:
     """Первый и последний источник по каждому языку, где есть записи."""
-    preview: list[dict[str, str]] = []
-    for lang in ("RUS", "ENG", "UNK", "ANY"):
+    preview: list[dict[str, Any]] = []
+    for lang in _REF_LANGS:
         items = references.get(lang) or []
         if not items:
             continue
-        ends = rg.get_first_last_references(items, max_length=None)
+        ends = get_first_last_references(items, max_length=None)
+        first = ends.get("first") or ""
+        last = ends.get("last") or ""
         preview.append(
             {
                 "lang": lang,
-                "count": str(len(items)),
-                "first": ends.get("first") or "",
-                "last": ends.get("last") or "",
-                "same": ends.get("first") == ends.get("last"),
+                "count": len(items),
+                "first": first,
+                "last": last,
+                "same": first == last,
             }
         )
     return preview
 
 
+def _keywords_preview(items: list[Any] | None) -> dict[str, Any]:
+    """Первое и последнее ключевое слово (фраза) для отображения."""
+    values = [safe_strip(v) for v in (items or []) if safe_strip(v)]
+    if not values:
+        return {
+            "present": False,
+            "count": 0,
+            "first": "",
+            "last": "",
+            "preview": "—",
+        }
+    first = values[0]
+    last = values[-1]
+    if len(values) == 1:
+        preview = first
+    else:
+        preview = f"{first} ... {last}"
+    return {
+        "present": True,
+        "count": len(values),
+        "first": first,
+        "last": last,
+        "preview": preview,
+    }
+
+
 def _build_article_report(index: int, article: dict[str, Any]) -> dict[str, Any]:
     titles = article.get("titles") or {}
-    title_ru = rg._safe_strip(titles.get("RUS", ""))
-    title_en = rg._safe_strip(titles.get("ENG", ""))
+    title_ru = safe_strip(titles.get("RUS", ""))
+    title_en = safe_strip(titles.get("ENG", ""))
 
     keywords = article.get("keywords") or {}
-    keywords_count = article.get("keywords_count") or {
-        lang: len(vals or []) for lang, vals in keywords.items()
-    }
-    kw_status = rg.validate_keywords_data(keywords)
+    kw_status = validate_keywords_data(keywords)
+    keywords_ru = _keywords_preview(keywords.get("RUS") or [])
+    keywords_en = _keywords_preview(keywords.get("ENG") or [])
 
     references = article.get("references") or {}
     references_count = article.get("references_count") or {
         lang: len(vals or []) for lang, vals in references.items()
     }
-    ref_status = rg.validate_references_data(references)
+    ref_status = validate_references_data(references)
     refs_preview = _references_preview(references)
 
     authors = _author_checks(article)
-    base_issues = list(rg.collect_article_issues(article))
-    # Дополняем явными проблемами аффилиаций (в сводке collect_article_issues их нет)
-    seen = set(base_issues)
-    for item in _extra_affiliation_issues(authors):
-        if item not in seen:
-            base_issues.append(item)
-            seen.add(item)
+    affiliations_ru = _unique_affiliations(article.get("authors") or [], "RUS")
+    affiliations_en = _unique_affiliations(article.get("authors") or [], "ENG")
+    issues = list(collect_article_issues(article))
 
-    critical = [t for s, t in base_issues if s == "critical"]
-    secondary = [t for s, t in base_issues if s == "secondary"]
+    critical = [t for s, t in issues if s == "critical"]
+    secondary = [t for s, t in issues if s == "secondary"]
     if critical:
         severity = "error"
     elif secondary:
@@ -204,8 +256,10 @@ def _build_article_report(index: int, article: dict[str, Any]) -> dict[str, Any]
         "has_title_en": bool(title_en),
         "abstract_ru": _abstract_payload(article, "RUS"),
         "abstract_en": _abstract_payload(article, "ENG"),
-        "keywords_ru": keywords_count.get("RUS", 0),
-        "keywords_en": keywords_count.get("ENG", 0),
+        "keywords_ru": keywords_ru["count"],
+        "keywords_en": keywords_en["count"],
+        "keywords_ru_preview": keywords_ru,
+        "keywords_en_preview": keywords_en,
         "keywords_status": kw_status,
         "references_rus": references_count.get("RUS", 0),
         "references_eng": references_count.get("ENG", 0),
@@ -213,9 +267,17 @@ def _build_article_report(index: int, article: dict[str, Any]) -> dict[str, Any]
         "references_any": references_count.get("ANY", 0),
         "references_status": ref_status,
         "references_preview": refs_preview,
+        "references_duplicate_text_count": int(
+            article.get("references_duplicate_text_count") or 0
+        ),
+        "references_numbered_count": int(article.get("references_numbered_count") or 0),
         "authors": authors,
         "authors_count": len(authors),
-        "issues": base_issues,
+        "unique_affiliations_ru": affiliations_ru["count"],
+        "unique_affiliations_en": affiliations_en["count"],
+        "unique_affiliations_ru_items": affiliations_ru["items"],
+        "unique_affiliations_en_items": affiliations_en["items"],
+        "issues": issues,
         "critical_issues": critical,
         "secondary_issues": secondary,
         "severity": severity,
@@ -239,13 +301,16 @@ def analyze_journal_xml(xml_path: Path) -> dict[str, Any]:
     except ET.ParseError as e:
         raise ValueError(f"Некорректный XML: {e}") from e
 
-    root_tag = root.tag.split("}")[-1] if "}" in root.tag else root.tag
+    root_tag = _root_local_name(root)
     if root_tag.lower() not in {"journal", "root"}:
-        # root допускается для тестов; production — journal
-        pass
+        logger.warning(
+            "Ожидался корневой элемент journal, получен %s (%s)",
+            root_tag,
+            xml_path.name,
+        )
 
-    meta = _extract_journal_issue(xml_path)
-    articles_raw = rg.get_articles_info(xml_path)
+    meta = _extract_journal_issue(root)
+    articles_raw = get_articles_info(xml_path, root=root)
     articles = [_build_article_report(i, a) for i, a in enumerate(articles_raw, 1)]
 
     with_errors = sum(1 for a in articles if a["severity"] == "error")

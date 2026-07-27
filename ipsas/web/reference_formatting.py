@@ -72,12 +72,22 @@ def process_reference_formatting():
         except:
             pass
         
-        # Отображение результатов
+        from ipsas.utils.operation_history import record_operation
+
+        record_operation(
+            tool="bibliography",
+            title="Форматирование библиографии",
+            status="ok",
+            detail=f"{original_filename}: изменено {result.get('processed_count', 0)}",
+            url=url_for("reference_formatting.reference_formatting_page"),
+        )
+
         return render_template(
             "reference_formatting_result.html",
             result=result,
             original_filename=original_filename,
-            output_filename=result['output_path'].name
+            output_filename=result["output_path"].name,
+            samples=result.get("samples") or [],
         )
         
     except Exception as e:
@@ -106,17 +116,15 @@ def download_formatted_file(filename):
         flash("Файл не найден", "error")
         return redirect(url_for("reference_formatting.reference_formatting_page"))
     
-    # Определяем оригинальное имя для скачивания
-    if "_formatted.xml" in filename:
-        original_name = filename.replace("_formatted.xml", ".xml")
-    else:
-        # Убираем timestamp и UUID из начала имени
-        parts = filename.split("_", 2)
-        if len(parts) >= 3:
-            original_name = parts[2]
-        else:
-            original_name = filename
-    
+    from ipsas.utils.download_names import (
+        attachment_filename_from_xml,
+        content_disposition_attachment,
+    )
+
+    download_name = attachment_filename_from_xml(
+        file_path, extension=".xml", fallback="formatted"
+    )
+
     # Отправляем файл и удаляем его после скачивания
     try:
         def generate():
@@ -138,7 +146,7 @@ def download_formatted_file(filename):
             generate(),
             mimetype='application/xml',
             headers={
-                'Content-Disposition': f'attachment; filename="{original_name}"'
+                'Content-Disposition': content_disposition_attachment(download_name)
             }
         )
     except Exception as e:

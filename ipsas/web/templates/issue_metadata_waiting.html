@@ -1,24 +1,34 @@
 {% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs, process_status %}
 
-{% block title %}Парсинг выпуска — IPSAS{% endblock %}
+{% block title %}Анализ выпуска — IPSAS{% endblock %}
+{% block topbar %}Работа с выпуском{% endblock %}
 
 {% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Анализ опубликованного выпуска', 'url': url_for('issue_metadata.issue_metadata_page')},
+  {'label': 'Выполнение'}
+]) }}
+
+{{ process_status('Обработка выпуска', [
+  {'label': 'Ссылка принята', 'state': 'is-done'},
+  {'label': 'Загрузка страницы выпуска', 'state': 'is-current'},
+  {'label': 'Разбор метаданных статей', 'state': ''},
+  {'label': 'Формирование отчёта', 'state': ''}
+]) }}
+
 <div class="card">
-  <h1 style="margin-bottom: 1rem; color: #667eea;">Парсинг выпуска запущен</h1>
-
-  <div style="background-color: #f8f9fa; padding: 1rem 1.25rem; border-radius: 8px; margin-bottom: 1rem;">
-    <div style="color:#333; font-weight: 600;">Ссылка:</div>
-    <div style="color:#666; margin-top: 0.25rem; word-break: break-all;">{{ issue_url }}</div>
+  <p class="muted" style="margin-top:0;">Ссылка:</p>
+  <p style="word-break:break-all; margin:0.25rem 0 1rem;">{{ issue_url }}</p>
+  <div id="status" class="alert alert-info" role="status" aria-live="polite">
+    <div class="alert-ico" aria-hidden="true">ℹ</div>
+    <div class="alert-body"><p class="alert-text" style="margin:0;">Ожидайте — выполняется анализ. Не закрывайте страницу.</p></div>
   </div>
-
-  <div id="status" style="padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid #e0e0e0; background: #fff;">
-    Ожидайте… идёт парсинг.
-  </div>
-  <div id="elapsed" style="margin-top: 0.6rem; color:#666;"></div>
-
-  <div style="margin-top: 1.25rem; display:flex; gap: 0.5rem; flex-wrap: wrap;">
-    <a class="btn btn-secondary" href="{{ url_for('issue_metadata.issue_metadata_page') }}">Назад</a>
-    <a class="btn btn-secondary" href="{{ url_for('issue_metadata.issue_metadata_task_result', task_id=task_id) }}">Обновить</a>
+  <div id="elapsed" class="muted"></div>
+  <div class="btn-row">
+    <a class="btn btn-secondary" href="{{ url_for('issue_metadata.issue_metadata_page') }}">Отмена</a>
+    <a class="btn btn-ghost" href="{{ url_for('issue_metadata.issue_metadata_task_result', task_id=task_id) }}">Обновить</a>
   </div>
 </div>
 
@@ -35,19 +45,21 @@
         return;
       }
       if (data.status === "error") {
-        document.getElementById("status").textContent = "Ошибка: " + (data.error || "Неизвестная ошибка");
+        const box = document.getElementById("status");
+        box.className = "alert alert-error";
+        box.innerHTML = '<div class="alert-ico" aria-hidden="true">✕</div><div class="alert-body"><p class="alert-title">Не удалось завершить анализ</p><p class="alert-text">' +
+          (data.error || "Неизвестная ошибка") +
+          '. Проверьте ссылку и попробуйте снова.</p></div>';
         return;
       }
       if (data.status === "running") {
-        document.getElementById("elapsed").textContent = `Идёт ${data.elapsed_s || 0}с…`;
+        document.getElementById("elapsed").textContent = "Идёт " + (data.elapsed_s || 0) + " с…";
       }
     } catch (e) {
       document.getElementById("elapsed").textContent = "Не удалось получить статус. Повторяем…";
     }
     setTimeout(poll, 3000);
   }
-
   poll();
 </script>
 {% endblock %}
-

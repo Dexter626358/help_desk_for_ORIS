@@ -13,33 +13,20 @@ from flask import Blueprint, Response, render_template, request, redirect, url_f
 
 from ipsas.config.settings import get_settings
 from ipsas.modules.issue_metadata_parser import IssueMetadataParser
+from ipsas.modules.issue_metadata.report_summary import group_findings
 from ipsas.modules.validator import Validator
 from ipsas.utils.logger import get_logger
+from ipsas.utils.temp_files import cleanup_temp_dir
+from ipsas.web.issue_metadata_tasks import (
+    cleanup_expired_tasks,
+    task_get as _task_get,
+    task_pop as _task_pop,
+    task_set as _task_set,
+)
 
 logger = get_logger(__name__)
 
 issue_metadata_bp = Blueprint("issue_metadata", __name__, template_folder="templates")
-
-_tasks_lock = threading.Lock()
-_tasks: dict[str, dict[str, Any]] = {}
-
-
-def _task_set(task_id: str, **kwargs: Any) -> None:
-    with _tasks_lock:
-        _tasks.setdefault(task_id, {}).update(kwargs)
-
-
-def _task_get(task_id: str) -> dict[str, Any] | None:
-    with _tasks_lock:
-        if task_id not in _tasks:
-            return None
-        return dict(_tasks[task_id])
-
-
-def _task_pop(task_id: str) -> None:
-    with _tasks_lock:
-        _tasks.pop(task_id, None)
-
 
 _inflight_lock = threading.Lock()
 
@@ -133,6 +120,8 @@ def process_issue_metadata():
         return redirect(url_for("issue_metadata.issue_metadata_page"))
 
     user_key = "anonymous"
+    cleanup_temp_dir(get_settings().temp_dir)
+    cleanup_expired_tasks()
     try:
         inflight_ttl_s = int(os.getenv("ISSUE_PARSER_INFLIGHT_TTL_S", str(15 * 60)))
     except ValueError:
@@ -281,14 +270,21 @@ def issue_metadata_task_result(task_id: str):
     issue_url = str(task.get("issue_url") or "")
     settings = get_settings()
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    report_temp_name = f"{timestamp}_{task_id[:8]}_issue_report.html"
-    report_temp_path = settings.temp_dir / report_temp_name
+    issue_data = result.get("issue") if isinstance(result.get("issue"), dict) else {}
+    articles_data = result.get("articles") if isinstance(result.get("articles"), list) else []
+    findings = group_findings(issue_data.get("warnings") or [], articles_data)
     report_html = render_template(
         "issue_metadata_report.html",
         result=result,
         issue_url=issue_url,
         generated_at=datetime.now().strftime("%d.%m.%Y %H:%M"),
+        findings=findings,
     )
+    from ipsas.utils.download_names import basename_from_issue_meta, with_report_stem
+
+    issue_base = with_report_stem(basename_from_issue_meta(issue_data), fallback="issue")
+    report_temp_name = f"{timestamp}_{task_id[:8]}_{issue_base}.html"
+    report_temp_path = settings.temp_dir / report_temp_name
     report_temp_path.write_text(report_html, encoding="utf-8")
 
     _task_pop(task_id)
@@ -329,12 +325,11 @@ def download_issue_report(filename: str):
         flash("Файл отчёта не найден", "error")
         return redirect(url_for("issue_metadata.issue_metadata_page"))
 
-    download_name = "issue_report.html"
-    parts = filename.split("_", 2)
-    if len(parts) >= 3:
-        download_name = parts[2]
-        if not download_name.lower().endswith(".html"):
-            download_name = f"{download_name}.html"
+    from ipsas.utils.download_names import content_disposition_attachment, strip_temp_prefix
+
+    download_name = strip_temp_prefix(filename)
+    if not download_name.lower().endswith(".html"):
+        download_name = f"{download_name}.html"
 
     def generate():
         try:
@@ -351,5 +346,5 @@ def download_issue_report(filename: str):
     return Response(
         generate(),
         mimetype="text/html",
-        headers={"Content-Disposition": f'attachment; filename="{download_name}"'},
+        headers={"Content-Disposition": content_disposition_attachment(download_name)},
     )

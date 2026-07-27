@@ -4,484 +4,182 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}IPSAS{% endblock %}</title>
-
-    <style>
-        :root {
-            --primary: #667eea;
-            --primary-hover: #5568d3;
-
-            --bg1: #667eea;
-            --bg2: #764ba2;
-
-            --text: #333;
-            --muted: #6c757d;
-
-            --surface: rgba(255, 255, 255, 0.95);
-            --card: #fff;
-
-            --border: #ddd;
-            --radius: 10px;
-
-            --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.1);
-            --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.2);
-
-            --focus: 0 0 0 3px rgba(102, 126, 234, 0.15);
-        }
-
-        * { box-sizing: border-box; }
-        body { margin: 0; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            color: var(--text);
-        }
-
-        .main-wrapper {
-            display: flex;
-            flex: 1;
-            min-height: calc(100vh - 80px);
-        }
-
-        .sidebar {
-            width: 280px;
-            background-color: var(--surface);
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-            padding: 2rem 1rem;
-            overflow-y: auto;
-        }
-
-        .sidebar h3 {
-            color: var(--primary);
-            margin: 0 0 1rem 0;
-            font-size: 1.1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--primary);
-        }
-
-        .sidebar-menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .sidebar-menu li { margin-bottom: 0.5rem; }
-
-        .sidebar-menu a {
-            display: block;
-            padding: 0.75rem 1rem;
-            color: var(--text);
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.2s, color 0.2s;
-        }
-
-        .sidebar-menu a:hover {
-            background-color: #f0f0f0;
-            color: var(--primary);
-        }
-
-        .sidebar-menu a.active,
-        .sidebar-menu a[aria-current="page"] {
-            background-color: var(--primary);
-            color: #fff;
-        }
-
-        .sidebar-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .sidebar-group-title {
-            color: var(--muted);
-            font-size: 0.875rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.5rem;
-            padding: 0 1rem;
-        }
-
-        .sidebar-group-menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .sidebar-group-menu li {
-            margin-bottom: 0.5rem;
-        }
-
-        .sidebar-group-menu a {
-            display: block;
-            padding: 0.75rem 1rem;
-            color: var(--text);
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.2s, color 0.2s;
-        }
-
-        .sidebar-group-menu a:hover {
-            background-color: #f0f0f0;
-            color: var(--primary);
-        }
-
-        .sidebar-group-menu a.active,
-        .sidebar-group-menu a[aria-current="page"] {
-            background-color: var(--primary);
-            color: #fff;
-        }
-
-        .content-wrapper {
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .navbar {
-            background-color: var(--surface);
-            padding: 1rem 2rem;
-            box-shadow: var(--shadow-sm);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .navbar-brand {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-            text-decoration: none;
-            white-space: nowrap;
-        }
-
-        .navbar-nav {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-        }
-
-        .navbar-nav a {
-            color: var(--text);
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            transition: background-color 0.2s;
-        }
-
-        .navbar-nav a:hover { background-color: #f0f0f0; }
-
-        .container {
-            max-width: 1200px;
-            width: 100%;
-            margin: 2rem auto;
-            padding: 0 2rem;
-        }
-
-        .card {
-            background: var(--card);
-            border-radius: var(--radius);
-            padding: 2rem;
-            box-shadow: var(--shadow-md);
-        }
-
-        /* Alerts */
-        .alert {
-            padding: 1rem;
-            border-radius: 5px;
-            margin-bottom: 1rem;
-        }
-
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .alert-error,
-        .alert-danger { /* алиас под распространённую категорию */
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .alert-info {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-
-        /* Buttons */
-        .btn {
-            display: inline-block;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            font-size: 1rem;
-            transition: background-color 0.2s, transform 0.1s;
-        }
-        .btn:active { transform: translateY(1px); }
-
-        .btn-primary { background-color: var(--primary); color: #fff; }
-        .btn-primary:hover { background-color: var(--primary-hover); }
-
-        .btn-danger { background-color: #dc3545; color: #fff; }
-        .btn-danger:hover { background-color: #c82333; }
-
-        .btn-secondary { background-color: var(--muted); color: #fff; }
-        .btn-secondary:hover { background-color: #5a6268; }
-
-        /* Forms */
-        .form-group { margin-bottom: 1.5rem; }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: var(--text);
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border);
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: var(--focus);
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .checkbox-group input[type="checkbox"] { width: auto; }
-
-        /* Tables */
-        .table-container {
-            max-height: 70vh;
-            overflow: auto;
-            margin-top: 1rem;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-
-        table th,
-        table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .table-container table th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Badges */
-        .badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        .badge-success { background-color: #d4edda; color: #155724; }
-        .badge-danger { background-color: #f8d7da; color: #721c24; }
-        .badge-primary { background-color: var(--primary); color: #fff; }
-        .badge-info { background-color: #17a2b8; color: #fff; }
-
-        @media (max-width: 768px) {
-            .main-wrapper { flex-direction: column; }
-
-            .sidebar {
-                width: 100%;
-                padding: 1rem;
-                /* лучше не фиксировать жёстко высоту, но если нужно — можно вернуть */
-                /* max-height: 200px; */
-            }
-
-            .navbar { padding: 1rem; }
-            .container { margin: 1rem auto; padding: 0 1rem; }
-            .card { padding: 1.25rem; }
-        }
-    </style>
-
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}" />
     {% block extra_css %}{% endblock %}
-
-    {# Макрос для flash (можно вынести в отдельный файл и подключать через import) #}
-    {% macro render_flashes() -%}
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div aria-live="polite">
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}" role="alert">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-    {%- endmacro %}
 </head>
-
 <body>
-    <nav class="navbar" role="navigation" aria-label="Основная навигация">
-        <a href="{{ url_for('main.dashboard') }}" class="navbar-brand">IPSAS</a>
-        <div class="navbar-nav">
-            <a href="{{ url_for('main.dashboard') }}">Дашборд</a>
+{% from "macros/ui.html" import icon %}
+{% set ep = request.endpoint or '' %}
+{% set dash_active = ep in ['main.dashboard', 'main.index'] %}
+{% set xml_active = ep.startswith('xml_validation.') or ep.startswith('xml_report.') %}
+{% set meta_active = false %}
+{% set issue_active = ep.startswith('issue_metadata.') %}
+{% set ref_hub_active = ep == 'main.bibliography_hub' %}
+{% set ref_num_active = ep.startswith('reference_processing.') %}
+{% set ref_clean_active = ep.startswith('reference_cleaning.') %}
+{% set ref_fmt_active = ep.startswith('reference_formatting.') %}
+{% set bib_active = ref_hub_active or ref_num_active or ref_clean_active or ref_fmt_active %}
+{% set pdf_active = ep.startswith('pdf_matching.') %}
+{% set csv_active = ep.startswith('issue_pdf_csv.') %}
+{% set check_open = xml_active or issue_active %}
+{% set fix_open = bib_active or pdf_active %}
+{% set issue_open = issue_active or csv_active %}
+
+<div class="app-shell" data-app-shell>
+    <aside class="sidebar" aria-label="Основное меню">
+        <div class="sidebar-header">
+            <a class="brand" href="{{ url_for('main.dashboard') }}" title="IPSAS — обзор">
+                <span class="brand-mark" aria-hidden="true">IP</span>
+                <span class="brand-text">IPSAS</span>
+            </a>
+            <button type="button" class="sidebar-toggle" data-sidebar-toggle
+                    aria-label="Свернуть или развернуть меню"
+                    data-tooltip="Свернуть меню">
+                <span aria-hidden="true">☰</span>
+            </button>
         </div>
-    </nav>
 
-    <div class="main-wrapper">
-        <aside class="sidebar" role="complementary" aria-label="Сервисы">
-                <h3>Сервисы</h3>
-                
-                <div class="sidebar-group">
-                    <div class="sidebar-group-title">Обработка XML</div>
-                    <ul class="sidebar-group-menu">
-                        {% set xml_active = request.endpoint in [
-                            'xml_validation.xml_validator_page',
-                            'xml_validation.validate_xml'
-                        ] %}
-                        <li>
-                            <a href="{{ url_for('xml_validation.xml_validator_page') }}"
-                               class="{{ 'active' if xml_active else '' }}"
-                               {{ 'aria-current="page"' if xml_active else '' }}>
-                                Валидация XML
-                            </a>
-                        </li>
-                        {% set xml_report_active = request.endpoint in [
-                            'xml_report.xml_report_page',
-                            'xml_report.generate_report',
-                            'xml_report.download_report'
-                        ] %}
-                        <li>
-                            <a href="{{ url_for('xml_report.xml_report_page') }}"
-                               class="{{ 'active' if xml_report_active else '' }}"
-                               {{ 'aria-current="page"' if xml_report_active else '' }}>
-                                Анализ XML журнала
-                            </a>
-                        </li>
-                        {% set ref_active = request.endpoint in [
-                            'reference_processing.reference_processing_page',
-                            'reference_processing.process_references',
-                            'reference_processing.download_processed_file'
-                        ] %}
-                        <li>
-                            <a href="{{ url_for('reference_processing.reference_processing_page') }}"
-                               class="{{ 'active' if ref_active else '' }}"
-                               {{ 'aria-current="page"' if ref_active else '' }}>
-                                Удаление нумерации источников
-                            </a>
-                        </li>
-                        {% set ref_clean_active = request.endpoint in [
-                            'reference_cleaning.reference_cleaning_page',
-                            'reference_cleaning.process_reference_cleaning',
-                            'reference_cleaning.download_reference_cleaned_file'
-                        ] %}
-                        <li>
-                            <a href="{{ url_for('reference_cleaning.reference_cleaning_page') }}"
-                               class="{{ 'active' if ref_clean_active else '' }}"
-                               {{ 'aria-current="page"' if ref_clean_active else '' }}>
-                                Дедупликация references + удаление нумерации
-                            </a>
-                        </li>
-                        {% set ref_format_active = request.endpoint in [
-                            'reference_formatting.reference_formatting_page',
-                            'reference_formatting.process_reference_formatting',
-                            'reference_formatting.download_formatted_file'
-                        ] %}
-                        <li>
-                            <a href="{{ url_for('reference_formatting.reference_formatting_page') }}"
-                               class="{{ 'active' if ref_format_active else '' }}"
-                               {{ 'aria-current="page"' if ref_format_active else '' }}>
-                                Форматирование списков литературы  в xml файле
-                            </a>
-                        </li>
-                        {% set pdf_active = request.endpoint in [
-                            'pdf_matching.pdf_matching_page',
-                            'pdf_matching.process_pdf_matching',
-                            'pdf_matching.download_processed_zip'
-                        ] %}
-                        <li>
-                            <a href="{{ url_for('pdf_matching.pdf_matching_page') }}"
-                               class="{{ 'active' if pdf_active else '' }}"
-                               {{ 'aria-current="page"' if pdf_active else '' }}>
-                                Добавление названий PDF файлов в xml
-                            </a>
-                        </li>
-                        {% set issue_active = request.endpoint in [
-                            'issue_metadata.issue_metadata_page',
-                            'issue_metadata.process_issue_metadata'
-                        ] %}
-                        <li>
-                            <a href="{{ url_for('issue_metadata.issue_metadata_page') }}"
-                               class="{{ 'active' if issue_active else '' }}"
-                               {{ 'aria-current="page"' if issue_active else '' }}>
-                                Парсер загруженного выпуска
-                            </a>
-                        </li>
-                        {% set issue_pdf_csv_active = request.endpoint in [
-                            'issue_pdf_csv.issue_pdf_csv_page',
-                            'issue_pdf_csv.process_issue_pdf_csv',
-                            'issue_pdf_csv.manual_assign_issue_pdf_csv',
-                            'issue_pdf_csv.download_issue_pdf_csv'
-                        ] %}
-                        <li>
-                            <a href="{{ url_for('issue_pdf_csv.issue_pdf_csv_page') }}"
-                               class="{{ 'active' if issue_pdf_csv_active else '' }}"
-                               {{ 'aria-current="page"' if issue_pdf_csv_active else '' }}>
-                                Формирование csv файла выпуска для добавления пдф статей к опубликованному выпуску
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+        <nav class="sidebar-nav" aria-label="Сервисы">
+            <ul class="nav-section-body nav-section-body--root">
+                <li>
+                    <a class="nav-link {{ 'is-active' if dash_active else '' }}"
+                       href="{{ url_for('main.dashboard') }}"
+                       data-tooltip="Обзор"
+                       title="Обзор"
+                       {{ 'aria-current="page"' if dash_active else '' }}>
+                        <span class="nav-ico" aria-hidden="true">{{ icon('home', 18) }}</span>
+                        <span class="nav-label">Обзор</span>
+                    </a>
+                </li>
+            </ul>
 
-                <div class="sidebar-group">
-                    <ul class="sidebar-group-menu">
-                        <li>
-                            <a href="https://parseeditorialboard-production.up.railway.app"
-                               target="_blank"
-                               rel="noopener noreferrer">
-                                Обработка ред коллегии
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </aside>
-
-        <main class="content-wrapper" role="main">
-            <div class="container">
-                {{ render_flashes() }}
-                {% block content %}{% endblock %}
+            <div class="nav-section {{ 'is-open' if check_open else 'is-open' }}" data-nav-section="check">
+                <button type="button" class="nav-section-toggle" data-nav-section-toggle aria-expanded="true">
+                    <span>Проверка файлов</span>
+                    <span class="chevron" aria-hidden="true">▸</span>
+                </button>
+                <ul class="nav-section-body">
+                    <li>
+                        <a class="nav-link {{ 'is-active' if xml_active else '' }}"
+                           href="{{ url_for('xml_validation.xml_validator_page') }}"
+                           data-tooltip="Валидатор XML"
+                           title="Валидатор XML"
+                           {{ 'aria-current="page"' if xml_active else '' }}>
+                            <span class="nav-ico" aria-hidden="true">{{ icon('file-check', 18) }}</span>
+                            <span class="nav-label">Валидатор XML</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav-link {{ 'is-active' if issue_active else '' }}"
+                           href="{{ url_for('issue_metadata.issue_metadata_page') }}"
+                           data-tooltip="Анализ опубликованного выпуска"
+                           title="Анализ опубликованного выпуска"
+                           {{ 'aria-current="page"' if issue_active else '' }}>
+                            <span class="nav-ico" aria-hidden="true">{{ icon('globe', 18) }}</span>
+                            <span class="nav-label">Анализ опубликованного выпуска</span>
+                        </a>
+                    </li>
+                </ul>
             </div>
+
+            <div class="nav-section {{ 'is-open' if fix_open else 'is-open' }}" data-nav-section="fix">
+                <button type="button" class="nav-section-toggle" data-nav-section-toggle aria-expanded="true">
+                    <span>Исправление XML</span>
+                    <span class="chevron" aria-hidden="true">▸</span>
+                </button>
+                <ul class="nav-section-body">
+                    <li>
+                        <a class="nav-link {{ 'is-active' if bib_active else '' }}"
+                           href="{{ url_for('main.bibliography_hub') }}"
+                           data-tooltip="Обработка списка литературы"
+                           title="Обработка списка литературы"
+                           {{ 'aria-current="page"' if bib_active else '' }}>
+                            <span class="nav-ico" aria-hidden="true">{{ icon('book-open', 18) }}</span>
+                            <span class="nav-label">Обработка списка литературы</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav-link {{ 'is-active' if pdf_active else '' }}"
+                           href="{{ url_for('pdf_matching.pdf_matching_page') }}"
+                           data-tooltip="Добавление PDF в XML"
+                           title="Добавление PDF в XML"
+                           {{ 'aria-current="page"' if pdf_active else '' }}>
+                            <span class="nav-ico" aria-hidden="true">{{ icon('file-plus', 18) }}</span>
+                            <span class="nav-label">Добавление PDF в XML</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section {{ 'is-open' if issue_open else 'is-open' }}" data-nav-section="issue">
+                <button type="button" class="nav-section-toggle" data-nav-section-toggle aria-expanded="true">
+                    <span>Работа с выпуском</span>
+                    <span class="chevron" aria-hidden="true">▸</span>
+                </button>
+                <ul class="nav-section-body">
+                    <li>
+                        <a class="nav-link {{ 'is-active' if issue_active else '' }}"
+                           href="{{ url_for('issue_metadata.issue_metadata_page') }}"
+                           data-tooltip="Анализ выпуска"
+                           title="Анализ выпуска"
+                           {{ 'aria-current="page"' if issue_active else '' }}>
+                            <span class="nav-ico" aria-hidden="true">{{ icon('globe', 18) }}</span>
+                            <span class="nav-label">Анализ выпуска</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav-link {{ 'is-active' if csv_active else '' }}"
+                           href="{{ url_for('issue_pdf_csv.issue_pdf_csv_page') }}"
+                           data-tooltip="CSV для загрузки PDF"
+                           title="CSV для загрузки PDF"
+                           {{ 'aria-current="page"' if csv_active else '' }}>
+                            <span class="nav-ico" aria-hidden="true">{{ icon('table', 18) }}</span>
+                            <span class="nav-label">CSV для загрузки PDF</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section is-open" data-nav-section="meta">
+                <button type="button" class="nav-section-toggle" data-nav-section-toggle aria-expanded="true">
+                    <span>Метаданные журнала</span>
+                    <span class="chevron" aria-hidden="true">▸</span>
+                </button>
+                <ul class="nav-section-body">
+                    <li>
+                        <a class="nav-link"
+                           href="https://parseeditorialboard-production.up.railway.app"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           data-tooltip="Обработка редакционной коллегии"
+                           title="Обработка редакционной коллегии (откроется в новой вкладке)">
+                            <span class="nav-ico" aria-hidden="true">{{ icon('external-link', 18) }}</span>
+                            <span class="nav-label">Обработка редакционной коллегии</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </aside>
+
+    <div class="overlay-backdrop" data-nav-backdrop></div>
+
+    <div class="workspace">
+        <header class="topbar">
+            <button type="button" class="mobile-nav-btn" data-mobile-nav aria-label="Открыть меню">☰</button>
+            <div class="topbar-title">{% block topbar %}Рабочее пространство{% endblock %}</div>
+        </header>
+
+        <main class="page" id="main-content">
+            {% from "macros/ui.html" import flashes %}
+            {{ flashes() }}
+            {% block content %}{% endblock %}
         </main>
     </div>
+</div>
 
-    {% block extra_js %}{% endblock %}
+<script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>

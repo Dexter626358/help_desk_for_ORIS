@@ -1,0 +1,86 @@
+/* IPSAS theme tokens — soft blue professional UI */
+
+:root {
+  /* Primary */
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-soft: #dbeafe;
+  --primary-soft-strong: #bfdbfe;
+  --accent-blue: #60a5fa;
+
+  /* Backgrounds */
+  --app-background: #eef4fb;
+  --content-background: linear-gradient(180deg, #ddebfa 0%, #eef4fb 100%);
+  --sidebar-background: #ffffff;
+  --header-background: rgba(255, 255, 255, 0.78);
+  --surface: #ffffff;
+  --surface-muted: #f8fbff;
+  --card-hover-tint: #f4f9ff;
+
+  /* Text */
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-on-primary: #ffffff;
+
+  /* Borders */
+  --border: #d9e5f3;
+  --border-strong: #c7d7ea;
+  --focus-ring: rgba(37, 99, 235, 0.25);
+
+  /* Status */
+  --success: #16a34a;
+  --success-bg: #ecfdf3;
+  --success-border: #bbf7d0;
+  --warning: #d97706;
+  --warning-bg: #fff7ed;
+  --warning-border: #fed7aa;
+  --error: #dc2626;
+  --error-bg: #fef2f2;
+  --error-border: #fecaca;
+  --info: #2563eb;
+  --info-bg: #eff6ff;
+  --info-border: #bfdbfe;
+
+  /* Shadows */
+  --card-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(37, 99, 235, 0.06);
+  --card-hover-shadow: 0 4px 12px rgba(15, 23, 42, 0.05), 0 12px 30px rgba(37, 99, 235, 0.1);
+  --focus: 0 0 0 3px var(--focus-ring);
+
+  /* Layout */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --sidebar-w: 300px;
+  --sidebar-w-collapsed: 72px;
+  --control-h: 44px;
+  --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: ui-monospace, "Cascadia Code", "Consolas", monospace;
+  --content-max: 1200px;
+
+  /* Backward-compatible aliases used across app.css */
+  --color-bg: var(--app-background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-muted);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text-primary);
+  --color-muted: var(--text-muted);
+  --color-text-secondary: var(--text-secondary);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-success-border: var(--success-border);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-border: var(--warning-border);
+  --color-danger: var(--error);
+  --color-danger-bg: var(--error-bg);
+  --color-danger-border: var(--error-border);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+  --color-info-border: var(--info-border);
+  --shadow: var(--card-shadow);
+}

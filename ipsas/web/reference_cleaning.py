@@ -5,7 +5,6 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from flask import Blueprint, Response, flash, redirect, render_template, request, url_for
 from lxml import etree
@@ -70,7 +69,7 @@ def process_reference_cleaning():
 
         parser = _create_strict_parser()
         tree = etree.parse(str(input_path), parser)
-        _, stats = clean_references_with_stats(tree)
+        _, stats, samples = clean_references_with_stats(tree)
         tree.write(
             str(output_path),
             encoding="UTF-8",
@@ -83,11 +82,22 @@ def process_reference_cleaning():
         except Exception:
             pass
 
+        from ipsas.utils.operation_history import record_operation
+
+        record_operation(
+            tool="bibliography",
+            title="Очистка библиографии",
+            status="ok",
+            detail=f"{original_filename}: изменено {stats.changed_references}",
+            url=url_for("reference_cleaning.reference_cleaning_page"),
+        )
+
         return render_template(
             "reference_cleaning_result.html",
             filename=original_filename,
             processed_filename=output_path.name,
             stats=stats,
+            samples=samples,
         )
     except etree.XMLSyntaxError as e:
         logger.error(f"Ошибка синтаксиса XML: {e}")
@@ -123,6 +133,15 @@ def download_reference_cleaned_file(filename: str) -> Response:
         flash("Файл не найден", "error")
         return redirect(url_for("reference_cleaning.reference_cleaning_page"))
 
+    from ipsas.utils.download_names import (
+        attachment_filename_from_xml,
+        content_disposition_attachment,
+    )
+
+    download_name = attachment_filename_from_xml(
+        file_path, extension=".xml", fallback="references_cleaned"
+    )
+
     # Отдаём как attachment и удаляем после отправки
     def generate():
         try:
@@ -136,16 +155,9 @@ def download_reference_cleaned_file(filename: str) -> Response:
             except Exception as e:
                 logger.warning(f"Не удалось удалить файл {file_path.name}: {e}")
 
-    download_name: Optional[str] = None
-    parts = filename.split("_", 2)
-    if len(parts) >= 3:
-        download_name = parts[2]
-    else:
-        download_name = filename
-
     return Response(
         generate(),
         mimetype="application/xml",
-        headers={"Content-Disposition": f'attachment; filename="{download_name}"'},
+        headers={"Content-Disposition": content_disposition_attachment(download_name)},
     )
 

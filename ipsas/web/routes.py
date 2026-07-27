@@ -20,4 +20,12 @@ def index():
 @main_bp.route("/dashboard")
 def dashboard():
     """Дашборд с сервисами."""
-    return render_template("dashboard.html")
+    from ipsas.utils.operation_history import list_operations
+
+    return render_template("dashboard.html", recent_operations=list_operations(limit=8))
+
+
+@main_bp.route("/services/bibliography")
+def bibliography_hub():
+    """Каталог инструментов обработки списка литературы."""
+    return render_template("bibliography_hub.html")

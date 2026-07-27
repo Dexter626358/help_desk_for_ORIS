@@ -1,55 +1,43 @@
 {% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs, result_summary, diff_samples %}
 
-{% block title %}Результаты форматирования списка литературы{% endblock %}
+{% block title %}Результат форматирования — IPSAS{% endblock %}
+{% block topbar %}Исправление XML{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h1 style="margin-bottom: 2rem; color: #333;">Результаты обработки</h1>
-    
-    {% if result.success %}
-    <div style="background-color: #d4edda; padding: 1rem; border-radius: 5px; margin-bottom: 2rem; border: 1px solid #c3e6cb;">
-        <h2 style="margin: 0; color: #155724; font-size: 1.1rem;">
-            ✓ Обработка завершена успешно
-        </h2>
-        <p style="margin: 0.5rem 0 0 0; color: #155724;">
-            Всего ссылок: {{ result.total_count }} | 
-            Обработано: {{ result.processed_count }}
-        </p>
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Библиография', 'url': url_for('main.bibliography_hub')},
+  {'label': 'Форматирование', 'url': url_for('reference_formatting.reference_formatting_page')},
+  {'label': 'Результат'}
+]) }}
+
+{% if result.success %}
+  {% call result_summary(
+    'ok',
+    'Форматирование завершено',
+    'Файл «' ~ original_filename ~ '»',
+    [
+      {'label': 'всего ссылок', 'value': result.total_count},
+      {'label': 'обработано', 'value': result.processed_count}
+    ]
+  ) %}
+    <div class="btn-row" style="margin-top:0.35rem;">
+      <a class="btn btn-primary"
+         href="{{ url_for('reference_formatting.download_formatted_file', filename=output_filename) }}">
+        Скачать отформатированный XML
+      </a>
+      <a class="btn btn-secondary" href="{{ url_for('reference_formatting.reference_formatting_page') }}">Обработать другой файл</a>
     </div>
-    
-    <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem;">
-        <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.2rem;">Отформатированный файл</h2>
-        <p style="color: #666; margin-bottom: 1rem;">
-            XML файл с отформатированным списком литературы готов к скачиванию. 
-            Файл будет автоматически удален после скачивания.
-        </p>
-        <a href="{{ url_for('reference_formatting.download_formatted_file', filename=output_filename) }}" 
-           class="btn btn-primary">
-            Скачать отформатированный файл
-        </a>
-        <small style="display: block; margin-top: 0.5rem; color: #999;">
-            ⚠️ Файл будет удален после скачивания. Убедитесь, что сохранили его на свой компьютер.
-        </small>
+    <p class="hint-inline" style="margin-top:0.5rem;">Файл будет удалён с сервера после скачивания.</p>
+  {% endcall %}
+
+  {{ diff_samples(samples, 'Примеры изменений (до / после)') }}
+{% else %}
+  {% call result_summary('error', 'Не удалось обработать файл', result.get('error', 'Неизвестная ошибка')) %}
+    <div class="btn-row" style="margin-top:0.35rem;">
+      <a class="btn btn-primary" href="{{ url_for('reference_formatting.reference_formatting_page') }}">Запустить повторно</a>
     </div>
-    
-    {% else %}
-    <div style="background-color: #f8d7da; padding: 1rem; border-radius: 5px; border: 1px solid #f5c6cb;">
-        <h2 style="margin: 0; color: #721c24; font-size: 1.1rem;">
-            ✗ Ошибка при обработке
-        </h2>
-        <p style="margin: 0.5rem 0 0 0; color: #721c24;">
-            {{ result.get('error', 'Неизвестная ошибка') }}
-        </p>
-    </div>
-    {% endif %}
-    
-    <div style="margin-top: 2rem;">
-        <a href="{{ url_for('reference_formatting.reference_formatting_page') }}" class="btn btn-secondary">
-            Обработать другой файл
-        </a>
-        <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">
-            Вернуться на главную
-        </a>
-    </div>
-</div>
+  {% endcall %}
+{% endif %}
 {% endblock %}

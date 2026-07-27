@@ -57,8 +57,8 @@ def process_issue_pdf_csv():
     zip_name = f"{timestamp}_{unique_id}_{original_zip_name}"
     zip_path = settings.temp_dir / zip_name
     extract_dir = settings.temp_dir / f"{timestamp}_{unique_id}_issue_pdf_extract"
-    csv_filename = f"{timestamp}_{unique_id}_issue_pdf.csv"
-    csv_path = settings.temp_dir / csv_filename
+    # Имя CSV уточним после парсинга выпуска (issn_год_том_номер)
+    csv_path = settings.temp_dir / f"{timestamp}_{unique_id}_issue_pdf.csv"
 
     try:
         file.save(str(zip_path))
@@ -70,11 +70,23 @@ def process_issue_pdf_csv():
             extract_dir=extract_dir,
         )
 
+        from ipsas.utils.download_names import basename_from_issue_meta, with_report_stem
+
+        issue_base = with_report_stem(
+            basename_from_issue_meta(result.get("issue") if isinstance(result.get("issue"), dict) else {}),
+            fallback="issue",
+        )
+        named_csv = settings.temp_dir / f"{timestamp}_{unique_id}_{issue_base}.csv"
+        if csv_path.exists() and named_csv != csv_path:
+            csv_path.replace(named_csv)
+            csv_path = named_csv
+            result["output_csv"] = csv_path
+
         return render_template(
             "issue_pdf_csv_result.html",
             issue_url=issue_url,
             result=result,
-            output_csv_filename=csv_filename,
+            output_csv_filename=csv_path.name,
         )
     except Exception as exc:
         logger.error("Ошибка формирования CSV выпуска: %s", exc, exc_info=True)
@@ -168,7 +180,11 @@ def download_issue_pdf_csv(filename: str):
         flash("CSV файл не найден", "error")
         return redirect(url_for("issue_pdf_csv.issue_pdf_csv_page"))
 
-    download_name = "issue_pdf.csv"
+    from ipsas.utils.download_names import content_disposition_attachment, strip_temp_prefix
+
+    download_name = strip_temp_prefix(filename)
+    if not download_name.lower().endswith(".csv"):
+        download_name = f"{Path(download_name).stem}.csv"
 
     def generate():
         try:
@@ -184,5 +200,5 @@ def download_issue_pdf_csv(filename: str):
     return Response(
         generate(),
         mimetype="text/csv; charset=utf-8",
-        headers={"Content-Disposition": f'attachment; filename="{download_name}"'},
+        headers={"Content-Disposition": content_disposition_attachment(download_name)},
     )

@@ -1,111 +1,180 @@
-"""Роуты для валидации XML файлов."""
+"""Роуты для валидации XML: XSD-схема и контроль метаданных."""
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
-from werkzeug.utils import secure_filename
-from pathlib import Path
+from __future__ import annotations
+
 import os
-from ipsas.modules.xml_validator import XMLValidator
+import uuid
+from datetime import datetime
+from pathlib import Path
+
+from flask import Blueprint, flash, redirect, render_template, request, url_for
+from werkzeug.utils import secure_filename
+
 from ipsas.config.settings import get_settings
+from ipsas.modules.journal_xml_analyzer import analyze_journal_xml
+from ipsas.modules.xml_validator import XMLValidator
 from ipsas.utils.logger import get_logger
+from ipsas.utils.operation_history import record_operation
+from ipsas.utils.temp_files import cleanup_temp_dir
 
 logger = get_logger(__name__)
 
-# Создание Blueprint для валидации XML
 xml_validation_bp = Blueprint("xml_validation", __name__, template_folder="templates")
+
+
+def _unlink_quiet(*paths: Path) -> None:
+    for path in paths:
+        try:
+            if path.exists():
+                path.unlink()
+        except OSError as e:
+            logger.warning("Не удалось удалить временный файл %s: %s", path.name, e)
+
+
+def _temp_ttl_seconds() -> int:
+    try:
+        return int(os.getenv("TEMP_FILE_TTL_SECONDS", str(6 * 60 * 60)))
+    except ValueError:
+        return 6 * 60 * 60
+
+
+def _schema_ok(result: dict) -> bool:
+    if result.get("schemas_results") is not None:
+        return bool(result.get("overall_valid"))
+    return bool(result.get("valid"))
 
 
 @xml_validation_bp.route("/xml-validator")
 def xml_validator_page():
-    """Страница валидации XML файлов."""
+    """Единая страница валидатора XML (схема + метаданные)."""
     settings = get_settings()
-    
-    # Ищем XSD схемы в директории schemas
-    schemas_dir = settings.schemas_dir
-    schemas = []
-    if schemas_dir.exists():
-        schemas = [f.name for f in schemas_dir.glob("*.xsd")]
-    
+    schemas: list[str] = []
+    if settings.schemas_dir.exists():
+        schemas = [f.name for f in settings.schemas_dir.glob("*.xsd")]
     return render_template("xml_validator.html", schemas=schemas)
 
 
 @xml_validation_bp.route("/xml-validator/validate", methods=["POST"])
 def validate_xml():
-    """Валидация загруженного XML файла."""
+    """Проверка XML по XSD и анализ метаданных journal."""
     settings = get_settings()
-    
-    # Проверка наличия файла
+    cleanup_temp_dir(settings.temp_dir, ttl_seconds=_temp_ttl_seconds())
+
     if "xml_file" not in request.files:
         flash("Файл не был загружен", "error")
         return redirect(url_for("xml_validation.xml_validator_page"))
-    
+
     file = request.files["xml_file"]
-    
-    if file.filename == "":
+    if not file.filename:
         flash("Файл не выбран", "error")
         return redirect(url_for("xml_validation.xml_validator_page"))
-    
-    # Проверка расширения
+
     if not file.filename.lower().endswith(".xml"):
         flash("Поддерживаются только XML файлы", "error")
         return redirect(url_for("xml_validation.xml_validator_page"))
-    
-    # Сохранение файла во временную директорию
-    filename = secure_filename(file.filename)
-    temp_path = settings.temp_dir / filename
-    
+
+    unique_id = uuid.uuid4().hex[:8]
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    safe_upload = secure_filename(file.filename) or f"upload_{unique_id}.xml"
+    display_name = safe_upload if safe_upload != f"upload_{unique_id}.xml" else file.filename
+    temp_path = settings.temp_dir / f"{timestamp}_{unique_id}_{safe_upload}"
+
+    schema_name = (request.form.get("schema") or "").strip()
+    check_schema = request.form.get("check_schema") == "1"
+    check_metadata = request.form.get("check_metadata") == "1"
+    if not check_schema and not check_metadata:
+        check_schema = True
+        check_metadata = True
+
     try:
         file.save(str(temp_path))
-        
-        # Получение выбранной схемы
-        schema_name = request.form.get("schema", "")
-        schema_paths = []
-        
-        if schema_name:
-            # Если выбрана схема
-            schema_path = settings.schemas_dir / schema_name
-            if not schema_path.exists():
-                flash(f"Схема {schema_name} не найдена", "error")
-                return redirect(url_for("xml_validation.xml_validator_page"))
-            schema_paths = [schema_path]
-        
-        # Инициализация валидатора
-        validator = XMLValidator()
-        
-        # Валидация файла
-        if len(schema_paths) == 1:
-            # Проверка по одной схеме
-            validator.load_schema(schema_paths[0])
-            result = validator.validate_xml_file(temp_path)
-            schema_name = schema_paths[0].name
-        else:
-            # Проверка только синтаксиса XML
-            result = validator.validate_xml_file(temp_path)
-            schema_name = "Не указана"
-        
-        # Удаление временного файла
+
         try:
-            temp_path.unlink()
-        except:
-            pass
-        
-        # Отображение результатов
+            size = temp_path.stat().st_size
+        except OSError:
+            size = None
+        if size is not None and size > settings.max_file_size:
+            _unlink_quiet(temp_path)
+            max_mb = settings.max_file_size / (1024 * 1024)
+            flash(f"Файл слишком большой. Максимальный размер: {max_mb:.1f} MB", "error")
+            return redirect(url_for("xml_validation.xml_validator_page"))
+
+        schema_result: dict | None = None
+        schema_label = "не выполнялась"
+        if check_schema:
+            validator = XMLValidator()
+            if schema_name:
+                schema_path = settings.schemas_dir / schema_name
+                if not schema_path.exists():
+                    flash(f"Схема {schema_name} не найдена", "error")
+                    _unlink_quiet(temp_path)
+                    return redirect(url_for("xml_validation.xml_validator_page"))
+                validator.load_schema(schema_path)
+                schema_result = validator.validate_xml_file(temp_path)
+                schema_label = schema_path.name
+            else:
+                schema_result = validator.validate_xml_file(temp_path)
+                schema_label = "только синтаксис"
+
+        report = None
+        metadata_error: str | None = None
+        if check_metadata:
+            try:
+                report = analyze_journal_xml(temp_path)
+            except ValueError as e:
+                metadata_error = str(e)
+            except Exception as e:
+                logger.error("Ошибка анализа метаданных: %s", e, exc_info=True)
+                metadata_error = f"Не удалось проанализировать метаданные: {e}"
+
+        schema_passed = True if schema_result is None else _schema_ok(schema_result)
+        meta_errors = 0
+        if report and isinstance(report.get("summary"), dict):
+            meta_errors = int(report["summary"].get("articles_with_errors") or 0)
+
+        status = "ok"
+        if (schema_result is not None and not schema_passed) or metadata_error or meta_errors:
+            status = "error" if (schema_result is not None and not schema_passed) or metadata_error else "ok"
+
+        detail_parts = [display_name]
+        if schema_result is not None:
+            detail_parts.append("схема OK" if schema_passed else "ошибки схемы")
+        if report is not None:
+            detail_parts.append(
+                f"статей {report.get('summary', {}).get('articles_total', '?')}, "
+                f"ошибок метаданных {meta_errors}"
+            )
+        elif check_metadata and metadata_error:
+            detail_parts.append("метаданные недоступны")
+
+        record_operation(
+            tool="xml_validator",
+            title="Валидатор XML",
+            status=status if status == "ok" else "error",
+            detail="; ".join(detail_parts),
+            url=url_for("xml_validation.xml_validator_page"),
+        )
+
+        # Файл оставляем для скачивания HTML-отчёта, если метаданные есть.
+        keep_file = report is not None
+        xml_filename = temp_path.name if keep_file else None
+        if not keep_file:
+            _unlink_quiet(temp_path)
+
         return render_template(
             "xml_validation_result.html",
-            result=result,
-            filename=filename,
-            schema_name=schema_name if schema_name else "Не указана"
+            filename=display_name,
+            schema_name=schema_label,
+            schema_result=schema_result,
+            check_schema=check_schema,
+            check_metadata=check_metadata,
+            report=report,
+            metadata_error=metadata_error,
+            xml_filename=xml_filename,
         )
-        
-    except Exception as e:
-        logger.error(f"Ошибка при валидации XML: {e}")
-        flash(f"Ошибка при обработке файла: {str(e)}", "error")
-        
-        # Удаление временного файла в случае ошибки
-        try:
-            if temp_path.exists():
-                temp_path.unlink()
-        except:
-            pass
-        
-        return redirect(url_for("xml_validation.xml_validator_page"))
 
+    except Exception as e:
+        logger.error("Ошибка при валидации XML: %s", e, exc_info=True)
+        flash(f"Ошибка при обработке файла: {str(e)}", "error")
+        _unlink_quiet(temp_path)
+        return redirect(url_for("xml_validation.xml_validator_page"))

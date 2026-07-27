@@ -65,22 +65,40 @@ def remove_reference_numbering(xml_path: Path) -> Dict[str, Any]:
         numbering_pattern = re.compile(r"^\s*\d+\.\s+")
 
         processed = 0
+        samples: list[dict[str, str]] = []
+        max_samples = 12
         for ref in references:
             # Формат 1: текст прямо в <reference>
+            before = ref.text or ""
             updated_text, changed = _strip_numbering(ref.text, numbering_pattern)
             if changed:
                 ref.text = updated_text
                 processed += 1
+                if len(samples) < max_samples:
+                    samples.append(
+                        {
+                            "before": before.strip()[:500],
+                            "after": (updated_text or "").strip()[:500],
+                        }
+                    )
                 logger.debug(f"Удалена нумерация из reference: {(ref.text or '')[:50]}...")
                 continue
 
             # Формат 2: текст в <reference>/<refInfo>/<text>
             text_elem = ref.find("refInfo/text")
             if text_elem is not None:
+                before = text_elem.text or ""
                 updated_text, changed = _strip_numbering(text_elem.text, numbering_pattern)
                 if changed:
                     text_elem.text = updated_text
                     processed += 1
+                    if len(samples) < max_samples:
+                        samples.append(
+                            {
+                                "before": before.strip()[:500],
+                                "after": (updated_text or "").strip()[:500],
+                            }
+                        )
                     logger.debug(
                         "Удалена нумерация из reference/refInfo/text: "
                         f"{(text_elem.text or '')[:50]}..."
@@ -100,6 +118,8 @@ def remove_reference_numbering(xml_path: Path) -> Dict[str, Any]:
 
         result["success"] = True
         result["processed_count"] = processed
+        result["total_references"] = len(references)
+        result["samples"] = samples
         result["output_path"] = output_path
 
         logger.info(

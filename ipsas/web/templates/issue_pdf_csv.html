@@ -1,54 +1,59 @@
 {% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs, file_upload %}
 
-{% block title %}Формирование csv файла выпуска для добавления пдф статей к опубликованному выпуску{% endblock %}
+{% block title %}CSV для загрузки PDF — IPSAS{% endblock %}
+{% block topbar %}Работа с выпуском{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h1 style="margin-bottom: 2rem; color: #333;">Формирование csv файла выпуска для добавления пдф статей к опубликованному выпуску</h1>
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Работа с выпуском'},
+  {'label': 'CSV для загрузки PDF'}
+]) }}
 
-    <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem;">
-        <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.2rem;">Инструкция</h2>
-        <ol style="color: #666; line-height: 1.8; margin-left: 1.5rem;">
-            <li>Укажите ссылку на опубликованный выпуск (например, <code>https://journals.rcsi.science/2713-3192/issue/view/23830</code>).</li>
-            <li>Загрузите ZIP архив с PDF файлами статей.</li>
-            <li>Сервис найдет статьи выпуска, возьмет только статьи с DOI и сформирует CSV без заголовков.</li>
-        </ol>
-        <div style="margin-top: 1rem; padding: 1rem; background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
-            <strong>Формат CSV:</strong> <code>doi;имя_pdf_файла;en_US</code><br>
-            Разделитель: <code>;</code>, заголовки не добавляются.
-        </div>
+<div class="card">
+  <h1 class="page-title">CSV для загрузки PDF</h1>
+  <p class="page-lead">
+    Сформируйте CSV-файл для загрузки PDF-файлов статей к опубликованному выпуску.
+  </p>
+
+  <form method="POST"
+        action="{{ url_for('issue_pdf_csv.process_issue_pdf_csv') }}"
+        enctype="multipart/form-data"
+        data-loading-form>
+    <div class="form-group">
+      <label for="issue_url">Ссылка на выпуск *</label>
+      <input
+        type="url"
+        id="issue_url"
+        name="issue_url"
+        data-url-field
+        placeholder="https://journals.rcsi.science/2713-3192/issue/view/23830"
+        required
+      >
+      <span class="form-help">Используются статьи выпуска с DOI.</span>
     </div>
 
-    <form method="POST" action="{{ url_for('issue_pdf_csv.process_issue_pdf_csv') }}" enctype="multipart/form-data">
-        <div class="form-group">
-            <label for="issue_url">Ссылка на выпуск *</label>
-            <input
-                type="url"
-                id="issue_url"
-                name="issue_url"
-                placeholder="https://journals.rcsi.science/2713-3192/issue/view/23830"
-                required
-            >
-        </div>
+    {{ file_upload(
+      name='zip_file',
+      input_id='zip_file',
+      accept='.zip',
+      label='ZIP-архив с PDF-файлами',
+      help_text='Архив с PDF-файлами статей',
+      max_size_mb=100
+    ) }}
 
-        <div class="form-group">
-            <label for="zip_file">ZIP архив с PDF файлами *</label>
-            <input
-                type="file"
-                id="zip_file"
-                name="zip_file"
-                accept=".zip"
-                required
-            >
-            <small style="color: #666; display: block; margin-top: 0.5rem;">
-                Поддерживаются только файлы <code>.zip</code>
-            </small>
-        </div>
+    <div class="btn-row">
+      <button type="submit" class="btn btn-primary" data-submit-btn data-loading-text="Формирование…" disabled>
+        Сформировать CSV
+      </button>
+      <span class="hint-inline" data-submit-hint>Укажите ссылку и загрузите ZIP-архив</span>
+    </div>
+  </form>
 
-        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-            <button type="submit" class="btn btn-primary">Сформировать CSV</button>
-            <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">Назад</a>
-        </div>
-    </form>
+  <details class="details-box">
+    <summary>Формат результата</summary>
+    <p class="muted">Строки вида <span class="mono">doi;имя_pdf_файла;en_US</span>, без заголовков, разделитель «;».</p>
+  </details>
 </div>
 {% endblock %}

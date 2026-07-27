@@ -1,30 +1,149 @@
 {% extends "base.html" %}
+{% from "macros/ui.html" import icon %}
 
-{% block title %}Дашборд - IPSAS{% endblock %}
+{% block title %}Обзор — IPSAS{% endblock %}
+{% block topbar %}Обзор{% endblock %}
 
 {% block content %}
+<div class="card dashboard-hero">
+  <h1 class="page-title">Что вы хотите сделать?</h1>
+  <p class="page-lead">Выберите задачу — система подскажет нужный инструмент и формат входных данных.</p>
+
+  <div class="action-grid">
+    <a class="action-card" href="{{ url_for('xml_validation.xml_validator_page') }}">
+      <div class="action-card-head">
+        <span class="action-card-ico" aria-hidden="true">{{ icon('file-check', 20) }}</span>
+        <span class="action-card-badge">Рекомендуется</span>
+      </div>
+      <h3>Валидатор XML</h3>
+      <p class="action-card-desc">Схема journal3.xsd и контроль метаданных статей в одном запуске</p>
+      <div class="action-card-foot">
+        <p class="action-card-io">XML журнала → отчёт по схеме и метаданным</p>
+        <span class="action-card-cta">Открыть инструмент →</span>
+      </div>
+    </a>
+
+    <a class="action-card" href="{{ url_for('main.bibliography_hub') }}">
+      <div class="action-card-head">
+        <span class="action-card-ico" aria-hidden="true">{{ icon('book-open', 20) }}</span>
+      </div>
+      <h3>Исправить список литературы</h3>
+      <p class="action-card-desc">Нумерация, дубли и структура reference</p>
+      <div class="action-card-foot">
+        <p class="action-card-io">XML-файл → обработанный XML</p>
+        <span class="action-card-cta">Открыть инструмент →</span>
+      </div>
+    </a>
+
+    <a class="action-card" href="{{ url_for('pdf_matching.pdf_matching_page') }}">
+      <div class="action-card-head">
+        <span class="action-card-ico" aria-hidden="true">{{ icon('file-plus', 20) }}</span>
+      </div>
+      <h3>Добавить PDF к статьям</h3>
+      <p class="action-card-desc">Сопоставить PDF-файлы со статьями в XML</p>
+      <div class="action-card-foot">
+        <p class="action-card-io">ZIP (XML + PDF) → обновлённый XML</p>
+        <span class="action-card-cta">Открыть инструмент →</span>
+      </div>
+    </a>
+
+    <a class="action-card" href="{{ url_for('issue_metadata.issue_metadata_page') }}">
+      <div class="action-card-head">
+        <span class="action-card-ico" aria-hidden="true">{{ icon('globe', 20) }}</span>
+      </div>
+      <h3>Проверить опубликованный выпуск</h3>
+      <p class="action-card-desc">Метаданные выпуска и статей по ссылке</p>
+      <div class="action-card-foot">
+        <p class="action-card-io">URL выпуска → HTML-отчёт</p>
+        <span class="action-card-cta">Открыть инструмент →</span>
+      </div>
+    </a>
+
+    <a class="action-card" href="{{ url_for('issue_pdf_csv.issue_pdf_csv_page') }}">
+      <div class="action-card-head">
+        <span class="action-card-ico" aria-hidden="true">{{ icon('table', 20) }}</span>
+      </div>
+      <h3>Сформировать CSV для загрузки PDF</h3>
+      <p class="action-card-desc">Таблица соответствия статей и PDF для площадки</p>
+      <div class="action-card-foot">
+        <p class="action-card-io">URL или данные выпуска → CSV-файл</p>
+        <span class="action-card-cta">Открыть инструмент →</span>
+      </div>
+    </a>
+  </div>
+</div>
+
 <div class="card">
-    <h1 style="margin-bottom: 1rem; color: #667eea;">Internal Publishing Support System (IPSAS)</h1>
-
-    <p style="color: #666; margin-bottom: 2rem;">
-        Выберите сервис в боковом меню слева или перейдите к нужному инструменту ниже.
-    </p>
-
-    <div style="margin-top: 2rem;">
-        <h2 style="margin-bottom: 1rem; color: #333;">Информация о системе</h2>
-        <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px;">
-            <p><strong>Версия системы:</strong> 0.1.0</p>
-            <p><strong>Назначение:</strong> инструменты для обработки XML, списков литературы и метаданных выпусков.</p>
-        </div>
+  <h2 class="section-title">Все инструменты</h2>
+  <div class="tool-grid">
+    <div class="tool-row">
+      <div>
+        <h3>Валидатор XML</h3>
+        <p>Проверка по XSD и контроль метаданных journal XML</p>
+      </div>
+      <a class="btn btn-secondary" href="{{ url_for('xml_validation.xml_validator_page') }}">Открыть</a>
     </div>
-
-    <div style="margin-top: 2rem;">
-        <h2 style="margin-bottom: 1rem; color: #333;">Быстрые ссылки</h2>
-        <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
-            <a href="{{ url_for('xml_validation.xml_validator_page') }}" class="btn btn-primary">Валидация XML</a>
-            <a href="{{ url_for('xml_report.xml_report_page') }}" class="btn btn-primary">Анализ XML журнала</a>
-            <a href="{{ url_for('issue_metadata.issue_metadata_page') }}" class="btn btn-primary">Парсер выпуска</a>
-        </div>
+    <div class="tool-row">
+      <div>
+        <h3>Обработка списка литературы</h3>
+        <p>Нумерация, очистка и преобразование библиографии</p>
+      </div>
+      <a class="btn btn-secondary" href="{{ url_for('main.bibliography_hub') }}">Открыть</a>
     </div>
+    <div class="tool-row">
+      <div>
+        <h3>Добавление PDF в XML</h3>
+        <p>Сопоставление PDF со статьями</p>
+      </div>
+      <a class="btn btn-secondary" href="{{ url_for('pdf_matching.pdf_matching_page') }}">Открыть</a>
+    </div>
+    <div class="tool-row">
+      <div>
+        <h3>Анализ опубликованного выпуска</h3>
+        <p>Парсинг метаданных по URL</p>
+      </div>
+      <a class="btn btn-secondary" href="{{ url_for('issue_metadata.issue_metadata_page') }}">Открыть</a>
+    </div>
+    <div class="tool-row">
+      <div>
+        <h3>CSV для загрузки PDF</h3>
+        <p>Формирование таблицы для площадки</p>
+      </div>
+      <a class="btn btn-secondary" href="{{ url_for('issue_pdf_csv.issue_pdf_csv_page') }}">Открыть</a>
+    </div>
+    <div class="tool-row">
+      <div>
+        <h3>Обработка редакционной коллегии</h3>
+        <p>Внешний сервис (откроется в новой вкладке)</p>
+      </div>
+      <a class="btn btn-secondary" href="https://parseeditorialboard-production.up.railway.app" target="_blank" rel="noopener noreferrer">Открыть</a>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2 class="section-title">Недавние операции</h2>
+  {% if recent_operations %}
+  <ul class="history-list">
+    {% for op in recent_operations %}
+    <li>
+      <div>
+        <strong>{{ op.title }}</strong>
+        {% if op.detail %}<div class="muted">{{ op.detail }}</div>{% endif %}
+      </div>
+      <div class="history-meta">
+        <span class="chip {% if op.status == 'ok' %}chip-ok{% elif op.status == 'error' %}chip-err{% endif %}">{{ op.status }}</span>
+        {% if op.url %}
+        <a class="btn btn-secondary" href="{{ op.url }}">Открыть</a>
+        {% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted" style="margin:0;">
+    Пока нет сохранённых запусков. После обработки файлов здесь появятся последние операции.
+  </p>
+  {% endif %}
 </div>
 {% endblock %}

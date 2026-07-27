@@ -1,7 +1,7 @@
 """Роуты для обработки XML файлов: удаление нумерации источников."""
 
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
 from werkzeug.utils import secure_filename
 from pathlib import Path
@@ -72,12 +72,23 @@ def process_references():
             pass
         
         # Отображение результатов (используем оригинальное имя для отображения)
+        from ipsas.utils.operation_history import record_operation
+
+        record_operation(
+            tool="bibliography",
+            title="Удаление нумерации",
+            status="ok",
+            detail=f"{original_filename}: изменено {result['processed_count']}",
+            url=url_for("reference_processing.reference_processing_page"),
+        )
+
         return render_template(
             "reference_processing_result.html",
             result=result,
             filename=original_filename,
             processed_filename=result["output_path"].name if result["output_path"] else None,
-            processed_count=result["processed_count"]
+            processed_count=result["processed_count"],
+            samples=result.get("samples") or [],
         )
         
     except Exception as e:
@@ -104,26 +115,15 @@ def download_processed_file(filename):
         flash("Файл не найден", "error")
         return redirect(url_for("reference_processing.reference_processing_page"))
     
-    # Определяем оригинальное имя для скачивания
-    # Формат файла: timestamp_uuid_originalname_processed.xml
-    # Нужно получить originalname_processed.xml или просто originalname.xml
-    if "_processed" in filename:
-        # Убираем timestamp_uuid_ из начала
-        # Находим позицию после второго подчеркивания
-        parts = filename.split("_", 2)
-        if len(parts) >= 3:
-            # parts[2] содержит originalname_processed.xml
-            original_name = parts[2]
-        else:
-            original_name = filename
-    else:
-        # Если нет _processed, убираем только timestamp_uuid_
-        parts = filename.split("_", 2)
-        if len(parts) >= 3:
-            original_name = parts[2]
-        else:
-            original_name = filename
-    
+    from ipsas.utils.download_names import (
+        attachment_filename_from_xml,
+        content_disposition_attachment,
+    )
+
+    download_name = attachment_filename_from_xml(
+        file_path, extension=".xml", fallback="processed"
+    )
+
     # Отправляем файл и удаляем его после скачивания
     try:
         # Используем генератор для удаления файла после отправки
@@ -146,44 +146,11 @@ def download_processed_file(filename):
             generate(),
             mimetype='application/xml',
             headers={
-                'Content-Disposition': f'attachment; filename="{original_name}"'
+                'Content-Disposition': content_disposition_attachment(download_name)
             }
         )
     except Exception as e:
         logger.error(f"Ошибка при скачивании файла: {e}")
         flash("Ошибка при скачивании файла", "error")
         return redirect(url_for("reference_processing.reference_processing_page"))
-
-
-@reference_processing_bp.route("/reference-processing/cleanup")
-def cleanup_old_files():
-    """Очистка старых файлов из временной директории (старше 24 часов)."""
-    settings = get_settings()
-    temp_dir = settings.temp_dir
-    
-    if not temp_dir.exists():
-        flash("Временная директория не найдена", "error")
-        return redirect(url_for("main.dashboard"))
-    
-    cutoff_time = datetime.now() - timedelta(hours=24)
-    deleted_count = 0
-    
-    try:
-        for file_path in temp_dir.glob("*_processed.xml"):
-            try:
-                # Получаем время модификации файла
-                mtime = datetime.fromtimestamp(file_path.stat().st_mtime)
-                if mtime < cutoff_time:
-                    file_path.unlink()
-                    deleted_count += 1
-                    logger.info(f"Удален старый файл: {file_path.name}")
-            except Exception as e:
-                logger.warning(f"Не удалось удалить файл {file_path}: {e}")
-        
-        flash(f"Очищено файлов: {deleted_count}", "success")
-    except Exception as e:
-        logger.error(f"Ошибка при очистке файлов: {e}")
-        flash(f"Ошибка при очистке: {str(e)}", "error")
-    
-    return redirect(url_for("main.dashboard"))
 

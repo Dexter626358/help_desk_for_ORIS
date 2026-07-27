@@ -12,7 +12,11 @@ def create_app() -> Flask:
     Returns:
         Настроенное Flask приложение
     """
-    app = Flask(__name__)
+    app = Flask(
+        __name__,
+        static_folder="static",
+        template_folder="templates",
+    )
     settings = get_settings()
 
     app.config["SECRET_KEY"] = settings.secret_key
@@ -42,5 +46,12 @@ def create_app() -> Flask:
     app.register_blueprint(reference_formatting_bp, url_prefix="/services")
     app.register_blueprint(issue_metadata_bp, url_prefix="/services")
     app.register_blueprint(issue_pdf_csv_bp, url_prefix="/services")
+
+    @app.context_processor
+    def inject_ui_globals():
+        return {
+            "max_file_size": settings.max_file_size,
+            "app_version": "0.1.0",
+        }
 
     return app

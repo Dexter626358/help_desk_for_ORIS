@@ -68,6 +68,8 @@ class ReferenceFormatter:
             
             processed_count = 0
             total_count = 0
+            samples: list[dict[str, str]] = []
+            max_samples = 12
             
             for references_elem in references_elements:
                 # Находим все элементы reference внутри references
@@ -87,6 +89,7 @@ class ReferenceFormatter:
                             ref_text = ''.join(ref_elem.itertext()).strip()
                         
                         if ref_text and ref_text.strip():
+                            before = etree.tostring(ref_elem, encoding="unicode")
                             # Очищаем элемент от текста и дочерних элементов
                             ref_elem.clear()
                             
@@ -101,6 +104,13 @@ class ReferenceFormatter:
                             ref_elem.append(ref_info)
                             
                             processed_count += 1
+                            if len(samples) < max_samples:
+                                samples.append(
+                                    {
+                                        "before": before.strip()[:700],
+                                        "after": etree.tostring(ref_elem, encoding="unicode").strip()[:700],
+                                    }
+                                )
                     else:
                         # Проверяем, есть ли атрибут lang
                         if not ref_info.get('lang'):
@@ -111,11 +121,19 @@ class ReferenceFormatter:
                         if text_elem is None:
                             # Если текста нет, но есть текст в refInfo, перемещаем его
                             if ref_info.text and ref_info.text.strip():
+                                before = etree.tostring(ref_elem, encoding="unicode")
                                 text_elem = etree.Element('text')
                                 text_elem.text = ref_info.text.strip()
                                 ref_info.text = None  # Убираем текст из refInfo
                                 ref_info.insert(0, text_elem)
                                 processed_count += 1
+                                if len(samples) < max_samples:
+                                    samples.append(
+                                        {
+                                            "before": before.strip()[:700],
+                                            "after": etree.tostring(ref_elem, encoding="unicode").strip()[:700],
+                                        }
+                                    )
             
             # Сохраняем обновленный XML
             output_path = xml_path.parent / f"{xml_path.stem}_formatted{xml_path.suffix}"
@@ -130,7 +148,8 @@ class ReferenceFormatter:
                 'success': True,
                 'output_path': output_path,
                 'processed_count': processed_count,
-                'total_count': total_count
+                'total_count': total_count,
+                'samples': samples,
             }
             
         except etree.XMLSyntaxError as e:

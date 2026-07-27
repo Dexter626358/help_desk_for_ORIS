@@ -26,9 +26,7 @@ class Settings:
 
         # Настройки обработки данных
         self.max_file_size: int = int(os.getenv("MAX_FILE_SIZE", "10485760"))  # 10MB
-        self.allowed_extensions: list[str] = [
-            ".txt", ".csv", ".json", ".xml", ".xlsx", ".xls"
-        ]
+        self.allowed_extensions: list[str] = [".txt", ".csv", ".json", ".xml"]
 
         # Настройки веб-приложения
         self.secret_key: str = os.getenv(

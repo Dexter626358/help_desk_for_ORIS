@@ -1,160 +1,147 @@
 {% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs, result_summary %}
 
-{% block title %}Результаты обработки PDF файлов{% endblock %}
+{% block title %}Результаты сопоставления PDF — IPSAS{% endblock %}
+{% block topbar %}PDF и выпуск{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h1 style="margin-bottom: 2rem; color: #333;">Результаты обработки</h1>
-    
-    {% if result.success %}
-    <div style="background-color: #d4edda; padding: 1rem; border-radius: 5px; margin-bottom: 2rem; border: 1px solid #c3e6cb;">
-        <h2 style="margin: 0; color: #155724; font-size: 1.1rem;">
-            ✓ Обработка завершена успешно
-        </h2>
-        <p style="margin: 0.5rem 0 0 0; color: #155724;">
-            Обработано статей: {{ result.total_articles }} | 
-            Сопоставлено: {{ result.matched_articles }} | 
-            Не сопоставлено: {{ result.unmatched_articles }}
-        </p>
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Добавление PDF', 'url': url_for('pdf_matching.pdf_matching_page')},
+  {'label': 'Результат'}
+]) }}
+
+{% if result.success %}
+  {% call result_summary(
+    'ok' if result.unmatched_articles == 0 else 'warning',
+    'Сопоставление завершено',
+    'Архив «' ~ original_filename ~ '»',
+    [
+      {'label': 'статей', 'value': result.total_articles},
+      {'label': 'сопоставлено', 'value': result.matched_articles},
+      {'label': 'без PDF', 'value': result.unmatched_articles}
+    ]
+  ) %}
+    <div class="btn-row" style="margin-top:0.35rem;">
+      <a class="btn btn-primary"
+         href="{{ url_for('pdf_matching.download_processed_xml', filename=output_xml_filename) }}">
+        Скачать XML
+      </a>
+      <a class="btn btn-secondary" href="{{ url_for('pdf_matching.pdf_matching_page') }}">Обработать другой архив</a>
     </div>
-    
-    <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem;">
-        <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.2rem;">Обработанный XML файл</h2>
-        <p style="color: #666; margin-bottom: 1rem;">
-            XML файл с добавленными именами PDF файлов готов к скачиванию. 
-            Файл будет автоматически удален после скачивания.
-        </p>
-        <a href="{{ url_for('pdf_matching.download_processed_xml', filename=output_xml_filename) }}" 
-           class="btn btn-primary">
-            Скачать обработанный XML файл
-        </a>
-        <small style="display: block; margin-top: 0.5rem; color: #999;">
-            ⚠️ Файл будет удален после скачивания. Убедитесь, что сохранили его на свой компьютер.
-        </small>
+    <p class="hint-inline" style="margin-top:0.5rem;">Файл будет удалён с сервера после скачивания.</p>
+  {% endcall %}
+
+  {% if result.unmatched_articles > 0 %}
+  <div class="card">
+    <p style="margin:0; color:var(--color-warning);">
+      Часть статей не сопоставлена автоматически. Ниже можно назначить PDF вручную и скачать обновлённый XML.
+    </p>
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <h2 class="section-title">Детали сопоставления</h2>
+    <div class="filter-bar" data-match-filters>
+      <input type="search" data-match-search placeholder="Поиск по названию, ID или PDF…" aria-label="Поиск">
+      <label><input type="checkbox" data-match-problems-only> Только проблемные</label>
+      <span class="muted" data-match-count></span>
     </div>
-    
-    <div style="margin-top: 2rem;">
-        <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.2rem;">Детали сопоставления</h2>
-        <form method="POST" action="{{ url_for('pdf_matching.manual_assign_and_download', filename=output_xml_filename) }}">
-        <div class="table-container">
-            <table>
-                <colgroup>
-                    <col style="width: 50px;">
-                    <col style="width: 110px;">
-                    <col style="width: 280px;">
-                    <col style="width: 260px;">
-                    <col style="width: 220px;">
-                    <col style="width: 150px;">
-                    <col style="width: 280px;">
-                </colgroup>
-                <thead>
-                    <tr>
-                        <th>№</th>
-                        <th>ID статьи</th>
-                        <th>Название статьи</th>
-                        <th>PDF файл</th>
-                        <th>Язык PDF-тега</th>
-                        <th>Оценка соответствия</th>
-                        <th>Метаданные PDF</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for match in result.matches %}
-                    <tr>
-                        <td style="vertical-align: top;">{{ match.article_index + 1 }}</td>
-                        <td style="vertical-align: top; white-space: nowrap;">{{ match.article_id or '—' }}</td>
-                        <td>{{ match.article_title[:50] }}{% if match.article_title|length > 50 %}...{% endif %}</td>
-                        <td style="vertical-align: top;">
-                            <div style="display: flex; flex-direction: column; gap: 0.35rem;">
-                                {% if match.pdf_filename %}
-                                    <span style="color: #28a745;">✓ {{ match.pdf_filename }}</span>
-                                {% else %}
-                                    <span style="color: #dc3545;">Не сопоставлено</span>
-                                {% endif %}
-                                {% if result.all_pdf_filenames %}
-                                <select name="assign_article_{{ match.article_index }}" style="width: 100%; max-width: 260px; display: block;">
-                                    <option value="">Оставить как есть</option>
-                                    {% for pdf_name in result.all_pdf_filenames %}
-                                        <option value="{{ pdf_name }}" {% if match.pdf_filename == pdf_name %}selected{% endif %}>{{ pdf_name }}</option>
-                                    {% endfor %}
-                                </select>
-                                {% endif %}
-                            </div>
-                        </td>
-                        <td style="vertical-align: top;">
-                            <select name="lang_article_{{ match.article_index }}" style="width: 100%; max-width: 200px; display: block;">
-                                <option value="">Оставить как есть</option>
-                                <option value="RUS" {% if match.pdf_lang == 'RUS' %}selected{% endif %}>RUS</option>
-                                <option value="ENG" {% if match.pdf_lang == 'ENG' %}selected{% endif %}>ENG</option>
-                            </select>
-                            <small style="display: block; margin-top: 0.25rem; color: #999; line-height: 1.2;">
-                                Изменит <code>lang</code> у <code>&lt;file desc="fullText"&gt;</code>
-                            </small>
-                        </td>
-                        <td style="vertical-align: top; white-space: nowrap;">
-                            {% if match.pdf_filename %}
-                                <span style="color: #666;">{{ "%.0f"|format(match.score * 100) }}%</span>
-                            {% else %}
-                                <span style="color: #999;">—</span>
-                            {% endif %}
-                        </td>
-                        <td style="vertical-align: top; font-size: 0.85em;">
-                            {% if match.pdf_metadata %}
-                                {% if match.pdf_metadata.doi %}
-                                    {% set doi_text = match.pdf_metadata.doi %}
-                                    <div><strong>DOI:</strong> {{ doi_text[:30] }}{% if doi_text|length > 30 %}...{% endif %}</div>
-                                {% endif %}
-                                {% if match.pdf_metadata.title %}
-                                    {% set title_text = match.pdf_metadata.title %}
-                                    <div><strong>Название:</strong> {{ title_text[:40] }}{% if title_text|length > 40 %}...{% endif %}</div>
-                                {% endif %}
-                                {% if match.pdf_metadata.authors %}
-                                    {% set authors_text = match.pdf_metadata.authors|join(', ') %}
-                                    <div><strong>Авторы:</strong> {{ authors_text[:40] }}{% if authors_text|length > 40 %}...{% endif %}</div>
-                                {% endif %}
-                                {% if not match.pdf_metadata.doi and not match.pdf_metadata.title and not match.pdf_metadata.authors %}
-                                    <span style="color: #999;">Не извлечены</span>
-                                {% endif %}
-                            {% else %}
-                                <span style="color: #999;">—</span>
-                            {% endif %}
-                        </td>
-                    </tr>
+
+    <form method="POST" action="{{ url_for('pdf_matching.manual_assign_and_download', filename=output_xml_filename) }}">
+      <div class="table-container">
+        <table data-match-table>
+          <thead>
+            <tr>
+              <th>№</th>
+              <th>ID</th>
+              <th>Название</th>
+              <th>PDF</th>
+              <th>Язык</th>
+              <th>Оценка</th>
+              <th>Метод / уверенность</th>
+              <th>Метаданные PDF</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for match in result.matches %}
+            {% set is_problem = (not match.pdf_filename) or (match.confidence in ['low', 'none']) %}
+            <tr data-match-row
+                data-problem="{{ '1' if is_problem else '0' }}"
+                data-search="{{ (match.article_id or '') }} {{ match.article_title }} {{ match.pdf_filename or '' }}">
+              <td>{{ match.article_index + 1 }}</td>
+              <td>{{ match.article_id or '—' }}</td>
+              <td>{{ match.article_title[:80] }}{% if match.article_title|length > 80 %}…{% endif %}</td>
+              <td>
+                <div style="display:flex; flex-direction:column; gap:0.35rem;">
+                  {% if match.pdf_filename %}
+                    <span style="color:var(--color-success);">{{ match.pdf_filename }}</span>
+                  {% else %}
+                    <span style="color:var(--color-danger);">Не сопоставлено</span>
+                  {% endif %}
+                  {% if result.all_pdf_filenames %}
+                  <select name="assign_article_{{ match.article_index }}">
+                    <option value="">Оставить как есть</option>
+                    {% for pdf_name in result.all_pdf_filenames %}
+                      <option value="{{ pdf_name }}" {% if match.pdf_filename == pdf_name %}selected{% endif %}>{{ pdf_name }}</option>
                     {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% if result.all_pdf_filenames %}
-        <div style="margin-top: 1rem; display: flex; gap: 0.75rem; align-items: center;">
-            <button type="submit" class="btn btn-primary">Применить ручной выбор и скачать XML</button>
-            <span style="color: #666; font-size: 0.9em;">Можно переназначить любой PDF-файл для любой статьи</span>
-        </div>
-        {% endif %}
-        </form>
+                  </select>
+                  {% endif %}
+                </div>
+              </td>
+              <td>
+                <select name="lang_article_{{ match.article_index }}">
+                  <option value="">Как есть</option>
+                  <option value="RUS" {% if match.pdf_lang == 'RUS' %}selected{% endif %}>RUS</option>
+                  <option value="ENG" {% if match.pdf_lang == 'ENG' %}selected{% endif %}>ENG</option>
+                </select>
+              </td>
+              <td>
+                {% if match.pdf_filename %}
+                  {{ "%.0f"|format(match.score * 100) }}%
+                {% else %}—{% endif %}
+              </td>
+              <td>
+                {% if match.pdf_filename %}
+                  <div>{{ match.method or '—' }}</div>
+                  <span class="chip">{{ match.confidence or '—' }}</span>
+                {% else %}
+                  <span class="muted">—</span>
+                {% endif %}
+              </td>
+              <td style="font-size:0.85em;">
+                {% if match.pdf_metadata %}
+                  {% if match.pdf_metadata.doi %}<div><strong>DOI:</strong> {{ match.pdf_metadata.doi[:40] }}{% if match.pdf_metadata.doi|length > 40 %}…{% endif %}</div>{% endif %}
+                  {% if match.pdf_metadata.title %}<div><strong>Title:</strong> {{ match.pdf_metadata.title[:50] }}{% if match.pdf_metadata.title|length > 50 %}…{% endif %}</div>{% endif %}
+                  {% if match.pdf_metadata.authors %}
+                    {% set authors_text = match.pdf_metadata.authors|join(', ') %}
+                    <div><strong>Authors:</strong> {{ authors_text[:50] }}{% if authors_text|length > 50 %}…{% endif %}</div>
+                  {% endif %}
+                  {% if not match.pdf_metadata.doi and not match.pdf_metadata.title and not match.pdf_metadata.authors %}
+                    <span class="muted">Не извлечены</span>
+                  {% endif %}
+                {% else %}
+                  <span class="muted">—</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if result.all_pdf_filenames %}
+      <div class="btn-row" style="margin-top:1rem;">
+        <button type="submit" class="btn btn-primary">Применить ручной выбор и скачать XML</button>
+      </div>
+      {% endif %}
+    </form>
+  </div>
+{% else %}
+  {% call result_summary('error', 'Ошибка при обработке архива', 'Проверьте состав ZIP (XML + PDF) и повторите попытку.') %}
+    <div class="btn-row" style="margin-top:0.35rem;">
+      <a class="btn btn-primary" href="{{ url_for('pdf_matching.pdf_matching_page') }}">Загрузить снова</a>
     </div>
-    
-    {% if result.unmatched_articles > 0 %}
-    <div style="background-color: #fff3cd; padding: 1rem; border-radius: 5px; margin-top: 2rem; border-left: 4px solid #ffc107;">
-        <strong>Внимание:</strong> Некоторые статьи не были сопоставлены с PDF файлами. 
-        Возможно, потребуется ручная проверка и корректировка XML файла.
-    </div>
-    {% endif %}
-    
-    {% else %}
-    <div style="background-color: #f8d7da; padding: 1rem; border-radius: 5px; border: 1px solid #f5c6cb;">
-        <h2 style="margin: 0; color: #721c24; font-size: 1.1rem;">
-            ✗ Ошибка при обработке
-        </h2>
-    </div>
-    {% endif %}
-    
-    <div style="margin-top: 2rem;">
-        <a href="{{ url_for('pdf_matching.pdf_matching_page') }}" class="btn btn-secondary">
-            Обработать другой архив
-        </a>
-        <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">
-            Вернуться на главную
-        </a>
-    </div>
-</div>
+  {% endcall %}
+{% endif %}
 {% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs %}
+
+{% block title %}Обработка списка литературы — IPSAS{% endblock %}
+{% block topbar %}Исправление XML{% endblock %}
+
+{% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Исправление XML', 'url': url_for('main.bibliography_hub')},
+  {'label': 'Обработка списка литературы'}
+]) }}
+
+<div class="card">
+  <h1 class="page-title">Обработка списка литературы</h1>
+  <p class="page-lead">
+    Выберите операцию. Каждый инструмент меняет XML по-своему — сначала определите задачу,
+    затем загрузите файл на странице инструмента.
+  </p>
+
+  <div class="tool-grid">
+    <div class="tool-row">
+      <div>
+        <h3>Удаление нумерации</h3>
+        <p>Убирает номера вида «1. …» в начале текста источника, не меняя структуру элементов.</p>
+        <div class="meta-chips" style="margin-top:0.45rem;">
+          <span class="chip">Вход: XML-файл</span>
+          <span class="chip">Элемент: reference</span>
+        </div>
+      </div>
+      <a class="btn btn-primary" href="{{ url_for('reference_processing.reference_processing_page') }}">Открыть</a>
+    </div>
+
+    <div class="tool-row">
+      <div>
+        <h3>Очистка библиографии</h3>
+        <p>Удаляет дублирующий текст и нумерацию в списках литературы.</p>
+        <div class="meta-chips" style="margin-top:0.45rem;">
+          <span class="chip">Вход: XML-файл</span>
+          <span class="chip">Результат: очищенный XML</span>
+        </div>
+      </div>
+      <a class="btn btn-primary" href="{{ url_for('reference_cleaning.reference_cleaning_page') }}">Открыть</a>
+    </div>
+
+    <div class="tool-row">
+      <div>
+        <h3>Преобразование библиографии</h3>
+        <p>Приводит записи к структуре <span class="mono">refInfo/text</span> и языковым атрибутам.</p>
+        <div class="meta-chips" style="margin-top:0.45rem;">
+          <span class="chip">Вход: XML-файл</span>
+          <span class="chip">Результат: преобразованный XML</span>
+        </div>
+      </div>
+      <a class="btn btn-primary" href="{{ url_for('reference_formatting.reference_formatting_page') }}">Открыть</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

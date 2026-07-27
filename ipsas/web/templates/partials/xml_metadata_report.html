@@ -1,0 +1,225 @@
+{# Shared metadata report body for XML validator #}
+<div class="card">
+  <h1 class="page-title">Отчёт о качестве XML</h1>
+  <p class="xr-muted" style="margin-bottom: 1.25rem;">
+    Файл: <strong>{{ filename }}</strong> · сформирован: {{ report.generated_at }}
+  </p>
+
+  <div class="xr-meta">
+    <h2 class="section-title">Журнал и выпуск</h2>
+    <div class="xr-row"><span class="xr-k">TitleID:</span> {{ report.journal.titleid or '—' }}</div>
+    <div class="xr-row"><span class="xr-k">ISSN:</span> {{ report.journal.issn or '—' }}
+      {% if report.journal.eissn %} · <span class="xr-k">eISSN:</span> {{ report.journal.eissn }}{% endif %}
+    </div>
+    <div class="xr-row"><span class="xr-k">Журнал (RUS):</span> {{ report.journal.title_ru or '—' }}</div>
+    <div class="xr-row"><span class="xr-k">Журнал (ENG):</span> {{ report.journal.title_en or '—' }}</div>
+    <div class="xr-row">
+      <span class="xr-k">Выпуск:</span>
+      {% if report.issue.volume %}том {{ report.issue.volume }}{% endif %}
+      {% if report.issue.number %}{% if report.issue.volume %}, {% endif %}№ {{ report.issue.number }}{% endif %}
+      {% if report.issue.date_uni %} ({{ report.issue.date_uni }}){% endif %}
+      {% if not report.issue.volume and not report.issue.number and not report.issue.date_uni %}—{% endif %}
+    </div>
+    {% if report.issue.pages %}
+    <div class="xr-row"><span class="xr-k">Страницы выпуска:</span> {{ report.issue.pages }}</div>
+    {% endif %}
+  </div>
+
+  <div class="xr-meta">
+    <h2 class="section-title">Сводка</h2>
+    <div class="xr-grid">
+      <div class="xr-stat"><div class="n">{{ report.summary.articles_total }}</div><div class="l">статей</div></div>
+      <div class="xr-stat"><div class="n is-ok">{{ report.summary.articles_ok }}</div><div class="l">без замечаний</div></div>
+      <div class="xr-stat"><div class="n is-err">{{ report.summary.articles_with_errors }}</div><div class="l">с ошибками</div></div>
+      <div class="xr-stat"><div class="n is-warn">{{ report.summary.articles_with_warnings }}</div><div class="l">с предупреждениями</div></div>
+      <div class="xr-stat"><div class="n">{{ report.summary.missing_eng_title }}</div><div class="l">без названия ENG</div></div>
+      <div class="xr-stat"><div class="n">{{ report.summary.missing_eng_abstract }}</div><div class="l">без аннотации ENG</div></div>
+      <div class="xr-stat"><div class="n">{{ report.summary.missing_eng_keywords }}</div><div class="l">без keywords ENG</div></div>
+    </div>
+  </div>
+
+  {% set problem_articles = report.articles | selectattr('ok', 'equalto', false) | list %}
+  {% if problem_articles %}
+  <div class="xr-meta" style="border-left:4px solid var(--color-danger);">
+    <h2 class="section-title">
+      Статьи с проблемами ({{ problem_articles|length }})
+    </h2>
+    <ol style="margin:0; padding-left:1.25rem;">
+      {% for a in problem_articles %}
+      <li style="margin-bottom:0.6rem;">
+        <a href="#article-{{ a.index }}"><strong>#{{ a.index }}.</strong> {{ a.title }}</a>
+        {% if a.pages %}<span class="xr-muted"> (с. {{ a.pages }})</span>{% endif %}
+        <ul class="xr-problems">
+          {% for issue in a.critical_issues %}
+          <li class="is-critical">{{ issue }}</li>
+          {% endfor %}
+          {% for issue in a.secondary_issues %}
+          <li class="is-secondary">{{ issue }}</li>
+          {% endfor %}
+        </ul>
+      </li>
+      {% endfor %}
+    </ol>
+  </div>
+  {% endif %}
+
+  <h2 class="section-title">Статьи ({{ report.summary.articles_total }})</h2>
+
+  {% for a in report.articles %}
+  <div class="xr-card {{ a.severity }}" id="article-{{ a.index }}">
+    <div style="display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; align-items:flex-start;">
+      <div>
+        <strong>#{{ a.index }}.</strong> {{ a.title }}
+        {% if a.pages %}<span class="xr-muted"> · с. {{ a.pages }}</span>{% endif %}
+        {% if a.art_type %}<span class="xr-muted"> · {{ a.art_type }}</span>{% endif %}
+      </div>
+      <span class="xr-badge {{ a.severity }}">
+        {% if a.severity == 'ok' %}OK{% elif a.severity == 'warning' %}Замечания{% else %}Ошибки{% endif %}
+      </span>
+    </div>
+
+    {% if a.issues %}
+    <ul class="xr-problems">
+      {% for sev, text in a.issues %}
+      <li class="{{ 'is-critical' if sev == 'critical' else 'is-secondary' }}">{{ text }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if a.ok %}
+    <details class="xr-fold" style="margin-top:0.5rem;">
+      <summary>Статья без критических замечаний — детали</summary>
+      <div class="xr-article-details" style="margin-top:0.6rem;">
+    {% else %}
+      <div class="xr-article-details" style="margin-top:0.6rem;">
+    {% endif %}
+
+    <table class="xr-table">
+      <tr>
+        <th style="width:28%;">Поле</th>
+        <th>RUS</th>
+        <th>ENG</th>
+      </tr>
+      <tr>
+        <td>Название</td>
+        <td>{{ a.title_ru }}</td>
+        <td>{{ a.title_en }}</td>
+      </tr>
+      <tr>
+        <td>Аннотация</td>
+        <td>
+          {% if a.abstract_ru.present %}
+            <div class="xr-fulltext">{{ a.abstract_ru.summary or a.abstract_ru.full_text }}</div>
+            <div class="xr-muted">{{ a.abstract_ru.word_count }} слов</div>
+          {% else %}—{% endif %}
+        </td>
+        <td>
+          {% if a.abstract_en.present %}
+            <div class="xr-fulltext">{{ a.abstract_en.summary or a.abstract_en.full_text }}</div>
+            <div class="xr-muted">{{ a.abstract_en.word_count }} слов</div>
+          {% else %}—{% endif %}
+        </td>
+      </tr>
+      <tr>
+        <td>Ключевые слова</td>
+        <td>
+          {% if a.keywords_ru_preview.present %}
+            <div class="xr-fulltext">{{ a.keywords_ru_preview.preview }}</div>
+            <div class="xr-muted">{{ a.keywords_ru_preview.count }} слов</div>
+          {% else %}—{% endif %}
+        </td>
+        <td>
+          {% if a.keywords_en_preview.present %}
+            <div class="xr-fulltext">{{ a.keywords_en_preview.preview }}</div>
+            <div class="xr-muted">{{ a.keywords_en_preview.count }} слов</div>
+          {% else %}—{% endif %}
+        </td>
+      </tr>
+    </table>
+
+    <div class="xr-row" style="margin-top:0.75rem;">
+      <span class="xr-k">Источники:</span>
+      RUS {{ a.references_rus }} · ENG {{ a.references_eng }} · UNK {{ a.references_unk }}
+      {% if a.references_any %} · ANY {{ a.references_any }}{% endif %}
+      {% if a.references_status.comparison %}
+      <div class="xr-muted">{{ a.references_status.comparison }}</div>
+      {% endif %}
+      {% if a.references_preview %}
+      <table class="xr-table" style="margin-top:0.6rem;">
+        <tr>
+          <th style="width:12%;">Язык</th>
+          <th>Первый</th>
+          <th>Последний</th>
+        </tr>
+        {% for ref in a.references_preview %}
+        <tr>
+          <td>{{ ref.lang }} ({{ ref.count }})</td>
+          <td style="word-break:break-word;">{{ ref.first }}</td>
+          <td style="word-break:break-word;">
+            {% if ref.same %}<span class="xr-muted">= первый</span>{% else %}{{ ref.last }}{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+      {% endif %}
+    </div>
+
+    <div style="margin-top:0.75rem;">
+      <span class="xr-k">Авторы ({{ a.authors_count }}):</span>
+      <span class="xr-muted">
+        уникальные аффилиации — RUS {{ a.unique_affiliations_ru }} · ENG {{ a.unique_affiliations_en }}
+      </span>
+      {% if a.authors %}
+      <table class="xr-table">
+        <tr>
+          <th>#</th>
+          <th>ФИО RUS</th>
+          <th>Аффилиация RUS</th>
+          <th>ФИО ENG</th>
+          <th>Аффилиация ENG</th>
+        </tr>
+        {% for au in a.authors %}
+        <tr>
+          <td>{{ au.index }}</td>
+          <td>{{ au.name_ru }}</td>
+          <td>{{ au.affiliation_ru }}</td>
+          <td>{{ au.name_en }}</td>
+          <td>{{ au.affiliation_en }}</td>
+        </tr>
+        {% if au.problems %}
+        <tr>
+          <td colspan="5" style="color:var(--color-warning);">
+            {% for p in au.problems %}{{ p }}{% if not loop.last %}; {% endif %}{% endfor %}
+          </td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+      </table>
+      {% else %}
+      <span class="xr-muted"> нет авторов</span>
+      {% endif %}
+    </div>
+
+    {% if a.ok %}
+      </div>
+    </details>
+    {% else %}
+      </div>
+    {% endif %}
+  </div>
+  {% else %}
+  <p class="xr-muted">В XML не найдено элементов <code>article</code>.</p>
+  {% endfor %}
+
+  {% if not download_mode %}
+  <div class="btn-row" style="margin-top:1.5rem;">
+    {% if xml_filename %}
+    <a href="{{ url_for('xml_report.download_report', filename=xml_filename) }}" class="btn btn-primary">
+      Скачать HTML‑отчёт
+    </a>
+    {% endif %}
+    <a href="{{ url_for('xml_validation.xml_validator_page') }}" class="btn btn-secondary">Новая проверка</a>
+    <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">На главную</a>
+  </div>
+  {% endif %}
+</div>

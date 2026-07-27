@@ -1,0 +1,188 @@
+{# Shared standalone report CSS — токены как в theme.css / Валидатор XML #}
+<style>
+  :root {
+    /* Primary */
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-soft: #dbeafe;
+    --primary-soft-strong: #bfdbfe;
+    --accent-blue: #60a5fa;
+
+    /* Backgrounds */
+    --app-background: #eef4fb;
+    --content-background: linear-gradient(180deg, #ddebfa 0%, #eef4fb 100%);
+    --surface: #ffffff;
+    --surface-muted: #f8fbff;
+
+    /* Text */
+    --text: #0f172a;
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --muted: #64748b;
+    --text-muted: #64748b;
+
+    /* Borders */
+    --border: #d9e5f3;
+    --border-strong: #c7d7ea;
+
+    /* Status */
+    --success: #16a34a;
+    --success-bg: #ecfdf3;
+    --success-border: #bbf7d0;
+    --warning: #d97706;
+    --warning-bg: #fff7ed;
+    --warning-border: #fed7aa;
+    --error: #dc2626;
+    --error-bg: #fef2f2;
+    --error-border: #fecaca;
+    --info: #2563eb;
+    --info-bg: #eff6ff;
+
+    /* Aliases (как в theme.css / app.css) */
+    --color-text: var(--text-primary);
+    --color-muted: var(--text-muted);
+    --color-success: var(--success);
+    --color-success-bg: var(--success-bg);
+    --color-warning: var(--warning);
+    --color-warning-bg: var(--warning-bg);
+    --color-danger: var(--error);
+    --color-danger-bg: var(--error-bg);
+    --color-surface: var(--surface);
+    --color-surface-2: var(--surface-muted);
+    --color-border: var(--border);
+
+    /* Layout */
+    --radius-sm: 6px;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(37, 99, 235, 0.06);
+    --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--font);
+    color: var(--text-primary);
+    line-height: 1.5;
+    background: var(--content-background);
+    padding: 1.25rem;
+  }
+  a { color: var(--primary); text-decoration: none; overflow-wrap: anywhere; }
+  a:hover { color: var(--primary-hover); text-decoration: underline; }
+  .page { max-width: 1100px; margin: 0 auto; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 1.1rem 1.2rem;
+  }
+  .page-title {
+    margin: 0 0 0.3rem;
+    font-size: 1.4rem;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+    color: var(--text-primary);
+  }
+  .section-title {
+    margin: 0 0 0.75rem;
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+  }
+  .xr-muted { color: var(--text-muted); font-size: 0.9rem; }
+  .xr-fulltext {
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.45;
+    color: var(--text-secondary);
+  }
+  .xr-meta {
+    background: var(--surface-muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.1rem 1.25rem;
+    margin-bottom: 1.1rem;
+  }
+  .xr-row { margin: 0.35rem 0; color: var(--text-primary); }
+  .xr-k { font-weight: 700; }
+  .xr-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+  }
+  .xr-stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 0.9rem;
+  }
+  .xr-stat .n { font-size: 1.35rem; font-weight: 700; color: var(--text-primary); }
+  .xr-stat .n.is-ok { color: var(--success); }
+  .xr-stat .n.is-err { color: var(--error); }
+  .xr-stat .n.is-warn { color: var(--warning); }
+  .xr-stat .l { color: var(--text-muted); font-size: 0.85rem; }
+  .xr-badge {
+    display: inline-block;
+    padding: 0.15rem 0.65rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+  }
+  .xr-badge.ok { background: var(--success); }
+  .xr-badge.warn,
+  .xr-badge.warning { background: var(--warning); }
+  .xr-badge.err,
+  .xr-badge.error { background: var(--error); }
+  .xr-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.9rem 1rem;
+    margin-bottom: 0.75rem;
+    background: var(--surface);
+    break-inside: avoid;
+  }
+  .xr-card.ok { border-left: 5px solid var(--success); background: var(--success-bg); }
+  .xr-card.warn,
+  .xr-card.warning { border-left: 5px solid var(--warning); background: var(--warning-bg); }
+  .xr-card.err,
+  .xr-card.error { border-left: 5px solid var(--error); background: var(--error-bg); }
+  .xr-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.5rem;
+    font-size: 0.92rem;
+  }
+  .xr-table th,
+  .xr-table td {
+    border: 1px solid var(--border);
+    padding: 0.45rem 0.6rem;
+    text-align: left;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+  }
+  .xr-table th { background: var(--surface-muted); color: var(--text-secondary); }
+  details.xr-fold > summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--success);
+    padding: 0.5rem 0;
+  }
+  .xr-problems { margin: 0.5rem 0 0 1.1rem; padding: 0; }
+  .xr-problems li { margin-bottom: 0.25rem; }
+  .xr-problems .is-critical { color: var(--error); }
+  .xr-problems .is-secondary { color: var(--warning); }
+  .report-footer {
+    margin-top: 1rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .card { box-shadow: none; }
+    details.xr-fold[open] summary { margin-bottom: 0.35rem; }
+  }
+</style>

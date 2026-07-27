@@ -23,6 +23,10 @@ def test_remove_numbering_in_refinfo_text(tmp_path):
 
     assert result["success"] is True
     assert result["processed_count"] == 1
+    assert result["total_references"] == 1
+    assert result["samples"]
+    assert "1." in result["samples"][0]["before"]
+    assert "1." not in result["samples"][0]["after"]
 
     output_text = Path(result["output_path"]).read_text(encoding="utf-8")
     assert "<text>Borisov A., Sokolov I." in output_text

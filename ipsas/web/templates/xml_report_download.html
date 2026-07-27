@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Отчёт по XML — {{ filename }}</title>
+  {% include "partials/report_standalone_styles.html" %}
+</head>
+<body>
+  <div class="page">
+    {% include "partials/xml_metadata_report.html" %}
+    <p class="report-footer">IPSAS · отчёт по качеству XML · {{ report.generated_at }}</p>
+  </div>
+</body>
+</html>

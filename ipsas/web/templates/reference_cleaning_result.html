@@ -1,44 +1,37 @@
 {% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs, result_summary, diff_samples %}
 
-{% block title %}Дедупликация references + удаление нумерации - Результат - IPSAS{% endblock %}
+{% block title %}Результат очистки библиографии — IPSAS{% endblock %}
+{% block topbar %}Исправление XML{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h1 style="margin-bottom: 1.5rem; color: #667eea;">Дедупликация references + удаление нумерации</h1>
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Библиография', 'url': url_for('main.bibliography_hub')},
+  {'label': 'Очистка', 'url': url_for('reference_cleaning.reference_cleaning_page')},
+  {'label': 'Результат'}
+]) }}
 
-    <div style="background-color: #d4edda; padding: 1.5rem; border-radius: 5px; margin-bottom: 1.5rem; border-left: 4px solid #28a745;">
-        <h2 style="margin-bottom: 1rem; color: #155724; font-size: 1.2rem;">
-            ✓ Обработка завершена успешно
-        </h2>
-        <div style="color: #155724;">
-            <p style="margin-bottom: 0.5rem;"><strong>Исходный файл:</strong> {{ filename }}</p>
-            {% if stats %}
-            <p style="margin-bottom: 0.5rem;"><strong>Найдено reference:</strong> {{ stats.total_references }}</p>
-            <p style="margin-bottom: 0.5rem;"><strong>Изменено reference:</strong> {{ stats.changed_references }}</p>
-            <p style="margin-bottom: 0.5rem;"><strong>Создано refinfo:</strong> {{ stats.created_refinfo }}</p>
-            <p style="margin-bottom: 0.5rem;"><strong>Создано text:</strong> {{ stats.created_text }}</p>
-            <p style="margin-bottom: 0.5rem;"><strong>Удалено лишних дочерних элементов:</strong> {{ stats.removed_children }}</p>
-            <p style="margin-bottom: 0.5rem;"><strong>Очищено reference.text:</strong> {{ stats.cleared_reference_text }}</p>
-            <p style="margin-bottom: 0.5rem;"><strong>Удалена нумерация:</strong> {{ stats.removed_numbering }}</p>
-            {% endif %}
-            <p style="margin: 0.75rem 0 0 0; color: #0c5460;">
-                Можно скачать обработанный XML. Файл будет автоматически удален после скачивания.
-            </p>
-        </div>
-    </div>
+{% call result_summary(
+  'ok',
+  'Очистка завершена',
+  'Файл «' ~ filename ~ '»',
+  [
+    {'label': 'всего reference', 'value': stats.total_references},
+    {'label': 'изменено', 'value': stats.changed_references},
+    {'label': 'удалена нумерация', 'value': stats.removed_numbering},
+    {'label': 'создано refinfo', 'value': stats.created_refinfo}
+  ]
+) %}
+  <div class="btn-row" style="margin-top:0.35rem;">
+    <a class="btn btn-primary"
+       href="{{ url_for('reference_cleaning.download_reference_cleaned_file', filename=processed_filename) }}">
+      Скачать обработанный XML
+    </a>
+    <a class="btn btn-secondary" href="{{ url_for('reference_cleaning.reference_cleaning_page') }}">Обработать другой файл</a>
+  </div>
+  <p class="hint-inline" style="margin-top:0.5rem;">Файл будет удалён с сервера после скачивания.</p>
+{% endcall %}
 
-    <div style="display: flex; gap: 1rem;">
-        <a class="btn btn-primary"
-           href="{{ url_for('reference_cleaning.download_reference_cleaned_file', filename=processed_filename) }}">
-            Скачать обработанный XML
-        </a>
-        <a class="btn btn-secondary" href="{{ url_for('reference_cleaning.reference_cleaning_page') }}">
-            Обработать ещё файл
-        </a>
-        <a class="btn btn-secondary" href="{{ url_for('main.dashboard') }}">
-            На дашборд
-        </a>
-    </div>
-</div>
+{{ diff_samples(samples, 'Примеры изменений (до / после)') }}
 {% endblock %}
-

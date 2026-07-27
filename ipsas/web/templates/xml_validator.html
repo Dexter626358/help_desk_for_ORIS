@@ -1,68 +1,85 @@
 {% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs, file_upload %}
 
-{% block title %}Валидация XML - IPSAS{% endblock %}
+{% block title %}Валидатор XML — IPSAS{% endblock %}
+{% block topbar %}Проверка файлов{% endblock %}
 
 {% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Валидатор XML'}
+]) }}
+
 <div class="card">
-    <h1 style="margin-bottom: 2rem; color: #667eea;">Валидация XML файлов</h1>
-    
-    <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem;">
-        <h2 style="margin-bottom: 1rem; color: #333; font-size: 1.2rem;">Описание сервиса</h2>
-        <p style="color: #666; line-height: 1.6;">
-            Этот сервис позволяет загрузить XML файл и проверить его на соответствие XSD схеме journal3.
-            Если файл валиден, вы получите подтверждение. Если есть проблемы, будут указаны подробные ошибки
-            с указанием номера строки и описанием проблемы.
-        </p>
+  <h1 class="page-title">Валидатор XML</h1>
+  <p class="page-lead">
+    Загрузите XML журнала: проверка по XSD-схеме и контроль заполненности метаданных
+    (названия, аннотации, авторы, источники RUS/ENG) в одном запуске.
+  </p>
+
+  <form method="POST"
+        action="{{ url_for('xml_validation.validate_xml') }}"
+        enctype="multipart/form-data"
+        data-loading-form>
+    {{ file_upload(
+      name='xml_file',
+      input_id='xml_file',
+      accept='.xml',
+      label='XML-файл журнала',
+      help_text='Корневой элемент journal (схема elibrary / journals)'
+    ) }}
+
+    <div class="form-group">
+      <label for="schema">XSD-схема</label>
+      <select id="schema" name="schema">
+        {% if 'journal3.xsd' in schemas %}
+        <option value="journal3.xsd">journal3.xsd</option>
+        {% endif %}
+        {% for s in schemas if s != 'journal3.xsd' %}
+        <option value="{{ s }}">{{ s }}</option>
+        {% endfor %}
+        <option value="">Без схемы (только синтаксис)</option>
+      </select>
+      <span class="form-help">
+        {% if 'journal3.xsd' in schemas %}
+          Рекомендуется journal3.xsd для производственных файлов.
+        {% else %}
+          Схема journal3.xsd не найдена — будет выполнена только проверка синтаксиса.
+        {% endif %}
+      </span>
     </div>
 
-    <form method="POST" action="{{ url_for('xml_validation.validate_xml') }}" enctype="multipart/form-data">
-        <div class="form-group">
-            <label for="xml_file">Выберите XML файл *</label>
-            <input 
-                type="file" 
-                id="xml_file" 
-                name="xml_file" 
-                accept=".xml"
-                required
-                style="padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px; width: 100%;"
-            >
-            <small style="color: #666; display: block; margin-top: 0.5rem;">
-                Поддерживаются только файлы с расширением .xml
-            </small>
-        </div>
+    <fieldset class="form-group" style="border:0; padding:0; margin:0 0 1rem;">
+      <legend class="section-title" style="margin-bottom:0.5rem;">Что проверить</legend>
+      <label style="display:flex; gap:0.5rem; align-items:flex-start; margin-bottom:0.45rem;">
+        <input type="checkbox" name="check_schema" value="1" checked>
+        <span>Схема и синтаксис XML</span>
+      </label>
+      <label style="display:flex; gap:0.5rem; align-items:flex-start;">
+        <input type="checkbox" name="check_metadata" value="1" checked>
+        <span>Метаданные статей и выпуска</span>
+      </label>
+    </fieldset>
 
-        <div class="form-group">
-            <label for="schema">Выберите XSD схему (опционально)</label>
-            <select 
-                id="schema" 
-                name="schema" 
-                style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px;"
-            >
-                {% if 'journal3.xsd' in schemas %}
-                <option value="journal3.xsd">journal3.xsd</option>
-                {% endif %}
-                <option value="">Без схемы (только проверка синтаксиса XML)</option>
-            </select>
-            {% if 'journal3.xsd' in schemas %}
-            <small style="color: #666; display: block; margin-top: 0.5rem;">
-                💡 Выберите схему journal3.xsd для проверки XML файла на соответствие схеме
-            </small>
-            {% else %}
-            <small style="color: #ffc107; display: block; margin-top: 0.5rem;">
-                ⚠️ Схема journal3.xsd не найдена. Будет выполнена только проверка синтаксиса XML.
-            </small>
-            {% endif %}
-        </div>
+    <div class="btn-row">
+      <button type="submit" class="btn btn-primary" data-submit-btn data-loading-text="Проверка…" disabled>
+        Запустить проверку
+      </button>
+      <span class="hint-inline" data-submit-hint>Загрузите XML-файл, чтобы начать проверку</span>
+    </div>
+  </form>
 
-        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-            <button type="submit" class="btn btn-primary">
-                Проверить файл
-            </button>
-            <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">
-                Назад
-            </a>
-        </div>
-    </form>
+  <details class="details-box">
+    <summary>Что входит в проверку</summary>
+    <ul class="muted">
+      <li>синтаксис XML и соответствие выбранной XSD-схеме;</li>
+      <li>данные журнала и выпуска;</li>
+      <li>метаданные статей RUS/ENG;</li>
+      <li>ФИО и аффилиации авторов;</li>
+      <li>счётчики источников RUS / ENG / UNK;</li>
+      <li>предупреждение, если источники в XML пронумерованы (1., 2., …);</li>
+      <li>предупреждение при дублировании текста в &lt;reference&gt; и &lt;refInfo&gt;/&lt;text&gt;.</li>
+    </ul>
+  </details>
 </div>
 {% endblock %}
-
