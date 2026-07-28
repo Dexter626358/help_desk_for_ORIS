@@ -11,8 +11,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from werkzeug.utils import secure_filename
 
 from ipsas.config.settings import get_settings
-from ipsas.modules.journal_xml_analyzer import analyze_journal_xml
-from ipsas.modules.xml_validator import XMLValidator
+from ipsas.services.validate_xml import execute as validate_xml_service
 from ipsas.utils.logger import get_logger
 from ipsas.utils.operation_history import record_operation
 from ipsas.utils.temp_files import cleanup_temp_dir
@@ -82,9 +81,6 @@ def validate_xml():
     schema_name = (request.form.get("schema") or "").strip()
     check_schema = request.form.get("check_schema") == "1"
     check_metadata = request.form.get("check_metadata") == "1"
-    if not check_schema and not check_metadata:
-        check_schema = True
-        check_metadata = True
 
     try:
         file.save(str(temp_path))
@@ -99,33 +95,24 @@ def validate_xml():
             flash(f"Файл слишком большой. Максимальный размер: {max_mb:.1f} MB", "error")
             return redirect(url_for("xml_validation.xml_validator_page"))
 
-        schema_result: dict | None = None
-        schema_label = "не выполнялась"
-        if check_schema:
-            validator = XMLValidator()
-            if schema_name:
-                schema_path = settings.schemas_dir / schema_name
-                if not schema_path.exists():
-                    flash(f"Схема {schema_name} не найдена", "error")
-                    _unlink_quiet(temp_path)
-                    return redirect(url_for("xml_validation.xml_validator_page"))
-                validator.load_schema(schema_path)
-                schema_result = validator.validate_xml_file(temp_path)
-                schema_label = schema_path.name
-            else:
-                schema_result = validator.validate_xml_file(temp_path)
-                schema_label = "только синтаксис"
+        try:
+            outcome = validate_xml_service(
+                temp_path,
+                schema_name=schema_name,
+                check_schema=check_schema,
+                check_metadata=check_metadata,
+            )
+        except FileNotFoundError as e:
+            flash(str(e), "error")
+            _unlink_quiet(temp_path)
+            return redirect(url_for("xml_validation.xml_validator_page"))
 
-        report = None
-        metadata_error: str | None = None
-        if check_metadata:
-            try:
-                report = analyze_journal_xml(temp_path)
-            except ValueError as e:
-                metadata_error = str(e)
-            except Exception as e:
-                logger.error("Ошибка анализа метаданных: %s", e, exc_info=True)
-                metadata_error = f"Не удалось проанализировать метаданные: {e}"
+        schema_result = outcome.schema_result
+        schema_label = outcome.schema_label
+        report = outcome.report
+        metadata_error = outcome.metadata_error
+        check_schema = outcome.check_schema
+        check_metadata = outcome.check_metadata
 
         schema_passed = True if schema_result is None else _schema_ok(schema_result)
         meta_errors = 0
@@ -134,7 +121,11 @@ def validate_xml():
 
         status = "ok"
         if (schema_result is not None and not schema_passed) or metadata_error or meta_errors:
-            status = "error" if (schema_result is not None and not schema_passed) or metadata_error else "ok"
+            status = (
+                "error"
+                if (schema_result is not None and not schema_passed) or metadata_error
+                else "ok"
+            )
 
         detail_parts = [display_name]
         if schema_result is not None:
@@ -155,7 +146,6 @@ def validate_xml():
             url=url_for("xml_validation.xml_validator_page"),
         )
 
-        # Файл оставляем для скачивания HTML-отчёта, если метаданные есть.
         keep_file = report is not None
         xml_filename = temp_path.name if keep_file else None
         if not keep_file:

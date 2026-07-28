@@ -2,30 +2,27 @@
 
 from __future__ import annotations
 
-import uuid
-from datetime import datetime
-from pathlib import Path
-
-from flask import Blueprint, Response, flash, redirect, render_template, request, url_for
+from flask import Blueprint, Response, flash, redirect, render_template, url_for
 from lxml import etree
-from werkzeug.utils import secure_filename
 
 from ipsas.config.settings import get_settings
-from ipsas.modules.reference_cleaner import clean_references_with_stats
+from ipsas.services.process_references import clean_tree
 from ipsas.utils.logger import get_logger
+from ipsas.utils.operation_history import record_operation
+from ipsas.web.file_ops import (
+    build_temp_name,
+    download_xml_and_delete,
+    require_xml_upload,
+    save_uploaded_xml,
+)
 
 logger = get_logger(__name__)
 
-reference_cleaning_bp = Blueprint("reference_cleaning", __name__, template_folder="templates")
+reference_cleaning_bp = Blueprint(
+    "reference_cleaning", __name__, template_folder="templates"
+)
 
-
-def _create_strict_parser() -> etree.XMLParser:
-    return etree.XMLParser(
-        recover=False,
-        remove_blank_text=False,
-        resolve_entities=False,
-        huge_tree=True,
-    )
+_PAGE = "reference_cleaning.reference_cleaning_page"
 
 
 @reference_cleaning_bp.route("/reference-cleaning")
@@ -33,65 +30,31 @@ def reference_cleaning_page():
     return render_template("reference_cleaning.html")
 
 
-def _build_temp_filename(original_filename: str, suffix: str) -> str:
-    unique_id = uuid.uuid4().hex[:8]
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    safe = secure_filename(original_filename) or "input.xml"
-    stem = Path(safe).stem
-    return f"{timestamp}_{unique_id}_{stem}{suffix}.xml"
-
-
 @reference_cleaning_bp.route("/reference-cleaning/process", methods=["POST"])
 def process_reference_cleaning():
     settings = get_settings()
+    file, err = require_xml_upload(redirect_endpoint=_PAGE)
+    if err is not None:
+        return err
 
-    if "xml_file" not in request.files:
-        flash("Файл не был загружен", "error")
-        return redirect(url_for("reference_cleaning.reference_cleaning_page"))
-
-    file = request.files["xml_file"]
-    if not file or not file.filename:
-        flash("Файл не выбран", "error")
-        return redirect(url_for("reference_cleaning.reference_cleaning_page"))
-
-    if not file.filename.lower().endswith(".xml"):
-        flash("Поддерживаются только XML файлы", "error")
-        return redirect(url_for("reference_cleaning.reference_cleaning_page"))
-
-    original_filename = secure_filename(file.filename)
-    input_name = _build_temp_filename(original_filename, suffix="")
-    input_path = settings.temp_dir / input_name
-    output_name = _build_temp_filename(original_filename, suffix="_references_cleaned")
+    input_path, original_filename = save_uploaded_xml(file)
+    output_name = build_temp_name(original_filename, suffix="_references_cleaned")
     output_path = settings.temp_dir / output_name
 
     try:
-        file.save(str(input_path))
-
-        parser = _create_strict_parser()
-        tree = etree.parse(str(input_path), parser)
-        _, stats, samples = clean_references_with_stats(tree)
-        tree.write(
-            str(output_path),
-            encoding="UTF-8",
-            xml_declaration=True,
-            pretty_print=False,
-        )
-
+        stats, samples = clean_tree(input_path, output_path)
         try:
-            input_path.unlink()
-        except Exception:
+            input_path.unlink(missing_ok=True)
+        except OSError:
             pass
-
-        from ipsas.utils.operation_history import record_operation
 
         record_operation(
             tool="bibliography",
             title="Очистка библиографии",
             status="ok",
             detail=f"{original_filename}: изменено {stats.changed_references}",
-            url=url_for("reference_cleaning.reference_cleaning_page"),
+            url=url_for(_PAGE),
         )
-
         return render_template(
             "reference_cleaning_result.html",
             filename=original_filename,
@@ -100,64 +63,30 @@ def process_reference_cleaning():
             samples=samples,
         )
     except etree.XMLSyntaxError as e:
-        logger.error(f"Ошибка синтаксиса XML: {e}")
+        logger.error("Ошибка синтаксиса XML: %s", e)
         flash(f"Ошибка синтаксиса XML: {e}", "error")
-        try:
-            if input_path.exists():
-                input_path.unlink()
-        except Exception:
-            pass
-        return redirect(url_for("reference_cleaning.reference_cleaning_page"))
+        _unlink_quiet(input_path)
+        return redirect(url_for(_PAGE))
     except Exception as e:
-        logger.error(f"Ошибка при очистке references: {e}", exc_info=True)
+        logger.error("Ошибка при очистке references: %s", e, exc_info=True)
         flash(f"Ошибка при обработке файла: {e}", "error")
-        try:
-            if input_path.exists():
-                input_path.unlink()
-        except Exception:
-            pass
-        try:
-            if output_path.exists():
-                output_path.unlink()
-        except Exception:
-            pass
-        return redirect(url_for("reference_cleaning.reference_cleaning_page"))
+        _unlink_quiet(input_path)
+        _unlink_quiet(output_path)
+        return redirect(url_for(_PAGE))
+
+
+def _unlink_quiet(path) -> None:
+    try:
+        if path.exists():
+            path.unlink()
+    except OSError:
+        pass
 
 
 @reference_cleaning_bp.route("/reference-cleaning/download/<filename>")
 def download_reference_cleaned_file(filename: str) -> Response:
-    settings = get_settings()
-    file_path = settings.temp_dir / filename
-
-    if not file_path.exists():
-        flash("Файл не найден", "error")
-        return redirect(url_for("reference_cleaning.reference_cleaning_page"))
-
-    from ipsas.utils.download_names import (
-        attachment_filename_from_xml,
-        content_disposition_attachment,
+    return download_xml_and_delete(
+        filename,
+        on_missing_redirect=_PAGE,
+        fallback_name="references_cleaned",
     )
-
-    download_name = attachment_filename_from_xml(
-        file_path, extension=".xml", fallback="references_cleaned"
-    )
-
-    # Отдаём как attachment и удаляем после отправки
-    def generate():
-        try:
-            with open(file_path, "rb") as f:
-                yield f.read()
-        finally:
-            try:
-                if file_path.exists():
-                    file_path.unlink()
-                    logger.info(f"Удален файл после скачивания: {file_path.name}")
-            except Exception as e:
-                logger.warning(f"Не удалось удалить файл {file_path.name}: {e}")
-
-    return Response(
-        generate(),
-        mimetype="application/xml",
-        headers={"Content-Disposition": content_disposition_attachment(download_name)},
-    )
-

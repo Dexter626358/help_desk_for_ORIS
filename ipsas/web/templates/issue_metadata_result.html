@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% from "macros/ui.html" import breadcrumbs, result_summary %}
 
-{% block title %}Результат — Проверка метаданных выпуска — IPSAS{% endblock %}
+{% block title %}Результат — Проверить опубликованный выпуск — IPSAS{% endblock %}
 {% block topbar %}Проверка файлов{% endblock %}
 
 {% block content %}
 {{ breadcrumbs([
   {'label': 'Сервисы', 'url': url_for('main.dashboard')},
-  {'label': 'Проверка метаданных выпуска', 'url': url_for('issue_metadata.issue_metadata_page')},
+  {'label': 'Проверить опубликованный выпуск', 'url': url_for('issue_metadata.issue_metadata_page')},
   {'label': 'Результат'}
 ]) }}
 

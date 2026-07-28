@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs %}
+
+{% block title %}{{ service_title }} — IPSAS{% endblock %}
+{% block topbar %}{{ service_section }}{% endblock %}
+
+{% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': service_section},
+  {'label': service_title}
+]) }}
+
+<div class="card">
+  <h1 class="page-title">{{ service_title }}</h1>
+  <p class="page-lead">{{ service_lead }}</p>
+
+  <div class="alert alert-warning" role="status" style="margin:1rem 0;">
+    <strong>Сервис в разработке.</strong>
+    Пока недоступен для запуска — форма и обработка появятся позже.
+  </div>
+
+  <div class="meta-chips" style="margin-bottom:1rem;">
+    <span class="chip">{{ service_io }}</span>
+    <span class="chip badge-warning" style="background:var(--warning-bg);color:var(--warning);">В разработке</span>
+  </div>
+
+  <div class="btn-row">
+    <a class="btn btn-secondary" href="{{ url_for('main.dashboard') }}">К обзору сервисов</a>
+  </div>
+</div>
+{% endblock %}

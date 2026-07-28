@@ -1,18 +1,25 @@
 """Роуты для форматирования списков литературы в XML."""
 
-import uuid
-from datetime import datetime
-from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
-from werkzeug.utils import secure_filename
-from pathlib import Path
-from ipsas.modules.reference_formatter import ReferenceFormatter
-from ipsas.config.settings import get_settings
+from __future__ import annotations
+
+from flask import Blueprint, render_template, url_for, flash
+
+from ipsas.services.process_references import format_structure
 from ipsas.utils.logger import get_logger
+from ipsas.utils.operation_history import record_operation
+from ipsas.web.file_ops import (
+    download_xml_and_delete,
+    require_xml_upload,
+    save_uploaded_xml,
+)
 
 logger = get_logger(__name__)
 
-# Создание Blueprint для форматирования списков литературы
-reference_formatting_bp = Blueprint("reference_formatting", __name__, template_folder="templates")
+reference_formatting_bp = Blueprint(
+    "reference_formatting", __name__, template_folder="templates"
+)
+
+_PAGE = "reference_formatting.reference_formatting_page"
 
 
 @reference_formatting_bp.route("/reference-formatting")
@@ -24,64 +31,32 @@ def reference_formatting_page():
 @reference_formatting_bp.route("/reference-formatting/process", methods=["POST"])
 def process_reference_formatting():
     """Обработка XML файла: форматирование списка литературы."""
-    settings = get_settings()
-    
-    # Проверка наличия файла
-    if "xml_file" not in request.files:
-        flash("Файл не был загружен", "error")
-        return redirect(url_for("reference_formatting.reference_formatting_page"))
-    
-    file = request.files["xml_file"]
-    
-    if file.filename == "":
-        flash("Файл не выбран", "error")
-        return redirect(url_for("reference_formatting.reference_formatting_page"))
-    
-    # Проверка расширения
-    if not file.filename.lower().endswith(".xml"):
-        flash("Поддерживаются только XML файлы", "error")
-        return redirect(url_for("reference_formatting.reference_formatting_page"))
-    
-    # Сохранение файла во временную директорию с уникальным именем
-    original_filename = secure_filename(file.filename)
-    unique_id = uuid.uuid4().hex[:8]
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{timestamp}_{unique_id}_{original_filename}"
-    temp_path = settings.temp_dir / filename
-    
+    file, err = require_xml_upload(redirect_endpoint=_PAGE)
+    if err is not None:
+        return err
+
+    temp_path, original_filename = save_uploaded_xml(file)
     try:
-        # Сохраняем XML файл
-        file.save(str(temp_path))
-        
-        # Обработка файла
-        formatter = ReferenceFormatter()
-        result = formatter.format_references(temp_path)
-        
+        result = format_structure(temp_path)
         if not result["success"]:
-            flash(f"Ошибка при обработке файла: {result.get('error', 'Неизвестная ошибка')}", "error")
-            # Удаление временного файла
-            try:
-                temp_path.unlink()
-            except:
-                pass
-            return redirect(url_for("reference_formatting.reference_formatting_page"))
-        
-        # Удаляем исходный временный файл после успешной обработки
+            flash(
+                f"Ошибка при обработке файла: {result.get('error', 'Неизвестная ошибка')}",
+                "error",
+            )
+            return _redirect_cleanup(temp_path)
+
         try:
-            temp_path.unlink()
-        except:
+            temp_path.unlink(missing_ok=True)
+        except OSError:
             pass
-        
-        from ipsas.utils.operation_history import record_operation
 
         record_operation(
             tool="bibliography",
             title="Форматирование библиографии",
             status="ok",
             detail=f"{original_filename}: изменено {result.get('processed_count', 0)}",
-            url=url_for("reference_formatting.reference_formatting_page"),
+            url=url_for(_PAGE),
         )
-
         return render_template(
             "reference_formatting_result.html",
             result=result,
@@ -89,67 +64,28 @@ def process_reference_formatting():
             output_filename=result["output_path"].name,
             samples=result.get("samples") or [],
         )
-        
     except Exception as e:
-        logger.error(f"Ошибка при обработке XML: {e}", exc_info=True)
-        flash(f"Ошибка при обработке файла: {str(e)}", "error")
-        
-        # Удаление временного файла в случае ошибки
-        try:
-            if temp_path.exists():
-                temp_path.unlink()
-        except:
-            pass
-        
-        return redirect(url_for("reference_formatting.reference_formatting_page"))
+        logger.error("Ошибка при обработке XML: %s", e, exc_info=True)
+        flash(f"Ошибка при обработке файла: {e}", "error")
+        return _redirect_cleanup(temp_path)
+
+
+def _redirect_cleanup(temp_path):
+    from flask import redirect
+
+    try:
+        if temp_path.exists():
+            temp_path.unlink()
+    except OSError:
+        pass
+    return redirect(url_for(_PAGE))
 
 
 @reference_formatting_bp.route("/reference-formatting/download/<filename>")
-def download_formatted_file(filename):
+def download_formatted_file(filename: str):
     """Скачивание отформатированного XML файла."""
-    settings = get_settings()
-    
-    # Ищем файл в temp_dir
-    file_path = settings.temp_dir / filename
-    
-    if not file_path.exists():
-        flash("Файл не найден", "error")
-        return redirect(url_for("reference_formatting.reference_formatting_page"))
-    
-    from ipsas.utils.download_names import (
-        attachment_filename_from_xml,
-        content_disposition_attachment,
+    return download_xml_and_delete(
+        filename,
+        on_missing_redirect=_PAGE,
+        fallback_name="formatted",
     )
-
-    download_name = attachment_filename_from_xml(
-        file_path, extension=".xml", fallback="formatted"
-    )
-
-    # Отправляем файл и удаляем его после скачивания
-    try:
-        def generate():
-            try:
-                with open(file_path, 'rb') as f:
-                    data = f.read()
-                    yield data
-            finally:
-                # Удаляем файл после чтения
-                try:
-                    if file_path.exists():
-                        file_path.unlink()
-                        logger.info(f"Удален отформатированный файл: {file_path.name}")
-                except Exception as e:
-                    logger.warning(f"Не удалось удалить файл {file_path}: {e}")
-        
-        from flask import Response
-        return Response(
-            generate(),
-            mimetype='application/xml',
-            headers={
-                'Content-Disposition': content_disposition_attachment(download_name)
-            }
-        )
-    except Exception as e:
-        logger.error(f"Ошибка при скачивании файла: {e}")
-        flash("Ошибка при скачивании файла", "error")
-        return redirect(url_for("reference_formatting.reference_formatting_page"))

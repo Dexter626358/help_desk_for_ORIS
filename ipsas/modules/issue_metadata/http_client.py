@@ -114,6 +114,13 @@ class HttpClient:
         retries: Optional[int] = None,
     ) -> bytes:
         """Скачать URL в память (bytes) с ретраями и лимитом размера."""
+        from ipsas.common.ssrf import UnsafeUrlError, assert_safe_fetch_url
+
+        try:
+            assert_safe_fetch_url(url)
+        except UnsafeUrlError as e:
+            raise ValueError(str(e)) from e
+
         req = self.make_request(url)
         effective_timeout = int(
             timeout_s
@@ -185,6 +192,13 @@ class HttpClient:
         retries: Optional[int] = None,
     ) -> Tuple[bytes, Optional[str]]:
         """Скачать URL и вернуть (bytes, Content-Type)."""
+        from ipsas.common.ssrf import UnsafeUrlError, assert_safe_fetch_url
+
+        try:
+            assert_safe_fetch_url(url)
+        except UnsafeUrlError as e:
+            raise ValueError(str(e)) from e
+
         req = self.make_request(url)
         effective_timeout = int(
             timeout_s

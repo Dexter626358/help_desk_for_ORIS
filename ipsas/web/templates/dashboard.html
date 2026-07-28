@@ -13,7 +13,6 @@
     <a class="action-card" href="{{ url_for('xml_validation.xml_validator_page') }}">
       <div class="action-card-head">
         <span class="action-card-ico" aria-hidden="true">{{ icon('file-check', 20) }}</span>
-        <span class="action-card-badge">Рекомендуется</span>
       </div>
       <h3>Валидатор XML</h3>
       <p class="action-card-desc">Схема journal3.xsd и контроль метаданных статей в одном запуске</p>
@@ -39,7 +38,7 @@
       <div class="action-card-head">
         <span class="action-card-ico" aria-hidden="true">{{ icon('file-plus', 20) }}</span>
       </div>
-      <h3>Добавить PDF к статьям</h3>
+      <h3>Добавить PDF в XML</h3>
       <p class="action-card-desc">Сопоставить PDF-файлы со статьями в XML</p>
       <div class="action-card-foot">
         <p class="action-card-io">ZIP (XML + PDF) → обновлённый XML</p>
@@ -70,6 +69,32 @@
         <span class="action-card-cta">Открыть инструмент →</span>
       </div>
     </a>
+
+    <a class="action-card" href="{{ url_for('main.xml_typo_fixes_page') }}">
+      <div class="action-card-head">
+        <span class="action-card-ico" aria-hidden="true">{{ icon('wand', 20) }}</span>
+        <span class="action-card-badge">В разработке</span>
+      </div>
+      <h3>Исправить типовые ошибки XML</h3>
+      <p class="action-card-desc">Автоисправление частых дефектов journal XML</p>
+      <div class="action-card-foot">
+        <p class="action-card-io">XML журнала → исправленный XML</p>
+        <span class="action-card-cta">Скоро →</span>
+      </div>
+    </a>
+
+    <a class="action-card" href="{{ url_for('main.journal_site_check_page') }}">
+      <div class="action-card-head">
+        <span class="action-card-ico" aria-hidden="true">{{ icon('radar', 20) }}</span>
+        <span class="action-card-badge">В разработке</span>
+      </div>
+      <h3>Проверить сайт журнала</h3>
+      <p class="action-card-desc">Проверка публичного сайта и метаданных журнала</p>
+      <div class="action-card-foot">
+        <p class="action-card-io">URL сайта → отчёт</p>
+        <span class="action-card-cta">Скоро →</span>
+      </div>
+    </a>
   </div>
 </div>
 
@@ -85,38 +110,52 @@
     </div>
     <div class="tool-row">
       <div>
-        <h3>Обработка списка литературы</h3>
+        <h3>Исправить список литературы</h3>
         <p>Нумерация, очистка и преобразование библиографии</p>
       </div>
       <a class="btn btn-secondary" href="{{ url_for('main.bibliography_hub') }}">Открыть</a>
     </div>
     <div class="tool-row">
       <div>
-        <h3>Добавление PDF в XML</h3>
+        <h3>Добавить PDF в XML</h3>
         <p>Сопоставление PDF со статьями</p>
       </div>
       <a class="btn btn-secondary" href="{{ url_for('pdf_matching.pdf_matching_page') }}">Открыть</a>
     </div>
     <div class="tool-row">
       <div>
-        <h3>Анализ опубликованного выпуска</h3>
+        <h3>Проверить опубликованный выпуск</h3>
         <p>Парсинг метаданных по URL</p>
       </div>
       <a class="btn btn-secondary" href="{{ url_for('issue_metadata.issue_metadata_page') }}">Открыть</a>
     </div>
     <div class="tool-row">
       <div>
-        <h3>CSV для загрузки PDF</h3>
+        <h3>Сформировать CSV для загрузки PDF</h3>
         <p>Формирование таблицы для площадки</p>
       </div>
       <a class="btn btn-secondary" href="{{ url_for('issue_pdf_csv.issue_pdf_csv_page') }}">Открыть</a>
     </div>
     <div class="tool-row">
       <div>
-        <h3>Обработка редакционной коллегии</h3>
+        <h3>Исправить типовые ошибки XML <span class="chip badge-warning" style="background:var(--warning-bg);color:var(--warning);font-size:0.75rem;">В разработке</span></h3>
+        <p>Автоисправление частых дефектов journal XML</p>
+      </div>
+      <a class="btn btn-secondary" href="{{ url_for('main.xml_typo_fixes_page') }}">Подробнее</a>
+    </div>
+    <div class="tool-row">
+      <div>
+        <h3>Проверить сайт журнала <span class="chip badge-warning" style="background:var(--warning-bg);color:var(--warning);font-size:0.75rem;">В разработке</span></h3>
+        <p>Проверка публичного сайта журнала</p>
+      </div>
+      <a class="btn btn-secondary" href="{{ url_for('main.journal_site_check_page') }}">Подробнее</a>
+    </div>
+    <div class="tool-row">
+      <div>
+        <h3>Обработать редакционную коллегию</h3>
         <p>Внешний сервис (откроется в новой вкладке)</p>
       </div>
-      <a class="btn btn-secondary" href="https://parseeditorialboard-production.up.railway.app" target="_blank" rel="noopener noreferrer">Открыть</a>
+      <a class="btn btn-secondary" href="{{ editorial_board_url }}" target="_blank" rel="noopener noreferrer">Открыть</a>
     </div>
   </div>
 </div>

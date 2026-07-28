@@ -7,7 +7,7 @@
 - `Procfile` / `railway.json` — команда запуска gunicorn
 - `runtime.txt` — версия Python
 - `requirements.txt` — зависимости
-- `run.py` — WSGI-точка входа (`gunicorn run:app`)
+- `run.py` / `wsgi.py` — WSGI-точка входа (`gunicorn wsgi:app` или `run:app`)
 
 Авторизация и база данных **не используются**: сервисы открываются без логина.
 
@@ -23,20 +23,32 @@
 
 В **Settings → Variables**:
 
-**Рекомендуется:**
+**Обязательно в production (`IPSAS_ENV=production` или `FLASK_ENV=production`):**
 ```
 SECRET_KEY=<случайная длинная строка>
+IPSAS_ENV=production
+```
+
+**Рекомендуется:**
+```
 LOG_LEVEL=INFO
+LOG_TO_FILE=0
 ```
 
 **Опционально:**
 ```
 MAX_FILE_SIZE=10485760
+MAX_CONTENT_LENGTH=10485760
 TEMP_FILE_TTL_SECONDS=21600
 ISSUE_PARSER_INFLIGHT_TTL_S=900
 ISSUE_PARSER_TASK_TTL_S=7200
+ISSUE_FETCH_ALLOWED_HOSTS=journals.rcsi.science
+MAX_CONCURRENT_JOBS=4
+RATE_LIMIT_PER_MINUTE=30
 PORT=<Railway задаёт сам>
 ```
+
+`temp/`, `logs/`, `data/` на эфемерном диске Railway **не переживают** redeploy. Логи — в stdout. Health: `/health/live`, `/health/ready`.
 
 PostgreSQL / `DATABASE_URI` **не нужны**.
 
@@ -82,7 +94,7 @@ python run.py
 | Симптом | Что проверить |
 |---------|----------------|
 | Build OK, сайт не открывается | Public Networking, домен, VPN/провайдер |
-| 502 / healthcheck fail | Логи gunicorn, путь `/health` |
+| 502 / healthcheck fail | Логи gunicorn, пути `/health/live` и `/health/ready` |
 | Парсер выпуска «задача не найдена» | Права на `temp/`, TTL задач, свободное место |
 | Большой XML не грузится | `MAX_FILE_SIZE` |
 

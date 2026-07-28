@@ -22,9 +22,12 @@
 {% set bib_active = ref_hub_active or ref_num_active or ref_clean_active or ref_fmt_active %}
 {% set pdf_active = ep.startswith('pdf_matching.') %}
 {% set csv_active = ep.startswith('issue_pdf_csv.') %}
+{% set typo_active = ep == 'main.xml_typo_fixes_page' %}
+{% set site_active = ep == 'main.journal_site_check_page' %}
 {% set check_open = xml_active or issue_active %}
-{% set fix_open = bib_active or pdf_active %}
+{% set fix_open = bib_active or pdf_active or typo_active %}
 {% set issue_open = issue_active or csv_active %}
+{% set meta_open = site_active %}
 
 <div class="app-shell" data-app-shell>
     <aside class="sidebar" aria-label="Основное меню">
@@ -73,11 +76,11 @@
                     <li>
                         <a class="nav-link {{ 'is-active' if issue_active else '' }}"
                            href="{{ url_for('issue_metadata.issue_metadata_page') }}"
-                           data-tooltip="Анализ опубликованного выпуска"
-                           title="Анализ опубликованного выпуска"
+                           data-tooltip="Проверить опубликованный выпуск"
+                           title="Проверить опубликованный выпуск"
                            {{ 'aria-current="page"' if issue_active else '' }}>
                             <span class="nav-ico" aria-hidden="true">{{ icon('globe', 18) }}</span>
-                            <span class="nav-label">Анализ опубликованного выпуска</span>
+                            <span class="nav-label">Проверить опубликованный выпуск</span>
                         </a>
                     </li>
                 </ul>
@@ -90,23 +93,33 @@
                 </button>
                 <ul class="nav-section-body">
                     <li>
+                        <a class="nav-link {{ 'is-active' if typo_active else '' }}"
+                           href="{{ url_for('main.xml_typo_fixes_page') }}"
+                           data-tooltip="Исправить типовые ошибки XML (в разработке)"
+                           title="Исправить типовые ошибки XML — в разработке"
+                           {{ 'aria-current="page"' if typo_active else '' }}>
+                            <span class="nav-ico" aria-hidden="true">{{ icon('wand', 18) }}</span>
+                            <span class="nav-label">Исправить типовые ошибки XML</span>
+                        </a>
+                    </li>
+                    <li>
                         <a class="nav-link {{ 'is-active' if bib_active else '' }}"
                            href="{{ url_for('main.bibliography_hub') }}"
-                           data-tooltip="Обработка списка литературы"
-                           title="Обработка списка литературы"
+                           data-tooltip="Исправить список литературы"
+                           title="Исправить список литературы"
                            {{ 'aria-current="page"' if bib_active else '' }}>
                             <span class="nav-ico" aria-hidden="true">{{ icon('book-open', 18) }}</span>
-                            <span class="nav-label">Обработка списка литературы</span>
+                            <span class="nav-label">Исправить список литературы</span>
                         </a>
                     </li>
                     <li>
                         <a class="nav-link {{ 'is-active' if pdf_active else '' }}"
                            href="{{ url_for('pdf_matching.pdf_matching_page') }}"
-                           data-tooltip="Добавление PDF в XML"
-                           title="Добавление PDF в XML"
+                           data-tooltip="Добавить PDF в XML"
+                           title="Добавить PDF в XML"
                            {{ 'aria-current="page"' if pdf_active else '' }}>
                             <span class="nav-ico" aria-hidden="true">{{ icon('file-plus', 18) }}</span>
-                            <span class="nav-label">Добавление PDF в XML</span>
+                            <span class="nav-label">Добавить PDF в XML</span>
                         </a>
                     </li>
                 </ul>
@@ -121,27 +134,27 @@
                     <li>
                         <a class="nav-link {{ 'is-active' if issue_active else '' }}"
                            href="{{ url_for('issue_metadata.issue_metadata_page') }}"
-                           data-tooltip="Анализ выпуска"
-                           title="Анализ выпуска"
+                           data-tooltip="Проверить опубликованный выпуск"
+                           title="Проверить опубликованный выпуск"
                            {{ 'aria-current="page"' if issue_active else '' }}>
                             <span class="nav-ico" aria-hidden="true">{{ icon('globe', 18) }}</span>
-                            <span class="nav-label">Анализ выпуска</span>
+                            <span class="nav-label">Проверить опубликованный выпуск</span>
                         </a>
                     </li>
                     <li>
                         <a class="nav-link {{ 'is-active' if csv_active else '' }}"
                            href="{{ url_for('issue_pdf_csv.issue_pdf_csv_page') }}"
-                           data-tooltip="CSV для загрузки PDF"
-                           title="CSV для загрузки PDF"
+                           data-tooltip="Сформировать CSV для загрузки PDF"
+                           title="Сформировать CSV для загрузки PDF"
                            {{ 'aria-current="page"' if csv_active else '' }}>
                             <span class="nav-ico" aria-hidden="true">{{ icon('table', 18) }}</span>
-                            <span class="nav-label">CSV для загрузки PDF</span>
+                            <span class="nav-label">Сформировать CSV для загрузки PDF</span>
                         </a>
                     </li>
                 </ul>
             </div>
 
-            <div class="nav-section is-open" data-nav-section="meta">
+            <div class="nav-section {{ 'is-open' if meta_open else 'is-open' }}" data-nav-section="meta">
                 <button type="button" class="nav-section-toggle" data-nav-section-toggle aria-expanded="true">
                     <span>Метаданные журнала</span>
                     <span class="chevron" aria-hidden="true">▸</span>
@@ -149,13 +162,23 @@
                 <ul class="nav-section-body">
                     <li>
                         <a class="nav-link"
-                           href="https://parseeditorialboard-production.up.railway.app"
+                           href="{{ editorial_board_url|default('https://parseeditorialboard-production.up.railway.app') }}"
                            target="_blank"
                            rel="noopener noreferrer"
-                           data-tooltip="Обработка редакционной коллегии"
-                           title="Обработка редакционной коллегии (откроется в новой вкладке)">
+                           data-tooltip="Обработать редакционную коллегию"
+                           title="Обработать редакционную коллегию (откроется в новой вкладке)">
                             <span class="nav-ico" aria-hidden="true">{{ icon('external-link', 18) }}</span>
-                            <span class="nav-label">Обработка редакционной коллегии</span>
+                            <span class="nav-label">Обработать редакционную коллегию</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav-link {{ 'is-active' if site_active else '' }}"
+                           href="{{ url_for('main.journal_site_check_page') }}"
+                           data-tooltip="Проверить сайт журнала (в разработке)"
+                           title="Проверить сайт журнала — в разработке"
+                           {{ 'aria-current="page"' if site_active else '' }}>
+                            <span class="nav-ico" aria-hidden="true">{{ icon('radar', 18) }}</span>
+                            <span class="nav-label">Проверить сайт журнала</span>
                         </a>
                     </li>
                 </ul>

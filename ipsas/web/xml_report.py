@@ -8,7 +8,7 @@ from pathlib import Path
 from flask import Blueprint, Response, flash, redirect, url_for
 
 from ipsas.config.settings import get_settings
-from ipsas.modules.xml_report_generator import generate_xml_html_report
+from ipsas.services.build_journal_report import execute as build_journal_report
 from ipsas.utils.logger import get_logger
 from ipsas.utils.temp_files import cleanup_temp_dir, safe_temp_path
 
@@ -58,7 +58,7 @@ def download_report(filename: str):
 
     report_temp_path = xml_path.with_name(f"{xml_path.stem}_report.html")
     try:
-        generate_xml_html_report(xml_path, report_temp_path)
+        build_journal_report(xml_path, report_temp_path)
         html_bytes = report_temp_path.read_bytes()
     except Exception as e:
         logger.error("Ошибка ленивой генерации HTML: %s", e)

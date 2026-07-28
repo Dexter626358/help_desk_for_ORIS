@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 {% from "macros/ui.html" import breadcrumbs %}
 
-{% block title %}Обработка списка литературы — IPSAS{% endblock %}
+{% block title %}Исправить список литературы — IPSAS{% endblock %}
 {% block topbar %}Исправление XML{% endblock %}
 
 {% block content %}
 {{ breadcrumbs([
   {'label': 'Сервисы', 'url': url_for('main.dashboard')},
   {'label': 'Исправление XML', 'url': url_for('main.bibliography_hub')},
-  {'label': 'Обработка списка литературы'}
+  {'label': 'Исправить список литературы'}
 ]) }}
 
 <div class="card">
-  <h1 class="page-title">Обработка списка литературы</h1>
+  <h1 class="page-title">Исправить список литературы</h1>
   <p class="page-lead">
     Выберите операцию. Каждый инструмент меняет XML по-своему — сначала определите задачу,
     затем загрузите файл на странице инструмента.

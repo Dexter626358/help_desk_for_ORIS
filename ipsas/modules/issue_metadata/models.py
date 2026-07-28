@@ -21,6 +21,19 @@ class ValidationMessage:
             d["field"] = self.field
         return d
 
+    def to_finding(self):
+        from ipsas.modules.issue_metadata.findings import finding_from_validation_message
+
+        return finding_from_validation_message(self)
+
+    @classmethod
+    def from_finding(cls, finding) -> "ValidationMessage":
+        return cls(
+            text=finding.message,
+            severity=getattr(finding.severity, "value", str(finding.severity)),
+            field=finding.field,
+        )
+
 
 @dataclass(slots=True)
 class ArticleIdentifiers:

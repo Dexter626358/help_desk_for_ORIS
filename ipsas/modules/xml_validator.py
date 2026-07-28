@@ -13,18 +13,11 @@ logger = get_logger(__name__)
 
 
 def _create_strict_parser() -> etree.XMLParser:
-    """
-    Создает строгий парсер XML/XSD с сохранением line numbers.
-    
-    Returns:
-        Настроенный XMLParser
-    """
-    return etree.XMLParser(
-        recover=False,
-        remove_blank_text=False,
-        resolve_entities=False,
-        huge_tree=True,
-    )
+    """Строгий XML/XSD parser без внешних сущностей и сети."""
+    from ipsas.common.xml_secure import create_secure_parser
+
+    # huge_tree=True: крупные journal XML; сущности/сеть по-прежнему отключены.
+    return create_secure_parser(huge_tree=True, remove_blank_text=False)
 
 
 def _translate_error_to_russian(message: str) -> str:

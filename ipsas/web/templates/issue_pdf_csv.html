@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 {% from "macros/ui.html" import breadcrumbs, file_upload %}
 
-{% block title %}CSV для загрузки PDF — IPSAS{% endblock %}
+{% block title %}Сформировать CSV для загрузки PDF — IPSAS{% endblock %}
 {% block topbar %}Работа с выпуском{% endblock %}
 
 {% block content %}
 {{ breadcrumbs([
   {'label': 'Сервисы', 'url': url_for('main.dashboard')},
   {'label': 'Работа с выпуском'},
-  {'label': 'CSV для загрузки PDF'}
+  {'label': 'Сформировать CSV для загрузки PDF'}
 ]) }}
 
 <div class="card">
-  <h1 class="page-title">CSV для загрузки PDF</h1>
+  <h1 class="page-title">Сформировать CSV для загрузки PDF</h1>
   <p class="page-lead">
     Сформируйте CSV-файл для загрузки PDF-файлов статей к опубликованному выпуску.
   </p>

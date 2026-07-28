@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 {% from "macros/ui.html" import breadcrumbs, file_upload %}
 
-{% block title %}Добавление PDF в XML — IPSAS{% endblock %}
+{% block title %}Добавить PDF в XML — IPSAS{% endblock %}
 {% block topbar %}Исправление XML{% endblock %}
 
 {% block content %}
 {{ breadcrumbs([
   {'label': 'Сервисы', 'url': url_for('main.dashboard')},
   {'label': 'Исправление XML'},
-  {'label': 'Добавление PDF в XML'}
+  {'label': 'Добавить PDF в XML'}
 ]) }}
 
 <div class="card">
-  <h1 class="page-title">Добавление PDF в XML</h1>
+  <h1 class="page-title">Добавить PDF в XML</h1>
   <p class="page-lead">
     Сопоставьте PDF-файлы со статьями и добавьте имена файлов в XML.
     Загрузите ZIP-архив с одним XML-файлом и PDF-файлами статей.

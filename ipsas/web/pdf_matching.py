@@ -6,8 +6,9 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from werkzeug.utils import secure_filename
 from pathlib import Path
 from lxml import etree
-from ipsas.modules.pdf_matcher import PDFMatcher
 from ipsas.config.settings import get_settings
+from ipsas.modules.pdf_matching import PDFMatcher
+from ipsas.services.match_issue_pdfs import execute as match_issue_pdfs
 from ipsas.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -58,8 +59,7 @@ def process_pdf_matching():
         file.save(str(temp_path))
         
         # Обработка архива
-        matcher = PDFMatcher()
-        result = matcher.process_zip(temp_path, extract_dir)
+        result = match_issue_pdfs(temp_path, extract_dir)
         
         # Удаляем исходный ZIP файл
         try:
@@ -138,7 +138,14 @@ def manual_assign_and_download(filename):
         return redirect(url_for("pdf_matching.pdf_matching_page"))
 
     try:
-        parser = etree.XMLParser(remove_blank_text=True)
+        parser = etree.XMLParser(
+            recover=False,
+            remove_blank_text=True,
+            resolve_entities=False,
+            no_network=True,
+            load_dtd=False,
+            huge_tree=False,
+        )
         tree = etree.parse(str(file_path), parser)
         root = tree.getroot()
         articles = root.findall(".//article")

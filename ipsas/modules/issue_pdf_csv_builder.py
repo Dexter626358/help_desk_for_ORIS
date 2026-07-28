@@ -111,44 +111,44 @@ class IssuePdfCsvBuilder:
         return rows
 
     def _extract_pdf_candidates(self, zip_path: Path, extract_dir: Path) -> List[PdfCandidate]:
+        from ipsas.common.zip_safe import UnsafeZipError, ZipLimits, extract_zip_safely
+
         if extract_dir.exists():
             shutil.rmtree(extract_dir, ignore_errors=True)
         extract_dir.mkdir(parents=True, exist_ok=True)
 
         candidates: List[PdfCandidate] = []
-        with zipfile.ZipFile(zip_path, "r") as zf:
-            for member in zf.infolist():
-                if member.is_dir():
-                    continue
-                name = member.filename or ""
-                if not name.lower().endswith(".pdf"):
-                    continue
+        try:
+            written = extract_zip_safely(
+                zip_path,
+                extract_dir,
+                limits=ZipLimits(allowed_suffixes=(".pdf",)),
+                name_transform=lambda name: Path(name).name,
+                suffixes=(".pdf",),
+            )
+        except UnsafeZipError as e:
+            raise ValueError(str(e)) from e
 
-                safe_name = Path(name).name
-                if not safe_name:
-                    continue
-                out_path = extract_dir / safe_name
-                out_path.write_bytes(zf.read(member))
+        for out_path, safe_name in written:
+            doi_set: Set[str] = set()
+            filename_doi = self._extract_doi_from_text(safe_name)
+            if filename_doi:
+                doi_set.add(filename_doi)
 
-                doi_set: Set[str] = set()
-                filename_doi = self._extract_doi_from_text(safe_name)
-                if filename_doi:
-                    doi_set.add(filename_doi)
+            try:
+                meta = self.pdf_matcher.extract_pdf_metadata(out_path)
+                if meta.doi:
+                    norm = self._normalize_doi(meta.doi)
+                    if norm:
+                        doi_set.add(norm)
+                for cand in meta.doi_candidates or []:
+                    norm = self._normalize_doi(cand)
+                    if norm:
+                        doi_set.add(norm)
+            except Exception as exc:
+                logger.warning("Не удалось извлечь DOI из PDF %s: %s", safe_name, exc)
 
-                try:
-                    meta = self.pdf_matcher.extract_pdf_metadata(out_path)
-                    if meta.doi:
-                        norm = self._normalize_doi(meta.doi)
-                        if norm:
-                            doi_set.add(norm)
-                    for cand in meta.doi_candidates or []:
-                        norm = self._normalize_doi(cand)
-                        if norm:
-                            doi_set.add(norm)
-                except Exception as exc:
-                    logger.warning("Не удалось извлечь DOI из PDF %s: %s", safe_name, exc)
-
-                candidates.append(PdfCandidate(filename=safe_name, doi_candidates=doi_set))
+            candidates.append(PdfCandidate(filename=safe_name, doi_candidates=doi_set))
         return candidates
 
     def _match_articles_to_pdfs(
