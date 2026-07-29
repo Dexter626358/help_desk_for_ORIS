@@ -60,6 +60,12 @@ _REF_NUM_PREFIX_RE = re.compile(r"^\s*(?:\[(\d+)\]|(\d+)[.)]\s+)")
 _REF_DOI_RE = re.compile(r"(?:doi:\s*|https?://(?:dx\.)?doi\.org/)?(10\.\d{4,9}/\S+)", re.IGNORECASE)
 _REF_TILDE_RE = re.compile(r"[A-Za-z]~[A-Za-z]|~[A-Za-z]|[A-Za-z]~")
 _REF_STUCK_NAME_RE = re.compile(r"\b([A-Z][a-z]{2,})([A-Z][a-z]{2,})\b")
+# Инициалы рядом со склейкой: «PerezRey A.» / «J.F. PerezRey» (не бренд ExoPass, AlfaBuild)
+_REF_STUCK_INITIALS = r"[A-Z](?:\.[\u00A0\u2009\s]*[A-Z])*\."
+_REF_STUCK_AUTHOR_AFTER_RE = re.compile(rf"^\s*,?\s*{_REF_STUCK_INITIALS}")
+_REF_STUCK_AUTHOR_BEFORE_RE = re.compile(rf"{_REF_STUCK_INITIALS}\s*$")
+_REF_STUCK_NAME_ALLOW = frozenset({"McDonald", "MacLeod", "DeVries"})
+_REF_STUCK_PARTICLE_PREFIXES = frozenset({"mc", "mac", "de", "la", "le", "van", "von"})
 _REF_ODD_PAGES_RE = re.compile(
     r"(?:pp?\.?|с\.|стр\.?)\s*(\d{1,5})\s*[-–—]\s*(\d{1,5})",
     re.IGNORECASE,
@@ -91,6 +97,29 @@ _REF_BROKEN_RE = re.compile(
     r")",
     re.IGNORECASE,
 )
+# Начало «выводов/аннотации», ошибочно попавших в ref-list
+_REF_PROSE_START_RE = re.compile(
+    r"^\s*(?:\d+[.)]\s+|\[\d+\]\s*)?(?:"
+    r"На\s+основе|Установлено|Показано|Разработан[аоы]?|Выявлено|"
+    r"Рассмотрен[аоы]?|Предложен[аоы]?|Получен[аоы]?|В\s+работе|"
+    r"Целью\s+|Актуальность|Сделан[аоы]?\s+вывод|"
+    r"It\s+is\s+shown|It\s+was\s+(?:found|shown)|We\s+(?:show|propose|develop)|"
+    r"On\s+the\s+basis\s+of|The\s+(?:paper|article)\s+"
+    r")",
+    re.IGNORECASE,
+)
+_REF_CITATION_YEAR_RE = re.compile(r"\b(?:19|20)\d{2}\b")
+_REF_CITATION_BIBLIO_MARK_RE = re.compile(
+    r"(?:"
+    r"//"  # ГОСТ: название // журнал
+    r"|\b(?:vol\.|том\b|т\.\s*\d|no\.|№\s*\d|iss(?:ue)?\.?|"
+    r"pp?\.?\s*\d|с\.\s*\d|стр\.?\s*\d|pages?\b)"
+    r"|\bdoi\b|10\.\d{4,9}/"
+    r"|(?:https?://|www\.)"
+    r")",
+    re.IGNORECASE,
+)
+_MIN_REF_ABSTRACT_OVERLAP = 72
 
 
 def validate_issn(value: Optional[str]) -> Optional[str]:
@@ -713,6 +742,28 @@ def validate_email(value: Optional[str]) -> Optional[str]:
     return None
 
 
+def _first_suspicious_stuck_name(text: str) -> Optional[str]:
+    """Склеенная фамилия у автора (CamelCase + инициалы); бренды/журналы не трогаем."""
+    # ГОСТ: после // — журнал/издание (AlfaBuild, TekhnoPrint и т.п.)
+    zone = text.split("//", 1)[0] if "//" in text else text
+    for stuck in _REF_STUCK_NAME_RE.finditer(zone):
+        token = stuck.group(0)
+        if token in _REF_STUCK_NAME_ALLOW:
+            continue
+        if stuck.group(1).lower() in _REF_STUCK_PARTICLE_PREFIXES:
+            continue
+        after = text[stuck.end() : stuck.end() + 24]
+        before = text[max(0, stuck.start() - 16) : stuck.start()]
+        # Только если рядом инициалы — иначе это заголовок/бренд (ExoPass, …)
+        if not (
+            _REF_STUCK_AUTHOR_AFTER_RE.match(after)
+            or _REF_STUCK_AUTHOR_BEFORE_RE.search(before)
+        ):
+            continue
+        return token
+    return None
+
+
 def _normalize_ref_for_dup(text: str) -> str:
     t = re.sub(r"^\s*(?:\[\d+\]|\d+[.)]\s+)", "", text)
     t = re.sub(r"\s+", " ", t).strip().lower()
@@ -774,6 +825,15 @@ def recompute_bibliography_lang_stats(article: Dict[str, object]) -> None:
         if isinstance(items_raw, list) and items_raw:
             article["references_count"] = len([x for x in items_raw if x])
         return
+    if article.get("references_lang_source") == "unspecified":
+        # JATS без xml:lang — не классифицируем записи по алфавиту для UI
+        items_raw = article.get("references") or []
+        if isinstance(items_raw, list) and items_raw:
+            article["references_count"] = len([x for x in items_raw if x])
+        article["references_ru_count"] = 0
+        article["references_en_count"] = 0
+        article["references_unk_count"] = 0
+        return
     if mode == "parallel_citations":
         # RU/EN — параллельные версии одних и тех же <ref>, сумма ≠ total
         return
@@ -801,6 +861,64 @@ def recompute_bibliography_lang_stats(article: Dict[str, object]) -> None:
     article["references_count"] = total
 
 
+def _strip_ref_num_prefix(text: str) -> str:
+    return _REF_NUM_PREFIX_RE.sub("", text.strip(), count=1).strip()
+
+
+def _normalize_overlap_text(text: str) -> str:
+    t = re.sub(r"\s+", " ", (text or "").lower()).strip()
+    t = t.replace("«", '"').replace("»", '"').replace("–", "-").replace("—", "-")
+    return t
+
+
+def looks_like_bibliographic_citation(text: str) -> bool:
+    """Грубая эвристика: есть год + библио-маркеры / DOI / ГОСТ //."""
+    body = _strip_ref_num_prefix(text)
+    if not body or len(body) < 12:
+        return False
+    if _REF_DOI_RE.search(body) or re.search(r"(?i)\bdoi\b", body):
+        return True
+    if "//" in body:
+        return True
+    if _REF_CITATION_YEAR_RE.search(body) and _REF_CITATION_BIBLIO_MARK_RE.search(body):
+        return True
+    # Короткая запись с годом (часто «Author. Title. Journal. 2020.»)
+    if _REF_CITATION_YEAR_RE.search(body) and len(body) <= 320:
+        return True
+    return False
+
+
+def looks_like_article_prose_in_references(text: str) -> bool:
+    """Текст выводов/аннотации вместо библиографической записи."""
+    if looks_like_bibliographic_citation(text):
+        return False
+    body = _strip_ref_num_prefix(text)
+    if _REF_PROSE_START_RE.match(text) or _REF_PROSE_START_RE.match(body):
+        return True
+    # Длинное предложение без библио-признаков
+    if len(body) >= 160 and not _REF_CITATION_YEAR_RE.search(body):
+        return True
+    return False
+
+
+def reference_overlaps_abstract(ref_text: str, abstract: str, *, min_chars: int = _MIN_REF_ABSTRACT_OVERLAP) -> bool:
+    """Совпадение начала записи списка с аннотацией."""
+    abs_n = _normalize_overlap_text(abstract)
+    ref_n = _normalize_overlap_text(_strip_ref_num_prefix(ref_text))
+    if not abs_n or not ref_n:
+        return False
+    n = min(min_chars, len(abs_n), len(ref_n))
+    if n < 40:
+        return False
+    if abs_n[:n] == ref_n[:n]:
+        return True
+    # Аннотация целиком «вшита» в «источник» или наоборот
+    sample = min(200, len(ref_n), len(abs_n))
+    if sample >= 60 and (ref_n[:sample] in abs_n or abs_n[:sample] in ref_n):
+        return True
+    return False
+
+
 def analyze_bibliography_items(items: List[str]) -> Dict[str, object]:
     """Проверки качества записей одного списка литературы."""
     result: Dict[str, object] = {
@@ -811,6 +929,7 @@ def analyze_bibliography_items(items: List[str]) -> Dict[str, object]:
         "glued": [],
         "broken": [],
         "bad_doi": [],
+        "not_citation": [],
     }
     if not items:
         return result
@@ -868,17 +987,23 @@ def analyze_bibliography_items(items: List[str]) -> Dict[str, object]:
             result["suspicious"].append(
                 {"index": i, "reason": "символ «~» в имени/тексте (возможна опечатка нормализации)", "sample": text[:80]}
             )
-        stuck = _REF_STUCK_NAME_RE.search(text)
-        if stuck and stuck.group(0) not in {"McDonald", "MacLeod", "DeVries"}:
-            # Исключаем частые частицы
-            if stuck.group(1).lower() not in {"mc", "mac", "de", "la", "le", "van", "von"}:
-                result["suspicious"].append(
-                    {
-                        "index": i,
-                        "reason": f"склеенное имя без пробела «{stuck.group(0)}»",
-                        "sample": text[:80],
-                    }
-                )
+        stuck_token = _first_suspicious_stuck_name(text)
+        if stuck_token:
+            result["suspicious"].append(
+                {
+                    "index": i,
+                    "reason": f"склеенное имя без пробела «{stuck_token}»",
+                    "sample": text[:80],
+                }
+            )
+        if looks_like_article_prose_in_references(text):
+            result["not_citation"].append(
+                {
+                    "index": i,
+                    "reason": "похоже на текст статьи/выводов, а не на библиографическую запись",
+                    "sample": text[:100],
+                }
+            )
         for pm in _REF_ODD_PAGES_RE.finditer(text):
             a, b = int(pm.group(1)), int(pm.group(2))
             if a > b or (b - a) > 400:
@@ -962,7 +1087,57 @@ def validate_bibliography(article: Dict[str, object], issues: List[Dict[str, obj
         "glued_count": len(analysis.get("glued") or []),
         "broken_count": len(analysis.get("broken") or []),
         "bad_doi_count": len(analysis.get("bad_doi") or []),
+        "not_citation_count": len(analysis.get("not_citation") or []),
     }
+
+    # Аннотация / выводы ошибочно вставлены в ref-list (как в 440589)
+    abstracts: List[str] = []
+    for key in ("abstract_ru", "abstract_en", "page_abstract_ru", "page_abstract_en"):
+        val = article.get(key)
+        if isinstance(val, str) and val.strip():
+            abstracts.append(val.strip())
+    overlap_hits: List[int] = []
+    for i, text in enumerate(items, start=1):
+        if any(reference_overlaps_abstract(text, abs_text) for abs_text in abstracts):
+            overlap_hits.append(i)
+    if overlap_hits:
+        sample_idx = overlap_hits[0]
+        article_issue(
+            issues,
+            (
+                f"Запись списка литературы №{sample_idx} совпадает с аннотацией — "
+                f"в ref-list попал текст статьи, а не библиографические источники"
+                + (f" (ещё совпадений: {len(overlap_hits) - 1})" if len(overlap_hits) > 1 else "")
+            ),
+            "error",
+            "references",
+        )
+
+    not_citation = analysis.get("not_citation") or []
+    if not_citation:
+        n_bad = len(not_citation)
+        n_all = len(items)
+        if n_all >= 3 and n_bad * 2 >= n_all:
+            article_issue(
+                issues,
+                (
+                    f"Список литературы похоже содержит текст статьи/выводов, "
+                    f"а не библиографические записи ({n_bad} из {n_all})"
+                ),
+                "error",
+                "references",
+            )
+        else:
+            sample = not_citation[0]
+            article_issue(
+                issues,
+                (
+                    f"Запись библиографии №{sample.get('index')} не похожа на источник: "
+                    f"{sample.get('reason')}"
+                ),
+                "warning",
+                "references",
+            )
 
     if analysis.get("numbering_ok") is False:
         for msg in analysis.get("numbering_issues") or []:
@@ -1593,14 +1768,27 @@ def build_article_issues(article: Dict[str, object]) -> List[Dict[str, object]]:
     if affiliations_ru and affiliations_en and len(affiliations_ru) != len(affiliations_en):
         article_issue(
             issues,
-            f"Число организаций RU и EN различается: RU — {len(affiliations_ru)}, EN — {len(affiliations_en)}",
-            "warning",
+            (
+                "Несоответствие метаданных организаций RU/EN: "
+                f"число названий различается (RU — {len(affiliations_ru)}, EN — {len(affiliations_en)})"
+            ),
+            "error",
             "organizations",
         )
     elif org_list and affiliations_ru and not affiliations_en:
-        article_issue(issues, "Отсутствует английская форма названия организации", "warning", "organizations")
+        article_issue(
+            issues,
+            "Несоответствие метаданных организаций RU/EN: отсутствует английская форма названия",
+            "error",
+            "organizations",
+        )
     elif org_list and affiliations_en and not affiliations_ru:
-        article_issue(issues, "Отсутствует русская форма названия организации", "warning", "organizations")
+        article_issue(
+            issues,
+            "Несоответствие метаданных организаций RU/EN: отсутствует русская форма названия",
+            "error",
+            "organizations",
+        )
 
     for aff in org_list[:5]:
         err = validate_affiliation(str(aff))
@@ -1608,26 +1796,31 @@ def build_article_issues(article: Dict[str, object]) -> List[Dict[str, object]]:
             article_issue(issues, err, "warning", "organizations")
             break
 
-    # JATS-аффилиации vs публичная страница
+    # Связи авторов с организациями в метаданных статьи
     jats_affs = article.get("jats_affiliations") or []
     broken_aff_refs = article.get("broken_affiliation_refs") or []
     if isinstance(broken_aff_refs, list):
         for br in broken_aff_refs:
             if not isinstance(br, dict):
                 continue
-            rid = br.get("rid")
             reason = br.get("reason")
+            author = str(br.get("author") or "").strip()
             if reason == "missing_aff":
-                article_issue(
-                    issues,
-                    f"Автор ссылается на несуществующую аффилиацию «{rid}» в JATS",
-                    "error",
-                    "organizations",
-                )
+                if author:
+                    msg = (
+                        f"У автора «{author}» в метаданных указана организация, "
+                        "которой нет в списке организаций этой статьи"
+                    )
+                else:
+                    msg = (
+                        "В метаданных автора указана организация, "
+                        "которой нет в списке организаций этой статьи"
+                    )
+                article_issue(issues, msg, "error", "organizations")
             elif reason == "empty_aff":
                 article_issue(
                     issues,
-                    f"Аффилиация «{rid}» присутствует в JATS, но не содержит названия",
+                    "В списке организаций статьи есть запись без названия организации",
                     "error",
                     "organizations",
                 )
@@ -1643,7 +1836,7 @@ def build_article_issues(article: Dict[str, object]) -> List[Dict[str, object]]:
     if jats_named and not page_org_names and not org_list:
         article_issue(
             issues,
-            "Организации есть в JATS, но не отображаются на публичной странице",
+            "Организации указаны в метаданных статьи, но не отображаются на публичной странице",
             "error",
             "organizations",
         )
@@ -1755,6 +1948,10 @@ def apply_article_validation(article: Dict[str, object]) -> List[Dict[str, objec
     # errors = все ошибки (парсинг + валидация); problems = предупреждения (как в UI)
     article["errors"] = list(dict.fromkeys(parse_errors + val_errors))
     article["problems"] = val_warns
+
+    from ipsas.modules.issue_metadata.report_display import enrich_article_report_display
+
+    enrich_article_report_display(article)
     return issues
 
 

@@ -104,8 +104,14 @@ class Article:
     emails: list[str] = field(default_factory=list)
     has_corresponding_author: Optional[bool] = None
     affiliations: list[str] = field(default_factory=list)
+    affiliations_ru: list[str] = field(default_factory=list)
+    affiliations_en: list[str] = field(default_factory=list)
     organizations: list[str] = field(default_factory=list)
     organizations_count: int = 0
+    jats_affiliations: list[dict[str, object]] = field(default_factory=list)
+    contributor_affiliation_refs: list[dict[str, object]] = field(default_factory=list)
+    author_affiliation_refs: list[object] = field(default_factory=list)
+    page_affiliations: list[dict[str, object]] = field(default_factory=list)
 
     identifiers: ArticleIdentifiers = field(default_factory=ArticleIdentifiers)
 
@@ -125,6 +131,8 @@ class Article:
     references_unk_count: int = 0
     references: list[str] = field(default_factory=list)
     references_mode: Optional[str] = "single_list"
+    references_lang_source: Optional[str] = None
+    references_source: Optional[str] = None
     references_analysis: dict[str, object] = field(default_factory=dict)
     references_parallel_ru_count: Optional[int] = None
     references_parallel_en_count: Optional[int] = None
@@ -208,8 +216,22 @@ class Article:
                 else bool(data.get("has_corresponding_author"))
             ),
             affiliations=list(affiliations),
+            affiliations_ru=list(data.get("affiliations_ru") or []),
+            affiliations_en=list(data.get("affiliations_en") or []),
             organizations=list(data.get("organizations") or []),
             organizations_count=int(data.get("organizations_count") or 0),
+            jats_affiliations=[
+                dict(x) for x in (data.get("jats_affiliations") or []) if isinstance(x, dict)
+            ],
+            contributor_affiliation_refs=[
+                dict(x)
+                for x in (data.get("contributor_affiliation_refs") or [])
+                if isinstance(x, dict)
+            ],
+            author_affiliation_refs=list(data.get("author_affiliation_refs") or []),
+            page_affiliations=[
+                dict(x) for x in (data.get("page_affiliations") or []) if isinstance(x, dict)
+            ],
             identifiers=ArticleIdentifiers.from_mapping(data.get("identifiers")),
             abstract_ru=(data.get("abstract_ru") or None),
             abstract_en=(data.get("abstract_en") or None),
@@ -225,6 +247,8 @@ class Article:
             references_unk_count=int(data.get("references_unk_count") or 0),
             references=list(data.get("references") or []),
             references_mode=(data.get("references_mode") or "single_list"),
+            references_lang_source=(data.get("references_lang_source") or None),
+            references_source=(data.get("references_source") or None),
             references_analysis=dict(data.get("references_analysis") or {})
             if isinstance(data.get("references_analysis"), dict)
             else {},
@@ -277,8 +301,14 @@ class Article:
             "emails": self.emails,
             "has_corresponding_author": self.has_corresponding_author,
             "affiliations": self.affiliations,
+            "affiliations_ru": self.affiliations_ru,
+            "affiliations_en": self.affiliations_en,
             "organizations": self.organizations,
             "organizations_count": self.organizations_count,
+            "jats_affiliations": self.jats_affiliations,
+            "contributor_affiliation_refs": self.contributor_affiliation_refs,
+            "author_affiliation_refs": self.author_affiliation_refs,
+            "page_affiliations": self.page_affiliations,
             "identifiers": self.identifiers.to_dict(),
             "abstract_ru": self.abstract_ru,
             "abstract_en": self.abstract_en,
@@ -294,6 +324,8 @@ class Article:
             "references_unk_count": self.references_unk_count,
             "references": self.references,
             "references_mode": self.references_mode,
+            "references_lang_source": self.references_lang_source,
+            "references_source": self.references_source,
             "references_analysis": self.references_analysis,
             "references_parallel_ru_count": self.references_parallel_ru_count,
             "references_parallel_en_count": self.references_parallel_en_count,

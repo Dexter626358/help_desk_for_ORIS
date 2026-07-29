@@ -258,6 +258,27 @@ def test_jats_references_without_xml_lang_detect_russian() -> None:
     assert refs["unk"]["count"] == 0
     assert refs.get("lang_from_attr") is False
 
+    # В отчёте без xml:lang не делим на RU/EN — только общее число + first/last
+    article: dict = {
+        "references": [],
+        "references_count": 0,
+        "references_mode": "single_list",
+    }
+    IssueMetadataParser()._merge_jats_into_article(article, {}, parsed)
+    assert article["references_lang_source"] == "unspecified"
+    assert article["references_count"] == 2
+    assert article["references_ru_count"] == 0
+    assert article["references_en_count"] == 0
+    assert "Бернштейн" in (article.get("reference_first") or "")
+    assert "Chalmers" in (article.get("reference_last") or "")
+
+    from ipsas.modules.issue_metadata import validators as v
+
+    v.recompute_bibliography_lang_stats(article)
+    assert article["references_ru_count"] == 0
+    assert article["references_en_count"] == 0
+    assert article["references_count"] == 2
+
 
 def test_jats_references_language_from_xml_lang_alternatives() -> None:
     from ipsas.modules.issue_metadata_parser import IssueMetadataParser

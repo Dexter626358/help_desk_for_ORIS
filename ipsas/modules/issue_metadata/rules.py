@@ -245,6 +245,7 @@ def resolve_rule_id(*, field: Optional[str] = None, text: Optional[str] = None) 
         ("аннотация", "TXT_ABSTRACT_RU" if "ru" in t else "TXT_ABSTRACT_EN"),
         ("ключевые слова", "TXT_KW_EN" if " en" in t or "en" in t[-8:] else "TXT_KW_RU"),
         ("аффилиацию", "ORG_PAGE_EMPTY"),
+        ("несоответствие метаданных организаций", "ORG_RU_EN"),
         ("организац", "ORG_PRESENT"),
         ("pdf выпуска", "FILE_ISSUE_PDF"),
         ("pdf файл статьи", "FILE_ARTICLE_PDF"),

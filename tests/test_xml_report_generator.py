@@ -408,10 +408,12 @@ def test_generate_xml_html_report_missing_input_raises(tmp_path: Path):
         generate_xml_html_report(tmp_path / "missing.xml", tmp_path / "out.html")
 
 
-def test_keywords_missing_eng_is_secondary_not_critical():
+def test_keywords_missing_eng_is_critical_for_scientific():
+    """Если на RUS есть ключевые слова — на ENG они обязательны для научной статьи."""
     from ipsas.modules.journal_xml_report import collect_article_issues
 
     article = {
+        "art_type": "RAR",
         "titles": {"RUS": "Т", "ENG": "T"},
         "abstracts": {
             "RUS": {"full_text": "a " * 80},
@@ -427,8 +429,128 @@ def test_keywords_missing_eng_is_secondary_not_critical():
         ],
     }
     issues = collect_article_issues(article)
-    assert not any(s == "critical" and "ключев" in t for s, t in issues)
-    assert any(s == "secondary" and "ключев" in t for s, t in issues)
+    assert ("critical", "нет ключевых слов (ENG)") in issues
+
+
+def test_title_only_congratulatory_needs_only_titles():
+    from ipsas.modules.journal_xml_report import (
+        classify_article_metadata_profile,
+        collect_article_issues,
+    )
+
+    article = {
+        "art_type": "PER",
+        "titles": {
+            "RUS": "Поздравление юбиляру",
+            "ENG": "Congratulations to the jubilee",
+        },
+        "abstracts": {},
+        "keywords": {},
+        "references": {},
+        "authors": [],
+    }
+    assert classify_article_metadata_profile(article) == "title_only"
+    issues = collect_article_issues(article)
+    assert issues == []
+
+
+def test_title_only_jubilee_ignores_missing_affiliations():
+    from ipsas.modules.journal_xml_report import (
+        classify_article_metadata_profile,
+        collect_article_issues,
+    )
+
+    article = {
+        "art_type": "PER",
+        "titles": {
+            "RUS": "АНАТОЛИЮ ВИКТОРОВИЧУ КАРПОВУ — 70 ЛЕТ!",
+            "ENG": "ANATOLY VIKTOROVICH KARPOV — 70 YEARS!",
+        },
+        "abstracts": {},
+        "keywords": {},
+        "references": {},
+        "authors": [
+            {
+                "RUS": {"surname": "Редакция", "initials": "", "orgName": ""},
+                "ENG": {"surname": "Editorial", "initials": "", "orgName": ""},
+            }
+        ],
+    }
+    assert classify_article_metadata_profile(article) == "title_only"
+    issues = collect_article_issues(article)
+    assert not any("аффилиац" in t for _, t in issues)
+    assert issues == []
+
+
+def test_title_only_book_review_by_title_heuristic():
+    from ipsas.modules.journal_xml_report import (
+        classify_article_metadata_profile,
+        collect_article_issues,
+    )
+
+    article = {
+        "art_type": "",
+        "titles": {
+            "RUS": "Отзыв на монографию Иванова",
+            "ENG": "Review of the monograph by Ivanov",
+        },
+        "abstracts": {},
+        "keywords": {},
+        "references": {},
+        "authors": [],
+    }
+    assert classify_article_metadata_profile(article) == "title_only"
+    issues = collect_article_issues(article)
+    assert issues == []
+
+
+def test_title_only_still_requires_eng_title():
+    from ipsas.modules.journal_xml_report import collect_article_issues
+
+    article = {
+        "art_type": "BRV",
+        "titles": {"RUS": "Отзыв на книгу"},
+        "abstracts": {},
+        "keywords": {},
+        "references": {},
+        "authors": [],
+    }
+    issues = collect_article_issues(article)
+    assert ("critical", "нет названия (ENG)") in issues
+
+
+def test_title_only_eng_abstract_required_if_rus_present():
+    from ipsas.modules.journal_xml_report import collect_article_issues
+
+    article = {
+        "art_type": "PER",
+        "titles": {"RUS": "Поздравление", "ENG": "Congratulations"},
+        "abstracts": {"RUS": {"full_text": "Текст поздравления"}},
+        "keywords": {},
+        "references": {},
+        "authors": [],
+    }
+    issues = collect_article_issues(article)
+    assert ("critical", "аннотация ENG: отсутствует") in issues
+
+
+def test_scientific_requires_rus_abstract_keywords_authors():
+    from ipsas.modules.journal_xml_report import collect_article_issues
+
+    article = {
+        "art_type": "RAR",
+        "titles": {"RUS": "Исследование", "ENG": "Research"},
+        "abstracts": {},
+        "keywords": {},
+        "references": {},
+        "authors": [],
+    }
+    issues = collect_article_issues(article)
+    texts = {t for _, t in issues}
+    assert "аннотация RUS: отсутствует" in texts
+    assert "нет ключевых слов" in texts
+    assert "нет авторов" in texts
+    assert "нет источников" in texts
 
 
 def test_references_lang_case_normalized(tmp_path: Path):

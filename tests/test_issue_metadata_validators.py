@@ -624,6 +624,102 @@ def test_bibliography_suspicious_normalization() -> None:
     assert all(i.get("severity") == "warning" for i in issues if "Подозрительная" in str(i["text"]))
 
 
+def test_bibliography_prose_instead_of_citations_detected() -> None:
+    """Выводы/аннотация в ref-list (кейс вроде article/xml/440589) — ошибка."""
+    abstract = (
+        "На основе теории непрерывных марковских процессов разработаны «смешанные» "
+        "вероятностные модели двухсторонних боевых действий многочисленных группировок "
+        "с экспоненциальными зависимостями эффективных скорострельностей боевых единиц "
+        "сторон от времени боя при упреждающем ударе одной из них, позволяющие вычислить "
+        "основные показатели боя."
+    )
+    items = [
+        "1. На основе теории непрерывных марковских процессов разработаны «смешанные» "
+        "вероятностные модели двухсторонних боевых действий многочисленных группировок "
+        "с экспоненциальными зависимостями эффективных скорострельностей боевых единиц "
+        "от времени боя при упреждающем ударе одной из противоборствующих сторон.",
+        "2. Установлено, что использование модели динамики средних приводит к значительным "
+        "ошибкам при вычислении основных показателей боя близких по силам группировок "
+        "даже при их больших начальных численностях.",
+        "3. Показано, что использование вероятностных моделей боя с постоянными эффективными "
+        "скорострельностями может привести к существенным ошибкам при вычислении его "
+        "основных показателей.",
+        "4. Упреждающий удар одной из противоборствующих сторон оказывает существенное "
+        "влияние на протекание боя и его основные показатели даже при значительном превосходстве.",
+        "5. Наличие информации о состоянии боевых единиц противника при отсутствии у него "
+        "такой информации существенно повышает боевые возможности группировки в совокупности "
+        "с упреждающим ударом.",
+        "6. Разработанные модели боя создают основу для их применения в вероятностных моделях "
+        "двухсторонних боевых действий многочисленных группировок при зависимостях "
+        "эффективных скорострельностей боевых единиц сторон от времени боя произвольного вида.",
+    ]
+    analysis = v.analyze_bibliography_items(items)
+    assert len(analysis["not_citation"]) >= 4
+
+    article = {
+        "title_ru": "Смешанные стохастические модели двухсторонних боевых действий",
+        "title_en": "Mixed stochastic models of two-way combat operations",
+        "abstract_ru": abstract,
+        "abstract_en": " ".join(["word"] * 40),
+        "abstract_ru_stats": {"length": 60},
+        "abstract_en_stats": {"length": 40},
+        "keywords_ru": ["модель"],
+        "keywords_en": ["model"],
+        "keywords_ru_count": 1,
+        "keywords_en_count": 1,
+        "references_count": 6,
+        "references_mode": "single_list",
+        "references_lang_source": "unspecified",
+        "references": items,
+        "reference_first": items[0],
+        "reference_last": items[-1],
+        "identifiers": {"doi": "10.53816/20753608_2022_1_34"},
+        "authors_ru": ["Дубограй И. В."],
+        "authors_count": 1,
+        "organizations": ["МГТУ"],
+        "pdf_files": [{"url": "https://example.com/a.pdf"}],
+        "page_start": 34,
+        "page_end": 41,
+    }
+    issues = v.build_article_issues(article)
+    texts = " ".join(str(i["text"]) for i in issues)
+    assert "аннотац" in texts.lower() or "вывод" in texts.lower() or "не библиографичес" in texts
+    assert any(i.get("severity") == "error" and "references" in str(i.get("field") or i.get("text")) for i in issues) or any(
+        "список литературы" in str(i["text"]).lower() or "аннотац" in str(i["text"]).lower() for i in issues if i.get("severity") == "error"
+    )
+
+
+def test_normal_gost_citation_not_flagged_as_prose() -> None:
+    items = [
+        "1. Иони Ю.В., Farooq Muneeb, Roshka D. и др. Производство, распространение и "
+        "удаление микропластика из окружающей среды: обзор. Успехи химии. 2025. "
+        "Т. 94. № 3. С. RCR5155. https://doi.org/10.59761/RCR5155",
+        "2. Kotlyarskaya I.L., Vatin N.I. Fire resistance // AlfaBuild. 2023. No. 4. Pp. 1–10.",
+    ]
+    analysis = v.analyze_bibliography_items(items)
+    assert analysis["not_citation"] == []
+    assert v.looks_like_bibliographic_citation(items[0]) is True
+
+
+def test_bibliography_camelcase_brands_not_stuck_name() -> None:
+    """CamelCase бренды/журналы в библиографии — не склеенное ФИО."""
+    items = [
+        "13. Kotlyarskaya I.L., Vatin N.I. Fire resistance // AlfaBuild. 2023. "
+        "No. 4 (29). Pp. 2906–2906. doi: 10.57728/ALF.29.6",
+        "6. Rodríguez-León J. F., Castillo-Castañeda E., Carbone G. A Feasibility "
+        "Study of ExoPass, a Passive Magnetic-Spring Support Exoskeleton to Reduce "
+        "Worker’s Physical Strain. In: Advances in Italian Mechanism Science. "
+        "Mechanisms and Machine Science, 2022, vol.122, pp.463-470. "
+        "doi: 10.1007/978-3-031-10776-4_53.",
+        "15. Author A.B. Some title about materials. AlfaBuild. 2019. No. 1. Pp. 1–10.",
+        "30. Ivanov I.I. Printing technologies // TekhnoPrint. 2021. No. 2. Pp. 10–20.",
+        "31. Author A. Title with TekhnoPrint device in the abstract. Journal. 2020.",
+    ]
+    analysis = v.analyze_bibliography_items(items)
+    stuck = [s for s in analysis["suspicious"] if "склеенное" in s["reason"]]
+    assert stuck == []
+
+
 def test_keywords_count_mismatch_suppressed_when_en_missing() -> None:
     article = {
         "title_ru": "Достаточно длинное название статьи",
@@ -904,6 +1000,33 @@ def test_missing_keywords_en_without_count_mismatch() -> None:
     assert not any("должно совпадать" in t for t in texts)
 
 
+def test_broken_affiliation_ref_message_is_editorial_friendly() -> None:
+    article = {
+        "title_ru": "Достаточно длинное название статьи",
+        "title_en": "Long enough English title here",
+        "abstract_ru": " ".join(["слово"] * 40),
+        "abstract_en": " ".join(["word"] * 40),
+        "keywords_ru": ["метод"],
+        "keywords_en": ["method"],
+        "identifiers": {"doi": "10.1234/abcdef.ghijkl"},
+        "authors_ru": ["Иванов И. И."],
+        "authors_count": 1,
+        "organizations": ["МГУ"],
+        "broken_affiliation_refs": [
+            {"author": "Иванов И. И.", "rid": "aff1", "reason": "missing_aff"}
+        ],
+        "pdf_files": [{"url": "https://example.com/a.pdf"}],
+        "page_start": 1,
+        "page_end": 2,
+        "references_count": 1,
+    }
+    issues = v.build_article_issues(article)
+    texts = [str(i["text"]) for i in issues]
+    assert any("которой нет в списке организаций" in t for t in texts)
+    assert any("Иванов" in t for t in texts)
+    assert not any("JATS" in t and "aff1" in t for t in texts)
+
+
 def test_empty_affiliation_on_page_is_error() -> None:
     article = {
         "title_ru": "Достаточно длинное название статьи",
@@ -936,6 +1059,40 @@ def test_empty_affiliation_on_page_is_error() -> None:
         and "отсутствует" in str(i["text"])
         for i in issues
     )
+
+
+def test_missing_organization_en_form_is_error() -> None:
+    article = {
+        "title_ru": "Достаточно длинное название статьи",
+        "title_en": "Long enough English title here",
+        "abstract_ru": " ".join(["слово"] * 60),
+        "abstract_en": " ".join(["word"] * 60),
+        "abstract_ru_stats": {"length": 60},
+        "abstract_en_stats": {"length": 60},
+        "keywords_ru": ["метод"],
+        "keywords_en": ["method"],
+        "keywords_ru_count": 1,
+        "keywords_en_count": 1,
+        "references_count": 1,
+        "identifiers": {"doi": "10.1234/abcdef.ghijkl"},
+        "authors_ru": ["Иванов И. И."],
+        "authors_count": 1,
+        "organizations": ["МГТУ им. Н.Э. Баумана"],
+        "affiliations_ru": ["МГТУ им. Н.Э. Баумана"],
+        "affiliations_en": [],
+        "pdf_files": [{"url": "https://example.com/a.pdf"}],
+        "page_start": 1,
+        "page_end": 2,
+    }
+    issues = v.build_article_issues(article)
+    match = [
+        i
+        for i in issues
+        if "английс" in str(i["text"]).lower() and "организац" in str(i["text"]).lower()
+    ]
+    assert match
+    assert all(i.get("severity") == "error" for i in match)
+    assert any("Несоответствие метаданных" in str(i["text"]) for i in match)
 
 
 def test_abstract_missing_on_page_even_if_jats() -> None:

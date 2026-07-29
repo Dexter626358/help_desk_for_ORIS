@@ -135,6 +135,24 @@ def merge_jats_into_article(
             for a in jats_affs
             if isinstance(a, dict) and str(a.get("name") or "").strip()
         ]
+        jats_ru = [
+            str(a.get("name")).strip()
+            for a in jats_affs
+            if isinstance(a, dict)
+            and str(a.get("name") or "").strip()
+            and str(a.get("lang") or "").lower() in {"ru", "rus"}
+        ]
+        jats_en = [
+            str(a.get("name")).strip()
+            for a in jats_affs
+            if isinstance(a, dict)
+            and str(a.get("name") or "").strip()
+            and str(a.get("lang") or "").lower() in {"en", "eng"}
+        ]
+        if jats_ru and not article_data.get("affiliations_ru"):
+            article_data["affiliations_ru"] = list(dict.fromkeys(jats_ru))
+        if jats_en and not article_data.get("affiliations_en"):
+            article_data["affiliations_en"] = list(dict.fromkeys(jats_en))
         if jats_org_names and not article_data.get("organizations"):
             article_data["organizations"] = jats_org_names
             article_data["organizations_count"] = len(jats_org_names)
@@ -262,13 +280,11 @@ def merge_jats_into_article(
             if isinstance(unk, dict):
                 article_data["references_unk_count"] = int(unk.get("count") or 0)
         elif article_data.get("references_source") == "jats":
-            # Без xml:lang — счётчики из JATS-эвристики, recompute может уточнить по items
-            if isinstance(ru, dict):
-                article_data["references_ru_count"] = int(ru.get("count") or 0)
-            if isinstance(en, dict):
-                article_data["references_en_count"] = int(en.get("count") or 0)
-            if isinstance(unk, dict):
-                article_data["references_unk_count"] = int(unk.get("count") or 0)
+            # В XML нет языковых версий citation — в отчёте только общее число, без RU/EN
+            article_data["references_lang_source"] = "unspecified"
+            article_data["references_ru_count"] = 0
+            article_data["references_en_count"] = 0
+            article_data["references_unk_count"] = 0
 
     if isinstance(ru, dict) and not article_data.get("reference_ru_first"):
         article_data["reference_ru_first"] = ru.get("first")

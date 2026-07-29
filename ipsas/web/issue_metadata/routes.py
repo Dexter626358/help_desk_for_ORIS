@@ -155,6 +155,8 @@ def process_issue_metadata():
             user_id=user_key,
             result=None,
             error=None,
+            progress="fetch",
+            progress_step=1,
         )
 
         threading.Thread(
@@ -190,10 +192,19 @@ def issue_metadata_task_status(task_id: str):
     started_at = float(task.get("started_at") or time.time())
     elapsed_s = int(max(0.0, time.time() - started_at))
 
+    progress = str(task.get("progress") or "fetch")
+    try:
+        progress_step = int(task.get("progress_step") or 1)
+    except (TypeError, ValueError):
+        progress_step = 1
+    progress_step = max(1, min(progress_step, 3))
+
     if status == "done":
         return jsonify(
             {
                 "status": "done",
+                "progress": "report",
+                "progress_step": 3,
                 "redirect": url_for(
                     "issue_metadata.issue_metadata_task_result", task_id=task_id
                 ),
@@ -201,9 +212,21 @@ def issue_metadata_task_status(task_id: str):
         )
     if status == "error":
         return jsonify(
-            {"status": "error", "error": task.get("error") or "Неизвестная ошибка"}
+            {
+                "status": "error",
+                "progress": progress,
+                "progress_step": progress_step,
+                "error": task.get("error") or "Неизвестная ошибка",
+            }
         )
-    return jsonify({"status": "running", "elapsed_s": elapsed_s})
+    return jsonify(
+        {
+            "status": "running",
+            "elapsed_s": elapsed_s,
+            "progress": progress,
+            "progress_step": progress_step,
+        }
+    )
 
 
 @issue_metadata_bp.route("/issue-metadata-parser/task/<task_id>")
@@ -238,6 +261,12 @@ def issue_metadata_task_result(task_id: str):
     issue_data = result.get("issue") if isinstance(result.get("issue"), dict) else {}
     generated_at = datetime.now().strftime("%d.%m.%Y %H:%M")
     findings = summarize_findings(result)
+    # На случай старых task result без display-полей
+    from ipsas.modules.issue_metadata.report_display import enrich_article_report_display
+
+    for art in result.get("articles") or []:
+        if isinstance(art, dict):
+            enrich_article_report_display(art)
     report_html = render_template(
         "issue_metadata_report.html",
         result=result,

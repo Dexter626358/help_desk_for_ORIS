@@ -6,30 +6,76 @@ from datetime import datetime
 from typing import Any, Mapping, Optional, Sequence
 
 
-def _fmt_articles(article_nos: Sequence[Any]) -> str:
-    nums = [str(n) for n in article_nos if n is not None]
-    if not nums:
-        return ""
-    return "статьи: " + ", ".join(nums)
+# Мягкие формулировки тем по категориям (для блока «Основные замечания связаны»).
+_CATEGORY_THEME: dict[str, str] = {
+    "issue": "с реквизитами и оформлением выпуска",
+    "identifiers": "с идентификаторами статей (DOI, EDN и др.)",
+    "texts": "с оформлением названий, аннотаций и ключевых слов",
+    "authors_orgs": (
+        "с отсутствием англоязычных вариантов названий организаций "
+        "и связями между авторами и организациями в метаданных"
+    ),
+    "files": "с отсутствием или недоступностью PDF-файлов выпуска и статей",
+    "references": (
+        "с возможным ошибочным включением фрагментов текста статьи "
+        "в список литературы и оформлением отдельных библиографических записей"
+    ),
+    "consistency": "с согласованностью страниц и принадлежностью статей выпуску",
+}
 
 
-def _format_finding_line(item: Mapping[str, Any], *, index: int) -> str:
-    text = str(item.get("text") or "").strip() or "—"
-    count = int(item.get("count") or 1)
-    articles = item.get("articles") if isinstance(item.get("articles"), list) else []
-    issue_level = bool(item.get("issue_level"))
+def _theme_lines_from_findings(
+    by_category: Sequence[Any],
+    errors: Sequence[Any],
+    warnings: Sequence[Any],
+) -> list[str]:
+    """Собрать до 5 мягких тем замечаний для письма."""
+    themes: list[str] = []
+    seen: set[str] = set()
 
-    where_parts: list[str] = []
-    if issue_level:
-        where_parts.append("на уровне выпуска")
-    art_label = _fmt_articles(articles)
-    if art_label:
-        where_parts.append(art_label)
-    if count > 1 and not articles:
-        where_parts.append(f"встречается: {count}")
+    def add(theme: str) -> None:
+        t = theme.strip()
+        if not t or t in seen:
+            return
+        seen.add(t)
+        themes.append(t)
 
-    suffix = f" ({'; '.join(where_parts)})" if where_parts else ""
-    return f"{index}. {text}{suffix}"
+    for cat in by_category:
+        if not isinstance(cat, dict):
+            continue
+        if int(cat.get("total") or 0) <= 0:
+            continue
+        cat_id = str(cat.get("id") or "")
+        theme = _CATEGORY_THEME.get(cat_id)
+        if theme:
+            add(theme)
+        elif cat.get("title"):
+            add(f"с разделом «{cat.get('title')}»")
+
+    samples = [
+        str(x.get("text") or "")
+        for x in list(errors) + list(warnings)
+        if isinstance(x, dict)
+    ]
+    blob = " ".join(samples).lower()
+    if "организац" in blob and "англи" in blob:
+        add("с отсутствием англоязычных вариантов названий организаций")
+    if "аффилиац" in blob:
+        add(
+            "с некорректными связями между авторами и организациями "
+            "в метаданных отдельных статей"
+        )
+    if "литератур" in blob or "библиографи" in blob:
+        add(
+            "с возможным ошибочным включением фрагментов текста статьи "
+            "в список литературы"
+        )
+    if "ключев" in blob:
+        add("с оформлением ключевых слов и отдельных библиографических записей")
+    if "pdf" in blob and "выпуск" in blob:
+        add("с отсутствием общего PDF-файла выпуска")
+
+    return themes[:5]
 
 
 def build_editorial_letter(
@@ -41,11 +87,10 @@ def build_editorial_letter(
     intro: Optional[str] = None,
 ) -> str:
     """
-    Собрать письмо редакции: итог проверки и перечень того, что нужно исправить.
+    Собрать письмо редакции: фиксация результатов проверки без прямого предписания.
 
-    Формат — обычный текст (.txt), удобно вставить в электронную почту.
-    ``intro`` — первая содержательная фраза после обращения; если не задан,
-    используется формулировка для проверки опубликованного выпуска.
+    Формат — обычный текст (.txt) для вставки в электронную почту.
+    ``intro`` — замена стандартного вводного абзаца (после обращения).
     """
     issue = result.get("issue") if isinstance(result.get("issue"), dict) else {}
     articles = result.get("articles") if isinstance(result.get("articles"), list) else []
@@ -58,13 +103,13 @@ def build_editorial_letter(
     number = str(issue.get("issue") or issue.get("number") or "").strip()
     year = str(issue.get("year") or "").strip()
 
-    issue_bits: list[str] = [f'«{journal}»']
+    issue_bits: list[str] = [f"«{journal}»"]
     if volume:
         issue_bits.append(f"том {volume}")
     if number:
         issue_bits.append(f"№ {number}")
     if year:
-        issue_bits.append(str(year))
+        issue_bits.append(f"за {year} год" if year.isdigit() else str(year))
     issue_line = ", ".join(issue_bits)
 
     errors = findings.get("errors") if isinstance(findings.get("errors"), list) else []
@@ -78,26 +123,26 @@ def build_editorial_letter(
     articles_total = len(articles)
     ok = error_count == 0 and warning_count == 0
 
-    opening = intro or (
-        "Направляем результаты автоматической проверки метаданных "
-        f"опубликованного выпуска {issue_line}."
+    default_intro = (
+        "В рамках контроля качества размещения материалов на Национальной платформе "
+        "периодических научных изданий проведена автоматическая проверка метаданных "
+        f"выпуска журнала {issue_line}."
     )
+    opening = intro or default_intro
 
     lines: list[str] = [
         "Уважаемые коллеги!",
         "",
         opening,
+        "",
     ]
     if issue_url:
-        lines.append(f"Ссылка на выпуск: {issue_url}")
+        lines.append("Ссылка на выпуск:")
+        lines.append(issue_url)
+        lines.append("")
     lines.extend(
         [
-            f"Дата проверки: {when}.",
-            "",
-            "Краткие итоги:",
-            f"— статей в выпуске: {articles_total};",
-            f"— ошибок (требуют исправления): {error_count};",
-            f"— предупреждений (рекомендуется проверить): {warning_count}.",
+            f"Дата и время проверки: {when}.",
             "",
         ]
     )
@@ -105,48 +150,66 @@ def build_editorial_letter(
     if ok:
         lines.extend(
             [
-                "По результатам проверки критичных замечаний не выявлено.",
-                "Дополнительных правок по замечаниям системы не требуется.",
+                "По результатам проверки замечаний высокой значимости и замечаний, "
+                "требующих дополнительной проверки, не выявлено.",
+                "",
+                "Краткие результаты:",
+                f"— статей в выпуске — {articles_total};",
+                "— выявлено замечаний высокой значимости — 0;",
+                "— выявлено замечаний, требующих дополнительной проверки, — 0.",
+                "",
+                "Приложение: HTML-отчёт о качестве метаданных выпуска.",
                 "",
             ]
         )
     else:
-        lines.append("Просим устранить замечания ниже и при необходимости повторно опубликовать/обновить метаданные.")
-        lines.append("")
+        lines.extend(
+            [
+                "По результатам проверки обращаем ваше внимание на возможные неточности "
+                "в метаданных и оформлении материалов выпуска.",
+                "",
+                "Краткие результаты:",
+                f"— статей в выпуске — {articles_total};",
+                f"— выявлено замечаний высокой значимости — {error_count};",
+                (
+                    "— выявлено замечаний, требующих дополнительной проверки, — "
+                    f"{warning_count}."
+                ),
+                "",
+            ]
+        )
 
-        if errors:
-            lines.append("1. Ошибки (необходимо исправить)")
+        themes = _theme_lines_from_findings(by_category, errors, warnings)
+        if themes:
+            lines.append("Основные замечания связаны:")
             lines.append("")
-            for i, item in enumerate(errors, start=1):
-                if isinstance(item, dict):
-                    lines.append(_format_finding_line(item, index=i))
-            lines.append("")
-
-        if warnings:
-            section_no = 2 if errors else 1
-            lines.append(f"{section_no}. Предупреждения (рекомендуется исправить)")
-            lines.append("")
-            for i, item in enumerate(warnings, start=1):
-                if isinstance(item, dict):
-                    lines.append(_format_finding_line(item, index=i))
+            for theme in themes:
+                lines.append(f"— {theme};")
+            # последняя точка вместо точки с запятой
+            if lines[-1].endswith(";"):
+                lines[-1] = lines[-1][:-1] + "."
             lines.append("")
 
-        # Краткая сводка по категориям (только непустые)
-        cat_lines: list[str] = []
-        for cat in by_category:
-            if not isinstance(cat, dict):
-                continue
-            total = int(cat.get("total") or 0)
-            if total <= 0:
-                continue
-            title = str(cat.get("title") or cat.get("id") or "Категория")
-            ec = int(cat.get("error_count") or 0)
-            wc = int(cat.get("warning_count") or 0)
-            cat_lines.append(f"— {title}: ошибок {ec}, предупреждений {wc}")
-        if cat_lines:
-            lines.append("Сводка по разделам:")
-            lines.extend(cat_lines)
-            lines.append("")
+        lines.extend(
+            [
+                "Подробная информация по каждой статье, включая название материала, "
+                "страницы, прямую ссылку и описание обнаруженных особенностей, "
+                "представлена в приложенном HTML-отчёте.",
+                "",
+                "Просим ознакомиться с результатами проверки и учитывать выявленные "
+                "замечания при размещении и последующем обновлении материалов на платформе. "
+                "При наличии возможности рекомендуем проверить указанные метаданные и "
+                "скорректировать те из них, которые действительно содержат неточности.",
+                "",
+                "Обращаем внимание, что проверка выполняется автоматически. Отдельные "
+                "замечания могут быть обусловлены особенностями оформления конкретной "
+                "статьи и не всегда свидетельствуют об ошибке. Если сведения в метаданных "
+                "соответствуют опубликованному материалу, внесение изменений не требуется.",
+                "",
+                "Приложение: HTML-отчёт о качестве метаданных выпуска.",
+                "",
+            ]
+        )
 
     notice = result.get("notice")
     if notice:
@@ -154,10 +217,9 @@ def build_editorial_letter(
 
     lines.extend(
         [
-            "При необходимости можем направить подробный HTML-отчёт по проверке.",
-            "",
             "С уважением,",
-            "служба поддержки национальной платформы периодических научных изданий",
+            "служба поддержки",
+            "Национальной платформы периодических научных изданий",
         ]
     )
     return "\n".join(lines) + "\n"

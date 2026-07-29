@@ -62,8 +62,10 @@ def test_build_xml_editorial_letter_lists_issues():
     assert "XML-файла" in text
     assert "issue.xml" in text
     assert "Тестовый журнал" in text
-    assert "Нет keywords EN" in text
-    assert "служба поддержки национальной платформы" in text
+    assert "замечаний высокой значимости — 1" in text
+    assert "Просим ознакомиться с результатами проверки" in text
+    assert "Просим устранить" not in text
+    assert "Национальной платформы периодических научных изданий" in text
 
 
 def test_build_xml_editorial_letter_ok_case():
@@ -76,5 +78,6 @@ def test_build_xml_editorial_letter_ok_case():
         schema_result={"valid": True, "errors": [], "warnings": []},
         source_file="ok.xml",
     )
-    assert "критичных замечаний не выявлено" in text
-    assert "Необходимо исправить" not in text
+    assert "замечаний высокой значимости" in text
+    assert "не выявлено" in text
+    assert "Просим устранить" not in text

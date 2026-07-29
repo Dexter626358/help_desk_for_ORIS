@@ -235,11 +235,6 @@
                 <td>{% if a.keywords_ru %}{{ a.keywords_ru | join(', ') }}{% else %}—{% endif %}</td>
                 <td>{% if a.keywords_en %}{{ a.keywords_en | join(', ') }}{% else %}—{% endif %}</td>
               </tr>
-              <tr>
-                <td>Авторы</td>
-                <td>{% if a.authors_ru %}{{ a.authors_ru | join('; ') }}{% else %}—{% endif %}</td>
-                <td>{% if a.authors_en %}{{ a.authors_en | join('; ') }}{% else %}—{% endif %}</td>
-              </tr>
             </table>
 
             <div class="xr-row" style="margin-top:0.75rem;">
@@ -253,27 +248,69 @@
               · стр. {{ a.pages or "—" }}
               {% if a.pages_source %}<span class="xr-muted">({{ a.pages_source }})</span>{% endif %}
             </div>
-            <div class="xr-row">
-              <span class="xr-k">Организации:</span>
-              {% if a.organizations %}{{ a.organizations | join('; ') }}
-              {% elif a.affiliations %}{{ a.affiliations | join('; ') }}
-              {% else %}—{% endif %}
+
+            <div style="margin-top:0.75rem;">
+              <span class="xr-k">Авторы ({{ a.authors_count or (a.authors_table|length if a.authors_table else 0) }}):</span>
+              <span class="xr-muted">
+                уникальные аффилиации — RUS {{ a.unique_affiliations_ru or 0 }} · ENG {{ a.unique_affiliations_en or 0 }}
+              </span>
+              {% if a.authors_table %}
+              <table class="xr-table">
+                <tr>
+                  <th>#</th>
+                  <th>ФИО RUS</th>
+                  <th>Аффилиация RUS</th>
+                  <th>ФИО ENG</th>
+                  <th>Аффилиация ENG</th>
+                </tr>
+                {% for au in a.authors_table %}
+                <tr>
+                  <td>{{ au.index }}</td>
+                  <td>{{ au.name_ru }}</td>
+                  <td>{{ au.affiliation_ru }}</td>
+                  <td>{{ au.name_en }}</td>
+                  <td>{{ au.affiliation_en }}</td>
+                </tr>
+                {% if au.problems %}
+                <tr>
+                  <td colspan="5" style="color:var(--color-warning);">
+                    {% for p in au.problems %}{{ p }}{% if not loop.last %}; {% endif %}{% endfor %}
+                  </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+              </table>
+              {% else %}
+              <span class="xr-muted"> нет авторов</span>
+              {% endif %}
             </div>
-            <div class="xr-row">
-              <span class="xr-k">Авторы ({{ a.authors_count or 0 }}):</span>
-              {% if a.authors_ru %}{{ a.authors_ru | join('; ') }}
-              {% elif a.authors %}{{ a.authors | join('; ') }}
-              {% else %}—{% endif %}
-            </div>
-            <div class="xr-row">
+
+            <div class="xr-row" style="margin-top:0.75rem;">
               <span class="xr-k">Источники:</span>
-              всего {{ a.references_count or 0 }}
-              · RU {{ a.references_ru_count or 0 }}
-              · EN {{ a.references_en_count or 0 }}
-              {% if a.references_unk_count %} · прочие {{ a.references_unk_count }}{% endif %}
+              RUS {{ a.references_display_ru if a.references_display_ru is not none else (a.references_ru_count or 0) }}
+              · ENG {{ a.references_display_en if a.references_display_en is not none else (a.references_en_count or 0) }}
+              · UNK {{ a.references_display_unk if a.references_display_unk is not none else (a.references_unk_count or 0) }}
               {% if a.references_source %}<span class="xr-muted"> ({{ a.references_source }})</span>{% endif %}
-              {% if a.reference_first or a.reference_ru_first %}
-              <div class="xr-muted" style="margin-top:0.35rem;">Первый: {{ a.reference_first or a.reference_ru_first }}</div>
+              {% if a.references_status and a.references_status.comparison %}
+              <div class="xr-muted">{{ a.references_status.comparison }}</div>
+              {% endif %}
+              {% if a.references_preview %}
+              <table class="xr-table" style="margin-top:0.6rem;">
+                <tr>
+                  <th style="width:12%;">Язык</th>
+                  <th>Первый</th>
+                  <th>Последний</th>
+                </tr>
+                {% for ref in a.references_preview %}
+                <tr>
+                  <td>{{ ref.lang }} ({{ ref.count }})</td>
+                  <td style="word-break:break-word;">{{ ref.first }}</td>
+                  <td style="word-break:break-word;">
+                    {% if ref.same %}<span class="xr-muted">= первый</span>{% else %}{{ ref.last }}{% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </table>
               {% endif %}
             </div>
             <div class="xr-row">

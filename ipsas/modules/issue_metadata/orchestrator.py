@@ -7,7 +7,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 import os
 import zipfile
 import urllib.request
@@ -131,14 +131,27 @@ class IssueMetadataParser:
     def _abstract_stats(text: Optional[str]) -> Dict[str, Optional[object]]:
         return abstract_stats(text)
 
-    def parse_issue_url(self, issue_url: str) -> Dict[str, object]:
-        """Парсинг страницы выпуска и статей по URL."""
+    def parse_issue_url(
+        self,
+        issue_url: str,
+        *,
+        on_progress: Optional[Callable[[str], None]] = None,
+    ) -> Dict[str, object]:
+        """Парсинг страницы выпуска и статей по URL.
+
+        on_progress: необязательный колбэк этапов UI — ``fetch`` | ``articles`` | ``report``.
+        """
         if not issue_url:
             raise ValueError("Не указана ссылка на выпуск")
+
+        def _progress(stage: str) -> None:
+            if on_progress is not None:
+                on_progress(stage)
 
         started = time.monotonic()
         logger.info("Issue parse started: %s", issue_url)
 
+        _progress("fetch")
         t0 = time.monotonic()
         issue_root = self._fetch_html(issue_url, is_issue_page=True)
         logger.info("Issue page fetched in %.2fs: %s", time.monotonic() - t0, issue_url)
@@ -175,6 +188,7 @@ class IssueMetadataParser:
             xml_failure_limit = 3
         xml_consecutive_failures = 0
 
+        _progress("articles")
         articles: List[Dict[str, object]] = []
         for article_url in article_urls:
             try:
@@ -414,6 +428,7 @@ class IssueMetadataParser:
                 issue_metadata["warnings"] = existing
                 break
 
+        _progress("report")
         existing_warnings = issue_metadata.get("warnings")
         if not isinstance(existing_warnings, list):
             existing_warnings = []
@@ -425,6 +440,12 @@ class IssueMetadataParser:
         # Преобразуем в модели (type safety), затем обратно в dict для обратной совместимости с web/UI.
         result_model = IssueParseResult.from_mapping({"issue": issue_metadata, "articles": articles})
         result = result_model.to_dict()
+        # Таблицы авторов/источников для UI — после roundtrip модели
+        from ipsas.modules.issue_metadata.report_display import enrich_article_report_display
+
+        for art in result.get("articles") or []:
+            if isinstance(art, dict):
+                enrich_article_report_display(art)
         logger.info("Issue parse finished in %.2fs: %s", time.monotonic() - started, issue_url)
         return result
 

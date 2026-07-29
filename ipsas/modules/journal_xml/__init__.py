@@ -12,6 +12,7 @@ from ipsas.modules.journal_xml.text_utils import (
     _safe_strip,
 )
 from ipsas.modules.journal_xml.validators import (
+    classify_article_metadata_profile,
     collect_article_issues,
     validate_author_data,
     validate_keywords_data,
@@ -26,6 +27,7 @@ __all__ = [
     "get_first_last_references",
     "get_issue_info",
     "get_articles_info",
+    "classify_article_metadata_profile",
     "collect_article_issues",
     "validate_keywords_data",
     "validate_references_data",
