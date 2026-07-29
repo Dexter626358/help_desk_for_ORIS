@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs, result_summary %}
+
+{% block title %}Результат — Проверить сайт журнала — IPSAS{% endblock %}
+{% block topbar %}Метаданные журнала{% endblock %}
+
+{% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Проверить сайт журнала', 'url': url_for('journal_site_check.journal_site_check_page')},
+  {'label': 'Результат'}
+]) }}
+
+{% set pct = report.completeness_percent or 0 %}
+{% set summary_level = 'ok' if pct >= 70 else ('warning' if pct >= 40 else 'error') %}
+{% set loc_ru = report.locales.ru if report.locales else none %}
+{% set loc_en = report.locales.en if report.locales else none %}
+
+{% macro status_chip(st) -%}
+  {% if st == 'complete' %}
+    <span class="chip" style="background:var(--success-bg, #e8f7ee);color:var(--success, #1b7a3d);">полное</span>
+  {% elif st == 'partial' %}
+    <span class="chip" style="background:var(--warning-bg);color:var(--warning);">частично</span>
+  {% elif st == 'formal' %}
+    <span class="chip" style="background:var(--warning-bg);color:var(--warning);">формально</span>
+  {% elif st == 'missing' %}
+    <span class="chip" style="background:var(--error-bg, #fdecea);color:var(--error, #b42318);">нет</span>
+  {% elif st == 'conflict' %}
+    <span class="chip" style="background:var(--error-bg, #fdecea);color:var(--error, #b42318);">конфликт</span>
+  {% elif st == 'error' %}
+    <span class="chip" style="background:var(--error-bg, #fdecea);color:var(--error, #b42318);">ошибка</span>
+  {% elif st == 'not_applicable' %}
+    <span class="chip">н/п</span>
+  {% elif st == 'filled' %}
+    <span class="chip" style="background:var(--success-bg, #e8f7ee);color:var(--success, #1b7a3d);">заполнено</span>
+  {% elif st == 'weak' %}
+    <span class="chip" style="background:var(--warning-bg);color:var(--warning);">слабо</span>
+  {% elif st == 'empty' %}
+    <span class="chip" style="background:var(--error-bg, #fdecea);color:var(--error, #b42318);">пусто</span>
+  {% elif st %}
+    <span class="chip">{{ st }}</span>
+  {% else %}
+    <span class="muted">—</span>
+  {% endif %}
+{%- endmacro %}
+
+{% macro req_chip(req) -%}
+  {% if req == 'required' %}
+    <span class="chip">обязательно</span>
+  {% elif req == 'conditional' %}
+    <span class="chip">условно</span>
+  {% elif req == 'optional' %}
+    <span class="chip">дополнительно</span>
+  {% endif %}
+{%- endmacro %}
+
+{% macro field_cell(f) -%}
+  {% if f %}
+    {{ status_chip(f.status) }}
+    {% if f.value_preview %}
+      <div style="margin-top:0.35rem;font-size:0.9rem;">{{ f.value_preview }}</div>
+      <div class="muted" style="font-size:0.8rem;">{{ f.chars }} симв.{% if f.max_score is defined %} · {{ f.score }}/{{ f.max_score }}{% endif %}</div>
+    {% elif f.note %}
+      <div class="muted" style="margin-top:0.35rem;font-size:0.85rem;">{{ f.note }}</div>
+    {% endif %}
+    {% if f.source_url %}
+      <div class="muted" style="font-size:0.8rem;margin-top:0.25rem;">
+        <a href="{{ f.source_url }}" target="_blank" rel="noopener noreferrer">источник</a>
+      </div>
+    {% endif %}
+  {% else %}
+    <span class="muted">—</span>
+  {% endif %}
+{%- endmacro %}
+
+{% call result_summary(
+  summary_level,
+  'Проверка сайта завершена',
+  report.journal_title or journal_url,
+  [
+    {'label': 'базовая', 'value': pct ~ '%'},
+    {'label': 'качество', 'value': (report.quality_percent or 0) ~ '%'},
+    {'label': 'оценка', 'value': report.level_label or report.level or '—'},
+    {'label': 'RU / EN', 'value': (report.completeness_ru or 0) ~ '% / ' ~ (report.completeness_en or 0) ~ '%'}
+  ]
+) %}
+  <div class="btn-row" style="margin-top:0.5rem;">
+    <a class="btn btn-primary" href="{{ url_for('journal_site_check.journal_site_check_page') }}">Новая проверка</a>
+    <a class="btn btn-secondary" href="{{ journal_url }}" target="_blank" rel="noopener noreferrer">Открыть сайт</a>
+    {% if letter_filename %}
+    <a class="btn btn-secondary" href="{{ url_for('journal_site_check.download_editorial_letter', filename=letter_filename) }}">Скачать письмо для редакции</a>
+    {% endif %}
+  </div>
+{% endcall %}
+
+{% if letter_filename %}
+<div class="card" style="margin-top:1rem;">
+  <h2 class="section-title">Письмо для редакции</h2>
+  <p class="muted">Текст разделяет обязательные пробелы и дополнительные рекомендации. Формат — TXT (UTF-8).</p>
+  <a class="btn btn-secondary" href="{{ url_for('journal_site_check.download_editorial_letter', filename=letter_filename) }}">Скачать письмо (.txt)</a>
+</div>
+{% endif %}
+
+{# Итог для редакции: обязательное отдельно от рекомендаций #}
+{% macro locale_action_block(loc) %}
+  {% if not loc %}{% endif %}
+  {% set is_en = (loc.lang == 'en') %}
+  {% set title_en_map = {
+    'team.editor_in_chief': 'Editor-in-Chief',
+    'team.editor_in_chief_affiliation': 'Affiliation of the Editor-in-Chief',
+    'team.deputy_editors': 'Deputy Editors',
+    'team.editorial_board': 'Editorial Board',
+    'team.member_affiliations': 'Affiliations of Board Members',
+    'policy.aims_scope': 'Aims and Scope',
+    'policy.sections': 'Sections and Directions',
+    'policy.peer_review': 'Peer Review',
+    'policy.frequency': 'Publication Frequency',
+    'policy.access': 'Open Access Policy',
+    'policy.archiving': 'Archiving',
+    'policy.fees': 'Publication Fees',
+    'policy.ethics': 'Publication Ethics',
+    'policy.indexing': 'Indexing',
+    'policy.metadata_oa': 'Open Access to Publication Metadata',
+    'policy.personal_data': 'Personal Data Processing Policy',
+    'policy.ai_generative': 'Generative AI Policy',
+    'policy.retraction': 'Article Retraction Policy',
+    'submission.receiving': 'Submissions',
+    'submission.online': 'Online Submissions',
+    'submission.guidelines': 'Author Guidelines',
+    'submission.copyright': 'Copyright Notice',
+    'submission.privacy': 'Privacy Statement',
+    'contact.map': 'Map',
+    'contact.persons': 'Contact Persons',
+    'journal.access_model': 'Access Model'
+  } %}
+  <div class="card" style="margin:0;">
+    <h2 class="section-title">{{ loc.label }}
+      <span class="chip" style="margin-left:0.5rem;">{{ loc.completeness_percent }}%</span>
+    </h2>
+    <p style="margin:0 0 0.75rem;">
+      {% if is_en %}
+        Required information — {{ loc.required_filled or 0 }} of {{ loc.required_total or 0 }} provided.
+        <span class="muted">Presentation quality: {{ loc.quality_percent or 0 }}% · {{ loc.level_label or loc.level }}</span>
+      {% else %}
+        Обязательные сведения — {{ loc.required_filled or 0 }} из {{ loc.required_total or 0 }} заполнены.
+        <span class="muted">Качество представления: {{ loc.quality_percent or 0 }}% · {{ loc.level_label or loc.level }}</span>
+      {% endif %}
+    </p>
+    {% set must = loc.must_fix or [] %}
+    {% if must %}
+    <h3 style="font-size:1rem;margin:0.5rem 0;">
+      {% if is_en %}Please complete{% else %}Необходимо заполнить{% endif %}
+    </h3>
+    <ol style="margin:0;padding-left:1.25rem;">
+      {% for item in must %}
+      <li style="margin-bottom:0.4rem;">
+        <strong>{{ (title_en_map[item.id] if (is_en and item.id in title_en_map) else item.title) }}</strong>
+        {{ status_chip(item.status) }}
+        {% if item.page_label %}
+          <div class="muted" style="font-size:0.85rem;">
+            {% if is_en %}Page: {{ item.page_label }}{% else %}Страница: {{ item.page_label }}{% endif %}
+          </div>
+        {% endif %}
+        {% if item.note %}<div class="muted" style="font-size:0.85rem;">{{ item.note }}</div>{% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+    {% else %}
+    <p class="muted">
+      {% if is_en %}
+        No issues were found for required and conditionally required information.
+      {% else %}
+        По обязательным и условно обязательным сведениям замечаний нет.
+      {% endif %}
+    </p>
+    {% endif %}
+    {% set tips = loc.recommendations or [] %}
+    {% if tips %}
+    <h3 style="font-size:1rem;margin:1rem 0 0.5rem;">
+      {% if is_en %}Additional recommendations{% else %}Дополнительные рекомендации{% endif %}
+    </h3>
+    <ol style="margin:0;padding-left:1.25rem;">
+      {% for item in tips[:10] %}
+      <li style="margin-bottom:0.35rem;">
+        {{ (title_en_map[item.id] if (is_en and item.id in title_en_map) else item.title) }}
+      </li>
+      {% endfor %}
+    </ol>
+    {% endif %}
+  </div>
+{% endmacro %}
+
+<div class="jsc-locale-grid" style="margin-top:1rem;">
+  {% if loc_ru %}{{ locale_action_block(loc_ru) }}{% else %}<div></div>{% endif %}
+  {% if loc_en %}{{ locale_action_block(loc_en) }}{% else %}<div></div>{% endif %}
+</div>
+
+{% if loc_ru or loc_en %}
+<div class="card" style="margin-top:1rem;">
+  <h2 class="section-title">Сводка по разделам</h2>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Раздел</th>
+          <th style="width:18%;">RU</th>
+          <th style="width:18%;">EN</th>
+          <th style="width:22%;">Поля RU / EN</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set cats_ru = loc_ru.by_category if loc_ru else [] %}
+        {% set cats_en = loc_en.by_category if loc_en else [] %}
+        {% set cat_count = [cats_ru|length, cats_en|length]|max %}
+        {% for i in range(cat_count) %}
+          {% set cat_r = cats_ru[i] if i < (cats_ru|length) else none %}
+          {% set cat_e = cats_en[i] if i < (cats_en|length) else none %}
+          <tr>
+            <td>{{ (cat_r or cat_e).title }}</td>
+            <td>{% if cat_r %}{{ cat_r.completeness_percent }}%{% else %}—{% endif %}</td>
+            <td>{% if cat_e %}{{ cat_e.completeness_percent }}%{% else %}—{% endif %}</td>
+            <td>
+              {% if cat_r %}{{ cat_r.filled }}/{{ cat_r.total }}{% else %}—{% endif %}
+              ·
+              {% if cat_e %}{{ cat_e.filled }}/{{ cat_e.total }}{% else %}—{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if loc_ru or loc_en %}
+  {% set cats_ru = loc_ru.by_category if loc_ru else [] %}
+  {% set cats_en = loc_en.by_category if loc_en else [] %}
+  {% set cat_count = [cats_ru|length, cats_en|length]|max %}
+  {% for i in range(cat_count) %}
+    {% set cat_r = cats_ru[i] if i < (cats_ru|length) else none %}
+    {% set cat_e = cats_en[i] if i < (cats_en|length) else none %}
+    {% set fields_r = cat_r.fields if cat_r else [] %}
+    {% set fields_e = cat_e.fields if cat_e else [] %}
+    {% set ids = (fields_r|map(attribute='id')|list + fields_e|map(attribute='id')|list)|unique|list %}
+<div class="card" style="margin-top:1rem;">
+  <h2 class="section-title">{{ (cat_r or cat_e).title }}</h2>
+  <div class="table-container">
+    <table class="jsc-compare-table">
+      <thead>
+        <tr>
+          <th style="width:26%;">Критерий</th>
+          <th style="width:37%;">
+            RU
+            {% if cat_r %}<span class="chip" style="margin-left:0.35rem;">{{ cat_r.completeness_percent }}%</span>{% endif %}
+          </th>
+          <th style="width:37%;">
+            EN
+            {% if cat_e %}<span class="chip" style="margin-left:0.35rem;">{{ cat_e.completeness_percent }}%</span>{% endif %}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for fid in ids %}
+          {% set ns = namespace(fr=none, fe=none) %}
+          {% for f in fields_r %}{% if f.id == fid %}{% set ns.fr = f %}{% endif %}{% endfor %}
+          {% for f in fields_e %}{% if f.id == fid %}{% set ns.fe = f %}{% endif %}{% endfor %}
+          {% set row = ns.fr or ns.fe %}
+          {% if row and row.status != 'not_applicable' %}
+        <tr>
+          <td>
+            {{ row.title }}
+            <div style="margin-top:0.25rem;">{{ req_chip(row.requirement) }}</div>
+            {% if row.critical %}<div class="muted" style="font-size:0.8rem;">критическое</div>{% endif %}
+          </td>
+          <td>{{ field_cell(ns.fr) }}</td>
+          <td>{{ field_cell(ns.fe) }}</td>
+        </tr>
+          {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+  {% endfor %}
+{% endif %}
+
+<details class="details-box" style="margin-top:1rem;">
+  <summary>Загруженные страницы</summary>
+  <div class="jsc-locale-grid" style="margin-top:0.75rem;">
+    {% if loc_ru %}
+    <div>
+      <strong>{{ loc_ru.label }}</strong>
+      <ul class="muted">
+        {% for key, page in loc_ru.pages.items() %}
+        <li>
+          {{ key }}:
+          {% if page.ok %}OK{% else %}ошибка — {{ page.error }}{% endif %}
+          · <a href="{{ page.url }}" target="_blank" rel="noopener noreferrer">ссылка</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+    {% if loc_en %}
+    <div>
+      <strong>{{ loc_en.label }}</strong>
+      <ul class="muted">
+        {% for key, page in loc_en.pages.items() %}
+        <li>
+          {{ key }}:
+          {% if page.ok %}OK{% else %}ошибка — {{ page.error }}{% endif %}
+          · <a href="{{ page.url }}" target="_blank" rel="noopener noreferrer">ссылка</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+</details>
+
+<p class="muted" style="margin-top:1rem;">
+  Дата проверки: {{ report.generated_at }} · база URL: <span class="mono">{{ report.base_url }}</span>
+</p>
+
+<style>
+  .jsc-locale-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  .jsc-compare-table td {
+    vertical-align: top;
+  }
+  @media (max-width: 960px) {
+    .jsc-locale-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}

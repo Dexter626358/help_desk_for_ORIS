@@ -167,6 +167,32 @@ def _parse_error_log(error_log: etree._ListErrorLog) -> List[Dict[str, Any]]:
     return errors
 
 
+def _is_ignored_schema_error(error: Dict[str, Any]) -> bool:
+    """Ошибки, которые не считаем замечаниями (допустимые отклонения от XSD)."""
+    message = str(error.get("message") or "")
+    message_l = message.lower()
+    element = str(error.get("element") or "").strip().lower()
+    path = str(error.get("path") or "").rstrip("/").lower()
+
+    is_issue = element == "issue" or path.endswith("/issue") or path.endswith("issue")
+    type_forbidden = (
+        "атрибут 'type'" in message_l
+        or 'атрибут "type"' in message_l
+        or "attribute 'type'" in message_l
+        or 'attribute "type"' in message_l
+    ) and (
+        "не разрешен" in message_l
+        or "not allowed" in message_l
+        or "is not allowed" in message_l
+    )
+    return is_issue and type_forbidden
+
+
+def _filter_schema_errors(errors: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Убрать игнорируемые ошибки схемы."""
+    return [e for e in errors if not _is_ignored_schema_error(e)]
+
+
 class XMLValidationError:
     """Класс для представления ошибки валидации XML."""
 
@@ -347,21 +373,27 @@ class XMLValidator:
                     self.logger.info(f"[OK] XSD корректна, XML соответствует схеме: {xml_path.name}")
                 else:
                     # Обрабатываем ошибки валидации по схеме через error_log
-                    result["valid"] = False
-                    self.logger.warning(f"[INVALID] XML НЕ соответствует XSD: {xml_path.name}")
                     if hasattr(self.schema, "error_log"):
                         errors = _parse_error_log(self.schema.error_log)
                         # Дополняем информацией об элементах
                         errors = self._enrich_errors_with_elements(errors, xml_path)
-                        result["errors"].extend(errors)
                     else:
                         # Fallback на старый способ
+                        errors = []
                         try:
                             self.schema.assertValid(xml_doc)
                         except DocumentInvalid as e:
                             errors = self._parse_validation_errors(e, xml_doc, xml_path)
-                            result["errors"].extend(errors)
-                    self.logger.warning(f"Найдено ошибок: {len(result['errors'])}")
+                    errors = _filter_schema_errors(errors)
+                    result["errors"].extend(errors)
+                    result["valid"] = len(result["errors"]) == 0
+                    if result["valid"]:
+                        self.logger.info(
+                            f"[OK] XSD корректна (игнор. допустимые отклонения): {xml_path.name}"
+                        )
+                    else:
+                        self.logger.warning(f"[INVALID] XML НЕ соответствует XSD: {xml_path.name}")
+                        self.logger.warning(f"Найдено ошибок: {len(result['errors'])}")
             else:
                 # Если схема не загружена, просто проверяем, что XML валиден
                 result["valid"] = True
@@ -434,16 +466,17 @@ class XMLValidator:
                 if is_valid:
                     result["valid"] = True
                 else:
-                    result["valid"] = False
                     if hasattr(self.schema, "error_log"):
                         errors = _parse_error_log(self.schema.error_log)
-                        result["errors"].extend(errors)
                     else:
+                        errors = []
                         try:
                             self.schema.assertValid(xml_doc)
                         except DocumentInvalid as e:
                             errors = self._parse_validation_errors(e, xml_doc)
-                            result["errors"].extend(errors)
+                    errors = _filter_schema_errors(errors)
+                    result["errors"].extend(errors)
+                    result["valid"] = len(result["errors"]) == 0
             else:
                 result["valid"] = True
                 result["warnings"].append({
@@ -680,25 +713,33 @@ class XMLValidator:
                     )
                 else:
                     # Получаем ошибки через error_log
-                    self.logger.warning(
-                        f"[INVALID] XML НЕ соответствует XSD {schema_path.name}: {xml_path.name}"
-                    )
                     if hasattr(schema, "error_log"):
                         errors = _parse_error_log(schema.error_log)
                         # Дополняем информацией об элементах
                         errors = self._enrich_errors_with_elements(errors, xml_path)
                     else:
                         # Fallback на старый способ
+                        errors = []
                         try:
                             schema.assertValid(xml_doc)
                         except DocumentInvalid as e:
                             errors = self._parse_validation_errors(e, xml_doc, xml_path)
-                    
-                    # Добавляем информацию о схеме к каждой ошибке
-                    for error in errors:
-                        error["schema"] = schema_path.name
-                    all_errors.extend(errors)
-                    self.logger.warning(f"Найдено ошибок: {len(errors)}")
+
+                    errors = _filter_schema_errors(errors)
+                    if not errors:
+                        valid_count += 1
+                        self.logger.info(
+                            f"[OK] XML валиден по схеме {schema_path.name} "
+                            f"(игнор. допустимые отклонения): {xml_path.name}"
+                        )
+                    else:
+                        self.logger.warning(
+                            f"[INVALID] XML НЕ соответствует XSD {schema_path.name}: {xml_path.name}"
+                        )
+                        for error in errors:
+                            error["schema"] = schema_path.name
+                        all_errors.extend(errors)
+                        self.logger.warning(f"Найдено ошибок: {len(errors)}")
 
             except XMLSyntaxError as e:
                 all_errors.append({

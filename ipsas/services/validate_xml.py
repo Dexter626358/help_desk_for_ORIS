@@ -8,6 +8,7 @@ from typing import Any, Optional
 
 from ipsas.config.settings import get_settings
 from ipsas.modules.journal_xml.analyzer import analyze_journal_xml
+from ipsas.modules.journal_xml.editorial_letter import build_xml_editorial_letter
 from ipsas.modules.xml_validator import XMLValidator
 from ipsas.utils.logger import get_logger
 
@@ -22,6 +23,24 @@ class ValidateXmlResult:
     metadata_error: str | None
     check_schema: bool
     check_metadata: bool
+
+
+def build_xml_editorial_letter_text(
+    *,
+    report: dict[str, Any] | None = None,
+    schema_result: dict[str, Any] | None = None,
+    metadata_error: str | None = None,
+    source_file: str = "",
+    generated_at: str | None = None,
+) -> str:
+    """Текст письма редакции по уже посчитанному результату валидации XML."""
+    return build_xml_editorial_letter(
+        report=report,
+        schema_result=schema_result,
+        metadata_error=metadata_error,
+        source_file=source_file,
+        generated_at=generated_at,
+    )
 
 
 def execute(

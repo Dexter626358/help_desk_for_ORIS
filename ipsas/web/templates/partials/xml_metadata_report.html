@@ -137,33 +137,6 @@
       </tr>
     </table>
 
-    <div class="xr-row" style="margin-top:0.75rem;">
-      <span class="xr-k">Источники:</span>
-      RUS {{ a.references_rus }} · ENG {{ a.references_eng }} · UNK {{ a.references_unk }}
-      {% if a.references_any %} · ANY {{ a.references_any }}{% endif %}
-      {% if a.references_status.comparison %}
-      <div class="xr-muted">{{ a.references_status.comparison }}</div>
-      {% endif %}
-      {% if a.references_preview %}
-      <table class="xr-table" style="margin-top:0.6rem;">
-        <tr>
-          <th style="width:12%;">Язык</th>
-          <th>Первый</th>
-          <th>Последний</th>
-        </tr>
-        {% for ref in a.references_preview %}
-        <tr>
-          <td>{{ ref.lang }} ({{ ref.count }})</td>
-          <td style="word-break:break-word;">{{ ref.first }}</td>
-          <td style="word-break:break-word;">
-            {% if ref.same %}<span class="xr-muted">= первый</span>{% else %}{{ ref.last }}{% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </table>
-      {% endif %}
-    </div>
-
     <div style="margin-top:0.75rem;">
       <span class="xr-k">Авторы ({{ a.authors_count }}):</span>
       <span class="xr-muted">
@@ -197,6 +170,33 @@
       </table>
       {% else %}
       <span class="xr-muted"> нет авторов</span>
+      {% endif %}
+    </div>
+
+    <div class="xr-row" style="margin-top:0.75rem;">
+      <span class="xr-k">Источники:</span>
+      RUS {{ a.references_rus }} · ENG {{ a.references_eng }} · UNK {{ a.references_unk }}
+      {% if a.references_any %} · ANY {{ a.references_any }}{% endif %}
+      {% if a.references_status.comparison %}
+      <div class="xr-muted">{{ a.references_status.comparison }}</div>
+      {% endif %}
+      {% if a.references_preview %}
+      <table class="xr-table" style="margin-top:0.6rem;">
+        <tr>
+          <th style="width:12%;">Язык</th>
+          <th>Первый</th>
+          <th>Последний</th>
+        </tr>
+        {% for ref in a.references_preview %}
+        <tr>
+          <td>{{ ref.lang }} ({{ ref.count }})</td>
+          <td style="word-break:break-word;">{{ ref.first }}</td>
+          <td style="word-break:break-word;">
+            {% if ref.same %}<span class="xr-muted">= первый</span>{% else %}{{ ref.last }}{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
       {% endif %}
     </div>
 

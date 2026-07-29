@@ -637,6 +637,7 @@
                 </xsd:complexType>
               </xsd:element>
             </xsd:all>
+            <xsd:attribute type="xsd:string" name="type" use="optional"/>
           </xsd:complexType>
         </xsd:element>
       </xsd:choice>

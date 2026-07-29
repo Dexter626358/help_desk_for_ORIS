@@ -83,16 +83,15 @@
       </div>
     </a>
 
-    <a class="action-card" href="{{ url_for('main.journal_site_check_page') }}">
+    <a class="action-card" href="{{ url_for('journal_site_check.journal_site_check_page') }}">
       <div class="action-card-head">
         <span class="action-card-ico" aria-hidden="true">{{ icon('radar', 20) }}</span>
-        <span class="action-card-badge">В разработке</span>
       </div>
       <h3>Проверить сайт журнала</h3>
-      <p class="action-card-desc">Проверка публичного сайта и метаданных журнала</p>
+      <p class="action-card-desc">Проверка заполненности полей на публичном сайте журнала</p>
       <div class="action-card-foot">
         <p class="action-card-io">URL сайта → отчёт</p>
-        <span class="action-card-cta">Скоро →</span>
+        <span class="action-card-cta">Открыть →</span>
       </div>
     </a>
   </div>
@@ -145,10 +144,10 @@
     </div>
     <div class="tool-row">
       <div>
-        <h3>Проверить сайт журнала <span class="chip badge-warning" style="background:var(--warning-bg);color:var(--warning);font-size:0.75rem;">В разработке</span></h3>
-        <p>Проверка публичного сайта журнала</p>
+        <h3>Проверить сайт журнала</h3>
+        <p>Заполненность полей публичного сайта журнала</p>
       </div>
-      <a class="btn btn-secondary" href="{{ url_for('main.journal_site_check_page') }}">Подробнее</a>
+      <a class="btn btn-secondary" href="{{ url_for('journal_site_check.journal_site_check_page') }}">Открыть</a>
     </div>
     <div class="tool-row">
       <div>

@@ -38,8 +38,19 @@
     {% if xml_filename %}
     <a class="btn btn-secondary" href="{{ url_for('xml_report.download_report', filename=xml_filename) }}">Скачать HTML-отчёт</a>
     {% endif %}
+    {% if letter_filename %}
+    <a class="btn btn-secondary" href="{{ url_for('xml_validation.download_editorial_letter', filename=letter_filename) }}">Скачать письмо для редакции</a>
+    {% endif %}
   </div>
 {% endcall %}
+
+{% if letter_filename %}
+<div class="card" style="margin-top:1rem;">
+  <h2 class="section-title">Письмо для редакции</h2>
+  <p class="muted">Готовый текст для отправки в редакцию: итог проверки и список того, что нужно исправить. Формат — TXT (UTF-8).</p>
+  <a class="btn btn-secondary" href="{{ url_for('xml_validation.download_editorial_letter', filename=letter_filename) }}">Скачать письмо (.txt)</a>
+</div>
+{% endif %}
 
 {% if check_schema and schema_result %}
 <div class="card" id="schema-result">

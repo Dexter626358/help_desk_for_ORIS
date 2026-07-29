@@ -56,23 +56,3 @@ def xml_typo_fixes_page():
         service_io="XML журнала → исправленный XML",
         in_development=True,
     )
-
-
-@main_bp.route("/services/journal-site-check")
-def journal_site_check_page():
-    """Проверить сайт журнала (отдельный сервис)."""
-    settings = get_settings()
-    external = settings.journal_site_check_url
-    if external:
-        return redirect(external)
-    return render_template(
-        "service_placeholder.html",
-        service_title="Проверить сайт журнала",
-        service_section="Метаданные журнала",
-        service_lead=(
-            "Проверка публичного сайта журнала: разделы, метаданные, "
-            "доступность страниц и типовые проблемы отображения."
-        ),
-        service_io="URL сайта журнала → отчёт",
-        in_development=True,
-    )

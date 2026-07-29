@@ -754,6 +754,14 @@ def test_author_initials_punctuation_and_orcid_email() -> None:
     assert any("один и тот же email" in t.lower() or "Один и тот же email" in t for t in texts)
 
 
+def test_orcid_accepts_0009_range() -> None:
+    assert v.validate_orcid("0009-0009-0760-4783") is None
+    assert v.validate_orcid("https://orcid.org/0009-0009-0760-4783") is None
+    assert v.validate_orcid("0000-0002-1825-0097") is None
+    err = v.validate_orcid("bad-orcid")
+    assert err is not None and "ORCID" in err
+
+
 def test_full_author_names_do_not_trigger_initials_punctuation() -> None:
     """Полные ФИО, разделённые при join через «;», не должны давать ложное замечание."""
     article = {

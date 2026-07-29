@@ -49,12 +49,23 @@
     <a class="btn btn-secondary" href="{{ url_for('issue_metadata.view_issue_report', filename=report_filename) }}" target="_blank" rel="noopener">Открыть отчёт</a>
     <a class="btn btn-secondary" href="{{ url_for('issue_metadata.download_issue_report', filename=report_filename) }}">Скачать HTML-отчёт</a>
     {% endif %}
+    {% if letter_filename %}
+    <a class="btn btn-secondary" href="{{ url_for('issue_metadata.download_editorial_letter', filename=letter_filename) }}">Скачать письмо для редакции</a>
+    {% endif %}
   </div>
 {% endcall %}
 
 {% if result.notice %}
 <div class="card" style="margin-top:1rem;">
   <p class="muted" style="margin:0;">{{ result.notice }}</p>
+</div>
+{% endif %}
+
+{% if letter_filename %}
+<div class="card" style="margin-top:1rem;">
+  <h2 class="section-title">Письмо для редакции</h2>
+  <p class="muted">Готовый текст для отправки в редакцию: итог проверки и список того, что нужно исправить. Формат — TXT (UTF-8).</p>
+  <a class="btn btn-secondary" href="{{ url_for('issue_metadata.download_editorial_letter', filename=letter_filename) }}">Скачать письмо (.txt)</a>
 </div>
 {% endif %}
 

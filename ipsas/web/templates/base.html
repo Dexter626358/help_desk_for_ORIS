@@ -23,8 +23,8 @@
 {% set pdf_active = ep.startswith('pdf_matching.') %}
 {% set csv_active = ep.startswith('issue_pdf_csv.') %}
 {% set typo_active = ep == 'main.xml_typo_fixes_page' %}
-{% set site_active = ep == 'main.journal_site_check_page' %}
-{% set check_open = xml_active or issue_active %}
+{% set site_active = ep.startswith('journal_site_check.') %}
+{% set check_open = xml_active or issue_active or site_active %}
 {% set fix_open = bib_active or pdf_active or typo_active %}
 {% set issue_open = issue_active or csv_active %}
 {% set meta_open = site_active %}
@@ -173,9 +173,9 @@
                     </li>
                     <li>
                         <a class="nav-link {{ 'is-active' if site_active else '' }}"
-                           href="{{ url_for('main.journal_site_check_page') }}"
-                           data-tooltip="Проверить сайт журнала (в разработке)"
-                           title="Проверить сайт журнала — в разработке"
+                           href="{{ url_for('journal_site_check.journal_site_check_page') }}"
+                           data-tooltip="Проверить сайт журнала"
+                           title="Проверить заполненность полей сайта журнала"
                            {{ 'aria-current="page"' if site_active else '' }}>
                             <span class="nav-ico" aria-hidden="true">{{ icon('radar', 18) }}</span>
                             <span class="nav-label">Проверить сайт журнала</span>

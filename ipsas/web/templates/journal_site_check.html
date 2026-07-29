@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs %}
+
+{% block title %}Проверить сайт журнала — IPSAS{% endblock %}
+{% block topbar %}Метаданные журнала{% endblock %}
+
+{% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Метаданные журнала'},
+  {'label': 'Проверить сайт журнала'}
+]) }}
+
+<div class="card">
+  <h1 class="page-title">Проверить сайт журнала</h1>
+  <p class="page-lead">
+    Укажите ссылку на публичную страницу журнала (главная или about).
+    На главной проверяются: название, ISSN, описание, обложка и текущий выпуск;
+    остальные сведения — на страницах раздела «О журнале» (RU и EN).
+  </p>
+
+  <form method="POST"
+        action="{{ url_for('journal_site_check.process_journal_site_check') }}"
+        novalidate
+        data-loading-form>
+    <div class="form-group">
+      <label for="journal_url">Ссылка на журнал *</label>
+      <input
+        type="url"
+        id="journal_url"
+        name="journal_url"
+        data-url-field
+        placeholder="https://journals.rcsi.science/2312-1327/index"
+        required
+        autocomplete="url"
+      >
+      <span class="form-help">
+        Пример: <span class="mono">https://journals.rcsi.science/2312-1327/index</span>
+      </span>
+    </div>
+
+    <div class="btn-row">
+      <button type="submit" class="btn btn-primary" data-submit-btn data-loading-text="Проверка…">
+        Проверить сайт
+      </button>
+    </div>
+  </form>
+
+  <details class="details-box">
+    <summary>Что проверяется</summary>
+    <p class="muted">
+      Для каждой локали (RU и EN): на главной — описание, ISSN, обложка, текущий выпуск;
+      в разделе «О журнале» — все пункты меню /about (People, Policies, Submissions, Other),
+      включая Plagiarism Detection, Copyright Notice, Privacy Statement, Subscriptions и др.
+    </p>
+  </details>
+</div>
+{% endblock %}

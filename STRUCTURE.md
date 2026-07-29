@@ -75,6 +75,7 @@ Shim: `ipsas.modules.validator` → `common.validation`.
 journal_xml/
 ├── models.py / parser.py / validators.py / text_utils.py
 ├── analyzer.py
+├── editorial_letter.py   # письмо для редакции (.txt) после валидатора XML
 └── report/renderer.py + standalone.py   # CSS из static/theme.css+app.css
 ```
 
@@ -96,10 +97,18 @@ orchestrator.py     # IssueMetadataParser
 jats.py / merge.py / lang.py
 parsers.py / validators.py / rules.py / models.py
 findings.py         # warning_dict, мост к Finding
+editorial_letter.py # текст письма для редакции (.txt)
 report_summary.py / http_client.py
 ```
 
 Shim: `issue_metadata_parser.py`.
+
+### Сайт журнала — `journal_site/`
+
+Проверка заполненности сайта OJS по каталогу критериев (`criteria.py`):
+обязательные / условно обязательные / дополнительные; RU + EN.
+Модули: `criteria.py`, `evaluate.py`, `parser.py`, `locale_fetch.py`,
+`checker.py`, `editorial_letter.py`, `fields.py` (меню /about).
 
 ### Прочее
 
@@ -120,6 +129,7 @@ Shim: `issue_metadata_parser.py`.
 | `match_issue_pdfs.py` | ZIP → PDF в XML |
 | `audit_published_issue.py` | Парсинг выпуска + worker |
 | `build_issue_pdf_csv.py` | CSV к выпуску |
+| `check_journal_site.py` | Заполненность сайта журнала |
 
 ---
 
@@ -128,7 +138,7 @@ Shim: `issue_metadata_parser.py`.
 - `app.py` — фабрика, health `/health/live` `/health/ready`, rate guard, error handlers  
 - `file_ops.py` — upload/temp/download XML  
 - `routes.py` — dashboard + заглушки «В разработке»  
-- Blueprints: `xml_validation`, `xml_report`, `reference_*`, `pdf_matching`, `issue_pdf_csv`  
+- Blueprints: `xml_validation`, `xml_report`, `reference_*`, `pdf_matching`, `issue_pdf_csv`, `issue_metadata`, `journal_site_check`
 - Пакет `issue_metadata/` — `routes.py` + `inflight.py`  
 - Shim: `issue_metadata_tasks.py` → `ipsas.jobs.issue_metadata`  
 - `templates/` + `static/css/{theme,app}.css`

@@ -7,14 +7,15 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, Response, flash, redirect, render_template, request, url_for
 from werkzeug.utils import secure_filename
 
 from ipsas.config.settings import get_settings
+from ipsas.services.validate_xml import build_xml_editorial_letter_text
 from ipsas.services.validate_xml import execute as validate_xml_service
 from ipsas.utils.logger import get_logger
 from ipsas.utils.operation_history import record_operation
-from ipsas.utils.temp_files import cleanup_temp_dir
+from ipsas.utils.temp_files import cleanup_temp_dir, safe_temp_path
 
 logger = get_logger(__name__)
 
@@ -43,6 +44,26 @@ def _schema_ok(result: dict) -> bool:
     return bool(result.get("valid"))
 
 
+def _letter_basename(report: dict | None, upload_name: str) -> str:
+    from ipsas.utils.download_names import (
+        build_issue_download_basename,
+        with_report_stem,
+    )
+
+    if isinstance(report, dict):
+        journal = report.get("journal") if isinstance(report.get("journal"), dict) else {}
+        issue = report.get("issue") if isinstance(report.get("issue"), dict) else {}
+        base = build_issue_download_basename(
+            issn=journal.get("issn"),
+            year=issue.get("date_uni") or issue.get("year"),
+            volume=issue.get("volume"),
+            number=issue.get("number"),
+            eissn=journal.get("eissn"),
+        )
+        return with_report_stem(base, fallback=Path(upload_name).stem or "xml")
+    return with_report_stem(Path(upload_name).stem or "xml", fallback="xml")
+
+
 @xml_validation_bp.route("/xml-validator")
 def xml_validator_page():
     """Единая страница валидатора XML (схема + метаданные)."""
@@ -57,7 +78,11 @@ def xml_validator_page():
 def validate_xml():
     """Проверка XML по XSD и анализ метаданных journal."""
     settings = get_settings()
-    cleanup_temp_dir(settings.temp_dir, ttl_seconds=_temp_ttl_seconds())
+    cleanup_temp_dir(
+        settings.temp_dir,
+        ttl_seconds=_temp_ttl_seconds(),
+        suffixes=(".xml", ".html", ".json", ".csv", ".zip", ".txt"),
+    )
 
     if "xml_file" not in request.files:
         flash("Файл не был загружен", "error")
@@ -151,6 +176,19 @@ def validate_xml():
         if not keep_file:
             _unlink_quiet(temp_path)
 
+        generated_at = datetime.now().strftime("%d.%m.%Y %H:%M")
+        letter_text = build_xml_editorial_letter_text(
+            report=report,
+            schema_result=schema_result,
+            metadata_error=metadata_error,
+            source_file=display_name,
+            generated_at=generated_at,
+        )
+        letter_base = _letter_basename(report, display_name)
+        letter_temp_name = f"{timestamp}_{unique_id}_{letter_base}_editorial.txt"
+        letter_temp_path = settings.temp_dir / letter_temp_name
+        letter_temp_path.write_text(letter_text, encoding="utf-8")
+
         return render_template(
             "xml_validation_result.html",
             filename=display_name,
@@ -161,6 +199,7 @@ def validate_xml():
             report=report,
             metadata_error=metadata_error,
             xml_filename=xml_filename,
+            letter_filename=letter_temp_path.name,
         )
 
     except Exception as e:
@@ -168,3 +207,36 @@ def validate_xml():
         flash(f"Ошибка при обработке файла: {str(e)}", "error")
         _unlink_quiet(temp_path)
         return redirect(url_for("xml_validation.xml_validator_page"))
+
+
+@xml_validation_bp.route("/xml-validator/download-letter/<filename>")
+def download_editorial_letter(filename: str):
+    """Скачать текст письма для редакции (.txt)."""
+    settings = get_settings()
+    file_path = safe_temp_path(settings.temp_dir, filename)
+    if (
+        file_path is None
+        or not file_path.exists()
+        or file_path.suffix.lower() != ".txt"
+    ):
+        flash("Файл письма не найден", "error")
+        return redirect(url_for("xml_validation.xml_validator_page"))
+
+    from ipsas.utils.download_names import content_disposition_attachment, strip_temp_prefix
+
+    download_name = strip_temp_prefix(filename)
+    if not download_name.lower().endswith(".txt"):
+        download_name = f"{download_name}.txt"
+
+    def generate():
+        try:
+            with open(file_path, "rb") as f:
+                yield f.read()
+        finally:
+            _unlink_quiet(file_path)
+
+    return Response(
+        generate(),
+        mimetype="text/plain; charset=utf-8",
+        headers={"Content-Disposition": content_disposition_attachment(download_name)},
+    )

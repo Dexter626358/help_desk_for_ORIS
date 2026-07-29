@@ -37,7 +37,7 @@ _EN_FUNCTION_WORDS_RE = re.compile(
     re.IGNORECASE,
 )
 _ORCID_RE = re.compile(
-    r"^(?:https?://orcid\.org/)?0000-\d{4}-\d{4}-\d{3}[\dX]$",
+    r"^(?:https?://orcid\.org/)?\d{4}-\d{4}-\d{4}-\d{3}[\dX]$",
     re.IGNORECASE,
 )
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[A-Za-z]{2,}$")
@@ -697,7 +697,10 @@ def validate_orcid(value: Optional[str]) -> Optional[str]:
         return None
     s = str(value).strip()
     if not _ORCID_RE.match(s):
-        return f"ORCID не соответствует формату 0000-0000-0000-000X: «{s[:40]}»"
+        return (
+            "ORCID не соответствует формату XXXX-XXXX-XXXX-XXXX "
+            f"(последний символ — цифра или X): «{s[:40]}»"
+        )
     return None
 
 
@@ -1516,14 +1519,6 @@ def build_article_issues(article: Dict[str, object]) -> List[Dict[str, object]]:
             "warning",
             "email",
         )
-    if article.get("has_corresponding_author") is False:
-        article_issue(
-            issues,
-            "Не указан автор для переписки (corresponding author)",
-            "warning",
-            "corresponding_author",
-        )
-
     page_affs = article.get("page_affiliations") or []
     author_aff_refs = article.get("author_affiliation_refs") or []
     affiliations_ru = article.get("affiliations_ru") or []
@@ -2126,17 +2121,10 @@ def build_issue_warnings(
             issue_warn(warnings, err, "warning", "volume")
     # uses_volume is False/None и тома нет — замечание не формируем
 
-    # Сквозной / дополнительный номер в скобках
-    expects_serial = bool(issue_metadata.get("expects_issue_serial"))
+    # Сквозной / дополнительный номер в скобках — необязателен.
+    # Если указан, проверяем только формат значения.
     serial = issue_metadata.get("issue_serial")
-    if expects_serial and serial in (None, ""):
-        issue_warn(
-            warnings,
-            "В заголовке выпуска ожидается дополнительный номер в скобках, но он не определён",
-            "warning",
-            "issue_serial",
-        )
-    elif serial not in (None, ""):
+    if serial not in (None, ""):
         err = validate_volume_issue(serial, "Дополнительный номер выпуска")
         if err:
             issue_warn(warnings, err, "warning", "issue_serial")

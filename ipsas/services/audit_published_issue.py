@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import Any, Callable
 
 from ipsas.config.settings import get_settings
+from ipsas.modules.issue_metadata.editorial_letter import build_editorial_letter
 from ipsas.modules.issue_metadata.orchestrator import IssueMetadataParser
 from ipsas.modules.issue_metadata.report_summary import group_findings
 from ipsas.utils.logger import get_logger
@@ -55,6 +56,22 @@ def summarize_findings(result: dict[str, Any]) -> Any:
         result.get("articles") if isinstance(result.get("articles"), list) else []
     )
     return group_findings(issue_data.get("warnings") or [], articles_data)
+
+
+def build_editorial_letter_text(
+    *,
+    result: dict[str, Any],
+    findings: Any,
+    issue_url: str = "",
+    generated_at: str | None = None,
+) -> str:
+    """Текст письма редакции по уже посчитанным findings."""
+    return build_editorial_letter(
+        result=result,
+        findings=findings if isinstance(findings, dict) else {},
+        issue_url=issue_url,
+        generated_at=generated_at,
+    )
 
 
 def run_parse_task(

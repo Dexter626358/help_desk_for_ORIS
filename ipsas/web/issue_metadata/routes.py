@@ -28,7 +28,11 @@ from ipsas.jobs.issue_metadata import (
     task_pop,
     task_set,
 )
-from ipsas.services.audit_published_issue import run_parse_task, summarize_findings
+from ipsas.services.audit_published_issue import (
+    build_editorial_letter_text,
+    run_parse_task,
+    summarize_findings,
+)
 from ipsas.utils.logger import get_logger
 from ipsas.utils.temp_files import cleanup_temp_dir
 from ipsas.web.issue_metadata.inflight import (
@@ -42,18 +46,23 @@ logger = get_logger(__name__)
 issue_metadata_bp = Blueprint("issue_metadata", __name__, template_folder="templates")
 
 
-def _safe_report_path(filename: str) -> Path:
+def _safe_temp_artifact(filename: str, *, allowed_suffixes: tuple[str, ...] = (".html", ".txt")) -> Path:
     settings = get_settings()
     name = (filename or "").strip()
+    lower = name.lower()
     if (
         not name
         or "/" in name
         or "\\" in name
         or ".." in name
-        or not name.lower().endswith(".html")
+        or not any(lower.endswith(suf) for suf in allowed_suffixes)
     ):
-        raise ValueError("Некорректное имя файла отчёта")
+        raise ValueError("Некорректное имя файла")
     return settings.temp_dir / name
+
+
+def _safe_report_path(filename: str) -> Path:
+    return _safe_temp_artifact(filename, allowed_suffixes=(".html",))
 
 
 @issue_metadata_bp.route("/issue-metadata-parser")
@@ -227,12 +236,13 @@ def issue_metadata_task_result(task_id: str):
     settings = get_settings()
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     issue_data = result.get("issue") if isinstance(result.get("issue"), dict) else {}
+    generated_at = datetime.now().strftime("%d.%m.%Y %H:%M")
     findings = summarize_findings(result)
     report_html = render_template(
         "issue_metadata_report.html",
         result=result,
         issue_url=issue_url,
-        generated_at=datetime.now().strftime("%d.%m.%Y %H:%M"),
+        generated_at=generated_at,
         findings=findings,
     )
     from ipsas.utils.download_names import basename_from_issue_meta, with_report_stem
@@ -244,12 +254,23 @@ def issue_metadata_task_result(task_id: str):
     report_temp_path = settings.temp_dir / report_temp_name
     report_temp_path.write_text(report_html, encoding="utf-8")
 
+    letter_text = build_editorial_letter_text(
+        result=result,
+        findings=findings,
+        issue_url=issue_url,
+        generated_at=generated_at,
+    )
+    letter_temp_name = f"{timestamp}_{task_id[:8]}_{issue_base}_editorial.txt"
+    letter_temp_path = settings.temp_dir / letter_temp_name
+    letter_temp_path.write_text(letter_text, encoding="utf-8")
+
     task_pop(task_id)
     return render_template(
         "issue_metadata_result.html",
         result=result,
         issue_url=issue_url,
         report_filename=report_temp_path.name,
+        letter_filename=letter_temp_path.name,
     )
 
 
@@ -268,8 +289,49 @@ def view_issue_report(filename: str):
     return Response(file_path.read_text(encoding="utf-8"), mimetype="text/html")
 
 
+@issue_metadata_bp.route("/issue-metadata-parser/download-letter/<filename>")
+def download_editorial_letter(filename: str):
+    """Скачать текст письма для редакции (.txt)."""
+    try:
+        file_path = _safe_temp_artifact(filename, allowed_suffixes=(".txt",))
+    except ValueError:
+        flash("Файл письма не найден", "error")
+        return redirect(url_for("issue_metadata.issue_metadata_page"))
+
+    if not file_path.exists():
+        flash("Файл письма не найден", "error")
+        return redirect(url_for("issue_metadata.issue_metadata_page"))
+
+    from ipsas.utils.download_names import content_disposition_attachment, strip_temp_prefix
+
+    download_name = strip_temp_prefix(filename)
+    if not download_name.lower().endswith(".txt"):
+        download_name = f"{download_name}.txt"
+
+    def generate():
+        try:
+            with open(file_path, "rb") as f:
+                yield f.read()
+        finally:
+            try:
+                if file_path.exists():
+                    file_path.unlink()
+                    logger.info("Удалено письмо редакции после скачивания: %s", file_path.name)
+            except OSError as e:
+                logger.warning(
+                    "Не удалось удалить письмо %s: %s", file_path.name, e
+                )
+
+    return Response(
+        generate(),
+        mimetype="text/plain; charset=utf-8",
+        headers={"Content-Disposition": content_disposition_attachment(download_name)},
+    )
+
+
 @issue_metadata_bp.route("/issue-metadata-parser/download/<filename>")
 def download_issue_report(filename: str):
+    """Скачать HTML-отчёт (attachment)."""
     try:
         file_path = _safe_report_path(filename)
     except ValueError:
