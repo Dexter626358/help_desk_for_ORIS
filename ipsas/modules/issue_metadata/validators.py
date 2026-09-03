@@ -83,6 +83,19 @@ _REF_GLUE_TWO_PUBS_RE = re.compile(
     r"\b(?:19|20)\d{2}\b\s*[.]\s+[A-ZА-ЯЁ][a-zа-яё'-]{1,}\s+[A-ZА-ЯЁ](?:\.|[a-zа-яё])"
     r".{10,120}?\b(?:19|20)\d{2}\b"
 )
+# ГОСТ/РФ: страницы слиплись с номером следующей записи («772 с.2. ВЕНТЦЕЛЬ», «С. 66–73.4. ЛАРЮШИН»)
+_REF_GLUE_GOST_RE = re.compile(
+    r"(?:"
+    r"\d{1,5}\s*[сcСC]\.\s*\d{1,3}\.\s*[A-ZА-ЯЁ]"
+    r"|"
+    r"[сcСC]\.\s*\d{1,5}\s*[–—\-]\s*\d{1,5}\.\s*\d{1,3}\.\s*[A-ZА-ЯЁ]"
+    r")"
+)
+# Граница следующей записи после «с.» или после диапазона страниц «66–73.»
+# (без lookbehind переменной длины — в Python он запрещён)
+_REF_GLUE_SPLIT_AT_RE = re.compile(
+    r"(?:[сcСC]\.|[–—\-]\d{1,5}\.)(?=\d{1,3}\.\s+[A-ZА-ЯЁ])"
+)
 _REF_BROKEN_RE = re.compile(
     r"(?:"
     r"https?://\s*$"  # оборванный схемой
@@ -764,6 +777,41 @@ def _first_suspicious_stuck_name(text: str) -> Optional[str]:
     return None
 
 
+def split_glued_bibliography_item(text: str) -> List[str]:
+    """Разрезать запись, где несколько источников слиплись без перевода строки."""
+    cleaned = (text or "").strip()
+    if not cleaned:
+        return []
+    starts = [0]
+    for m in _REF_GLUE_SPLIT_AT_RE.finditer(cleaned):
+        # m.end() — начало «N. Author» следующей записи
+        pos = m.end()
+        if pos > starts[-1]:
+            starts.append(pos)
+    if len(starts) < 2:
+        return [cleaned]
+    parts: List[str] = []
+    for i, start in enumerate(starts):
+        end = starts[i + 1] if i + 1 < len(starts) else len(cleaned)
+        part = cleaned[start:end].strip()
+        if part:
+            parts.append(part)
+    return parts if len(parts) >= 2 else [cleaned]
+
+
+def bibliography_item_looks_glued(text: str) -> bool:
+    cleaned = (text or "").strip()
+    if not cleaned:
+        return False
+    return bool(
+        _REF_GLUE_RE.search(cleaned)
+        or _REF_GLUE_NEXT_NUM_RE.search(cleaned)
+        or _REF_GLUE_TWO_PUBS_RE.search(cleaned)
+        or _REF_GLUE_GOST_RE.search(cleaned)
+        or len(split_glued_bibliography_item(cleaned)) >= 2
+    )
+
+
 def _normalize_ref_for_dup(text: str) -> str:
     t = re.sub(r"^\s*(?:\[\d+\]|\d+[.)]\s+)", "", text)
     t = re.sub(r"\s+", " ", t).strip().lower()
@@ -972,13 +1020,18 @@ def analyze_bibliography_items(items: List[str]) -> Dict[str, object]:
 
     for i, text in enumerate(items, start=1):
         cleaned = text.strip()
-        looks_glued = bool(
-            _REF_GLUE_RE.search(cleaned)
-            or _REF_GLUE_NEXT_NUM_RE.search(cleaned)
-            or _REF_GLUE_TWO_PUBS_RE.search(cleaned)
-        )
+        parts = split_glued_bibliography_item(cleaned)
+        looks_glued = bibliography_item_looks_glued(cleaned)
         if looks_glued:
-            result["glued"].append({"index": i, "sample": cleaned[:100]})
+            result["glued"].append(
+                {
+                    "index": i,
+                    "sample": cleaned[:100],
+                    "estimated_parts": max(len(parts), 2),
+                    "first_part": (parts[0] if parts else cleaned)[:220],
+                    "last_part": (parts[-1] if parts else cleaned)[:220],
+                }
+            )
         # Разорванные / обрезанные (полный https://doi.org/... в конце — норма)
         if len(cleaned) < 25 or _REF_BROKEN_RE.search(cleaned):
             result["broken"].append({"index": i, "sample": cleaned[:80]})
@@ -1080,15 +1133,31 @@ def validate_bibliography(article: Dict[str, object], issues: List[Dict[str, obj
         )
 
     analysis = analyze_bibliography_items(items)
+    numbered_in_text = sum(1 for t in items if _REF_NUM_PREFIX_RE.match(t))
     article["references_analysis"] = {
         "duplicate_count": analysis.get("duplicate_count"),
         "numbering_ok": analysis.get("numbering_ok"),
+        "numbered_in_text_count": numbered_in_text,
         "suspicious_count": len(analysis.get("suspicious") or []),
         "glued_count": len(analysis.get("glued") or []),
         "broken_count": len(analysis.get("broken") or []),
         "bad_doi_count": len(analysis.get("bad_doi") or []),
         "not_citation_count": len(analysis.get("not_citation") or []),
     }
+
+    # Нумерация в тексте не нужна: платформа/система проставляет номера сама
+    if numbered_in_text:
+        article_issue(
+            issues,
+            (
+                f"Список литературы содержит нумерацию в тексте источников "
+                f"({numbered_in_text} из {len(items)}) — нумерации в списке литературы "
+                f"быть не должно: система проставляет номера сама"
+            ),
+            "warning",
+            "references",
+            rule_id="REF_NUMBERING",
+        )
 
     # Аннотация / выводы ошибочно вставлены в ref-list (как в 440589)
     abstracts: List[str] = []
@@ -1155,15 +1224,23 @@ def validate_bibliography(article: Dict[str, object], issues: List[Dict[str, obj
     glued = analysis.get("glued") or []
     if glued:
         sample = glued[0]
+        parts_n = int(sample.get("estimated_parts") or 0)
         snippet = str(sample.get("sample") or "").rstrip()
         if len(snippet) >= 100:
             snippet = snippet[:97].rstrip() + "…"
-        article_issue(
-            issues,
-            f"Возможно склеенные записи библиографии (напр. №{sample.get('index')}): «{snippet}»",
-            "warning",
-            "references",
-        )
+        if parts_n >= 3 or len(str(sample.get("sample") or "")) >= 80:
+            msg = (
+                f"В записи библиографии №{sample.get('index')} склеены несколько источников"
+                + (f" (около {parts_n})" if parts_n >= 2 else "")
+                + f": «{snippet}»"
+            )
+            severity = "error"
+        else:
+            msg = (
+                f"Возможно склеенные записи библиографии (напр. №{sample.get('index')}): «{snippet}»"
+            )
+            severity = "warning"
+        article_issue(issues, msg, severity, "references")
 
     broken = analysis.get("broken") or []
     if broken:
@@ -1538,9 +1615,8 @@ def build_article_issues(article: Dict[str, object]) -> List[Dict[str, object]]:
         doi_check = article.get("doi_check")
         if not isinstance(doi_check, dict):
             doi_check = build_doi_check(article, resolve=False)
-        if not doi_check.get("present"):
-            article_issue(issues, "DOI отсутствует", "error", "doi")
-        else:
+        # DOI необязателен: журнал может не присваивать DOI статьям.
+        if doi_check.get("present"):
             if not doi_check.get("format_ok"):
                 for msg in doi_check.get("format_errors") or ["DOI: формат некорректен"]:
                     article_issue(issues, str(msg), "error", "doi")
@@ -2135,12 +2211,24 @@ def _check_cross_article_duplicates(
                 seen_pdf[pkey] = idx
 
 
+def _years_mentioned_in_doi(doi: str) -> List[str]:
+    """Годы из DOI, без ложных срабатываний на ISSN (NNNN-NNNN)."""
+    years: List[str] = []
+    for m in re.finditer(r"(?:^|[/\-_.])((?:19|20)\d{2})(?=([/\-_.]|$))", doi):
+        after = doi[m.end(1) :]
+        # ISSN: 2072-0823 / 0130-3082 — четыре символа после дефиса, не номер выпуска
+        if re.match(r"-(\d{3}[\dXx])(?:[/\-_.]|$)", after):
+            continue
+        years.append(m.group(1))
+    return years
+
+
 def _check_articles_belong_to_issue(
     issue_metadata: Dict[str, object],
     articles: List[Dict[str, object]],
     warnings: List[Dict[str, object]],
 ) -> None:
-    """Эвристика: год/номер в DOI не совпадает с карточкой выпуска."""
+    """Эвристика: явный год публикации в DOI не совпадает с карточкой выпуска."""
     year = str(issue_metadata.get("year") or "").strip()
     issue_no = str(issue_metadata.get("issue") or "").strip()
     if not year and not issue_no:
@@ -2153,13 +2241,14 @@ def _check_articles_belong_to_issue(
         doi = str(identifiers.get("doi") or "")
         if not doi:
             continue
-        # …-YYYY-… или …/YYYY/…
-        m_year = re.search(r"(?:^|[/\-])((?:19|20)\d{2})(?:[/\-]|$)", doi)
-        if year and m_year and m_year.group(1) != year:
+        doi_years = _years_mentioned_in_doi(doi)
+        # Если в DOI есть год выпуска — ок (даже при ISSN-подобных фрагментах рядом)
+        if year and doi_years and year not in doi_years:
+            shown = doi_years[0]
             issue_warn(
                 warnings,
                 (
-                    f"Статья {idx}: год в DOI ({m_year.group(1)}) не совпадает "
+                    f"Статья {idx}: год в DOI ({shown}) не совпадает "
                     f"с годом выпуска ({year}) — возможно, статья из другого выпуска"
                 ),
                 "warning",

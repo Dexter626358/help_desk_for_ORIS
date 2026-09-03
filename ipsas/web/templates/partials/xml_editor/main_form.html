@@ -1,0 +1,48 @@
+{% macro field_error(name) -%}
+  {% if field_errors.get(name) %}
+    <div class="invalid-feedback d-block">{{ field_errors[name] }}</div>
+  {% endif %}
+{%- endmacro %}
+
+<div class="mb-3">
+  <label class="form-label">Название статьи (RUS) <span class="text-danger">*</span></label>
+  <textarea class="form-control {% if field_errors.get('title_rus') %}is-invalid{% endif %}" name="title_rus" rows="2" required>{{ article.title_rus }}</textarea>
+  {{ field_error('title_rus') }}
+</div>
+<div class="mb-3">
+  <label class="form-label">Название статьи (ENG) <span class="text-danger">*</span></label>
+  <textarea class="form-control {% if field_errors.get('title_eng') %}is-invalid{% endif %}" name="title_eng" rows="2">{{ article.title_eng }}</textarea>
+  {{ field_error('title_eng') }}
+</div>
+<div class="row g-3">
+  <div class="col-md-6">
+    <label class="form-label">DOI</label>
+    <input class="form-control {% if field_errors.get('doi') %}is-invalid{% endif %}" type="text" name="doi" value="{{ article.doi }}">
+    {{ field_error('doi') }}
+  </div>
+  <div class="col-md-3">
+    <label class="form-label">Язык статьи</label>
+    <input class="form-control" type="text" name="lang" value="{{ article.lang }}" placeholder="RUS">
+  </div>
+  <div class="col-md-3">
+    <label class="form-label">Тип публикации</label>
+    <input class="form-control" type="text" name="art_type" value="{{ article.art_type }}" placeholder="RAR">
+  </div>
+  <div class="col-md-6">
+    <label class="form-label">Раздел журнала</label>
+    <input class="form-control" type="text" name="section" value="{{ article.section }}">
+  </div>
+  <div class="col-md-6">
+    <label class="form-label">УДК</label>
+    <input class="form-control" type="text" name="udk" value="{{ article.udk }}">
+  </div>
+  <div class="col-md-3">
+    <label class="form-label">Первая страница</label>
+    <input class="form-control {% if field_errors.get('page_first') %}is-invalid{% endif %}" type="text" name="page_first" value="{{ article.page_first }}">
+    {{ field_error('page_first') }}
+  </div>
+  <div class="col-md-3">
+    <label class="form-label">Последняя страница</label>
+    <input class="form-control" type="text" name="page_last" value="{{ article.page_last }}">
+  </div>
+</div>

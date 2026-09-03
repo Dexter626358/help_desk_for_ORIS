@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Редактор — {{ meta.original_filename or 'XML' }}{% endblock %}
+{% block content %}
+<div class="editor-shell">
+  <div class="editor-toolbar border rounded bg-white p-3 mb-3">
+    <div class="d-flex flex-wrap justify-content-between gap-2 align-items-start">
+      <div>
+        <div class="fw-semibold">{{ meta.original_filename or 'без имени' }}</div>
+        <div class="small text-muted">
+          {% if issue_info.journal_title_ru %}{{ issue_info.journal_title_ru }} · {% endif %}
+          {{ issue_info.issue_label or 'выпуск' }} · статей: {{ issue_info.article_count }}
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('xml_editor.index') }}">Загрузить другой файл</a>
+        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('xml_editor.download_original', session_id=session_id) }}">Скачать исходный XML</a>
+        <a class="btn btn-primary btn-sm" href="{{ url_for('xml_editor.download_edited', session_id=session_id) }}">Скачать исправленный XML</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <aside class="col-lg-3">
+      {% include "components/article_list.html" %}
+    </aside>
+    <section class="col-lg-9">
+      <div class="bg-white border rounded p-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <h2 class="h5 mb-0">Статья {{ article_id|int + 1 }}</h2>
+          <div class="d-flex flex-wrap gap-2">
+            <form method="post" action="{{ url_for('xml_editor.validate_session', session_id=session_id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="article_id" value="{{ article_id }}">
+              <button class="btn btn-outline-primary btn-sm" type="submit">Проверить XML</button>
+            </form>
+            <form method="post" action="{{ url_for('xml_editor.restore_article', session_id=session_id, article_id=article_id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-outline-warning btn-sm" type="submit">Отменить изменения в этой статье</button>
+            </form>
+            <form method="post" action="{{ url_for('xml_editor.restore_all', session_id=session_id) }}" data-confirm="Вернуть весь файл к исходному состоянию? Все правки будут потеряны.">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-outline-danger btn-sm" type="submit">Вернуть весь файл к исходному состоянию</button>
+            </form>
+            <form method="post" action="{{ url_for('xml_editor.close_session', session_id=session_id) }}" data-confirm="Закрыть сессию и удалить временные файлы?">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-outline-secondary btn-sm" type="submit">Закрыть сессию</button>
+            </form>
+          </div>
+        </div>
+
+        {% include "components/validation.html" %}
+
+        <form method="post" action="{{ url_for('xml_editor.save_article', session_id=session_id, article_id=article_id) }}" id="article-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="active_tab" id="active_tab" value="{{ active_tab }}">
+
+          <ul class="nav nav-tabs" id="articleTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link {% if active_tab == 'main' %}active{% endif %}" id="tab-main" data-bs-toggle="tab" data-bs-target="#pane-main" type="button" data-tab-name="main">Основное</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link {% if active_tab == 'authors' %}active{% endif %}" id="tab-authors" data-bs-toggle="tab" data-bs-target="#pane-authors" type="button" data-tab-name="authors">Авторы</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link {% if active_tab == 'abstracts' %}active{% endif %}" id="tab-abstracts" data-bs-toggle="tab" data-bs-target="#pane-abstracts" type="button" data-tab-name="abstracts">Аннотации</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link {% if active_tab == 'keywords' %}active{% endif %}" id="tab-keywords" data-bs-toggle="tab" data-bs-target="#pane-keywords" type="button" data-tab-name="keywords">Ключевые слова</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link {% if active_tab == 'refs' %}active{% endif %}" id="tab-refs" data-bs-toggle="tab" data-bs-target="#pane-refs" type="button" data-tab-name="refs">Литература</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link {% if active_tab == 'xml' %}active{% endif %}" id="tab-xml" data-bs-toggle="tab" data-bs-target="#pane-xml" type="button" data-tab-name="xml">XML</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link {% if active_tab == 'validation' %}active{% endif %}" id="tab-validation" data-bs-toggle="tab" data-bs-target="#pane-validation" type="button" data-tab-name="validation">Проверка</button>
+            </li>
+          </ul>
+
+          <div class="tab-content pt-3">
+            <div class="tab-pane fade {% if active_tab == 'main' %}show active{% endif %}" id="pane-main">
+              {% include "components/main_form.html" %}
+            </div>
+            <div class="tab-pane fade {% if active_tab == 'authors' %}show active{% endif %}" id="pane-authors">
+              {% include "components/authors_form.html" %}
+            </div>
+            <div class="tab-pane fade {% if active_tab == 'abstracts' %}show active{% endif %}" id="pane-abstracts">
+              {% include "components/abstracts_form.html" %}
+            </div>
+            <div class="tab-pane fade {% if active_tab == 'keywords' %}show active{% endif %}" id="pane-keywords">
+              <div class="mb-3">
+                <label class="form-label">Ключевые слова (RUS)</label>
+                <textarea class="form-control" name="keywords_rus" rows="3" placeholder="слово1; слово2; слово3">{{ article.keywords_rus }}</textarea>
+                <div class="form-text">Разделяйте термины точкой с запятой.</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Ключевые слова (ENG)</label>
+                <textarea class="form-control" name="keywords_eng" rows="3" placeholder="term1; term2; term3">{{ article.keywords_eng }}</textarea>
+              </div>
+            </div>
+            <div class="tab-pane fade {% if active_tab == 'refs' %}show active{% endif %}" id="pane-refs">
+              <div id="refs-list">
+                {% for ref in article.references %}
+                <div class="ref-item border rounded p-2 mb-2" data-ref-index="{{ loop.index0 }}">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="small text-muted">Источник {{ loop.index }} · {{ ref.lang }}</span>
+                    <button type="button" class="btn btn-sm btn-outline-danger btn-remove-ref">Удалить</button>
+                  </div>
+                  <input type="hidden" name="ref-{{ loop.index0 }}-lang" value="{{ ref.lang }}">
+                  <textarea class="form-control" name="ref-{{ loop.index0 }}-text" rows="3">{{ ref.text }}</textarea>
+                </div>
+                {% else %}
+                <p class="text-muted" id="refs-empty">Источников пока нет.</p>
+                {% endfor %}
+              </div>
+              <button type="button" class="btn btn-outline-primary btn-sm" id="btn-add-ref">Добавить источник</button>
+            </div>
+            <div class="tab-pane fade {% if active_tab == 'xml' %}show active{% endif %}" id="pane-xml">
+              <p class="small text-muted">Только просмотр. После сохранения формы фрагмент обновится.</p>
+              <pre class="xml-preview">{{ article.xml_fragment }}</pre>
+            </div>
+            <div class="tab-pane fade {% if active_tab == 'validation' %}show active{% endif %}" id="pane-validation">
+              {% include "components/validation.html" %}
+            </div>
+          </div>
+
+          <div class="border-top pt-3 mt-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

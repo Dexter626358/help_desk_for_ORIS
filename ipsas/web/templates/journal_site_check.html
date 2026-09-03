@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "macros/ui.html" import breadcrumbs %}
+{% from "macros/ui.html" import breadcrumbs, file_upload %}
 
 {% block title %}Проверить сайт журнала — IPSAS{% endblock %}
 {% block topbar %}Метаданные журнала{% endblock %}
@@ -14,24 +14,24 @@
 <div class="card">
   <h1 class="page-title">Проверить сайт журнала</h1>
   <p class="page-lead">
-    Укажите ссылку на публичную страницу журнала (главная или about).
-    На главной проверяются: название, ISSN, описание, обложка и текущий выпуск;
-    остальные сведения — на страницах раздела «О журнале» (RU и EN).
+    Укажите <strong>либо</strong> ссылку на публичную страницу журнала,
+    <strong>либо</strong> файл экспорта настроек OJS (<span class="mono">.data</span>) — один источник на проверку.
   </p>
 
   <form method="POST"
         action="{{ url_for('journal_site_check.process_journal_site_check') }}"
+        enctype="multipart/form-data"
         novalidate
-        data-loading-form>
-    <div class="form-group">
-      <label for="journal_url">Ссылка на журнал *</label>
+        data-loading-form
+        data-source-xor>
+    <div class="form-group" data-xor-url>
+      <label for="journal_url">Ссылка на журнал</label>
       <input
         type="url"
         id="journal_url"
         name="journal_url"
         data-url-field
         placeholder="https://journals.rcsi.science/2312-1327/index"
-        required
         autocomplete="url"
       >
       <span class="form-help">
@@ -39,19 +39,36 @@
       </span>
     </div>
 
+    <p class="muted" style="margin:0.25rem 0 0.75rem;text-align:center;">или</p>
+
+    {{ file_upload(
+      name='data_file',
+      input_id='data_file',
+      accept='.data,.json',
+      label='Файл настроек OJS (.data)',
+      help_text='Экспорт настроек журнала. Проверка по чек-листу «Настройка журнала по умолчанию» (страницы, модули, 5 шагов).',
+      required=false
+    ) }}
+
     <div class="btn-row">
       <button type="submit" class="btn btn-primary" data-submit-btn data-loading-text="Проверка…">
-        Проверить сайт
+        Проверить
       </button>
     </div>
   </form>
 
+  <p class="muted" style="margin-top:0.75rem;">
+    Файл <span class="mono">.data</span> обычно проверяется за секунды.
+    Проверка по ссылке дольше — нужно скачать страницы сайта (RU и EN).
+  </p>
+
   <details class="details-box">
     <summary>Что проверяется</summary>
     <p class="muted">
-      Для каждой локали (RU и EN): на главной — описание, ISSN, обложка, текущий выпуск;
-      в разделе «О журнале» — все пункты меню /about (People, Policies, Submissions, Other),
-      включая Plagiarism Detection, Copyright Notice, Privacy Statement, Subscriptions и др.
+      По URL: заполненность публичного сайта (RU/EN).
+      По файлу .data: чек-лист «Настройка журнала по умолчанию»
+      (языки, разделы, плагины, DOI/EDN, метрики, 5 шагов настройки) в связке с
+      <a href="https://docs.rfbr.ru/doc/chek-list-baza-R1h7hW4AxG" target="_blank" rel="noopener noreferrer">БАЗА</a>.
     </p>
   </details>
 </div>

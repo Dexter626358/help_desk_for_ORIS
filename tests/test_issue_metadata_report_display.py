@@ -107,3 +107,97 @@ def test_authors_table_from_jats_aff_refs() -> None:
     rows = build_authors_table(article)
     assert rows[0]["affiliation_ru"] == "МГТУ им. Н.Э. Баумана"
     assert "Bauman" in rows[0]["affiliation_en"]
+
+
+def test_synthetic_aff_ids_without_aff_id_attribute() -> None:
+    """Как в 417122: <aff> без id, xref rid=aff1/aff2, institution xml:lang."""
+    from ipsas.modules.issue_metadata_parser import IssueMetadataParser
+
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <article>
+      <front><article-meta>
+        <contrib-group>
+          <contrib contrib-type="author">
+            <name-alternatives>
+              <name xml:lang="ru"><surname>Васильев</surname><given-names>Алексей</given-names></name>
+              <name xml:lang="en"><surname>Vasiliev</surname><given-names>Alexey V.</given-names></name>
+            </name-alternatives>
+            <xref ref-type="aff" rid="aff1"/>
+          </contrib>
+          <contrib contrib-type="author">
+            <name-alternatives>
+              <name xml:lang="ru"><surname>Перов</surname><given-names>Дмитрий</given-names></name>
+              <name xml:lang="en"><surname>Perov</surname><given-names>Dmitry V.</given-names></name>
+            </name-alternatives>
+            <xref ref-type="aff" rid="aff2"/>
+          </contrib>
+          <contrib contrib-type="author">
+            <name-alternatives>
+              <name xml:lang="ru"><surname>Бирюков</surname><given-names>Дмитрий</given-names></name>
+              <name xml:lang="en"><surname>Biryukov</surname><given-names>Dmitry Yu.</given-names></name>
+            </name-alternatives>
+            <xref ref-type="aff" rid="aff1"/>
+          </contrib>
+          <contrib contrib-type="author">
+            <name-alternatives>
+              <name xml:lang="ru"><surname>Костин</surname><given-names>Владимир</given-names></name>
+              <name xml:lang="en"><surname>Kostin</surname><given-names>Vladimir N.</given-names></name>
+            </name-alternatives>
+          </contrib>
+          <aff><institution xml:lang="ru">Уральский федеральный университет</institution></aff>
+          <aff><institution xml:lang="en">Ural Federal University</institution></aff>
+          <aff><institution xml:lang="en">Institute of Metal Physics</institution></aff>
+          <aff><institution xml:lang="ru">Институт физики металлов</institution></aff>
+        </contrib-group>
+      </article-meta></front>
+    </article>
+    """.encode("utf-8")
+    parsed = IssueMetadataParser()._parse_jats_xml(xml)
+    affs = parsed["jats_affiliations"]
+    ids = {a.get("id") for a in affs}
+    assert "aff1" in ids and "aff2" in ids
+    assert parsed["broken_affiliation_refs"] == []
+    refs = parsed["contributor_affiliation_refs"]
+    assert len(refs) == 4
+    assert refs[0]["rid"] == ["aff1"]
+    assert refs[2]["rid"] == ["aff1"]
+    assert refs[3]["rid"] == []
+
+    article = {
+        "authors_count": 4,
+        "authors_ru": ["Васильев Алексей", "Перов Дмитрий", "Бирюков Дмитрий", "Костин Владимир"],
+        "authors_en": ["Vasiliev Alexey V.", "Perov Dmitry V.", "Biryukov Dmitry Yu.", "Kostin Vladimir N."],
+        "jats_affiliations": affs,
+        "contributor_affiliation_refs": refs,
+        "affiliations_ru": ["Уральский федеральный университет", "Институт физики металлов"],
+        "affiliations_en": ["Ural Federal University", "Institute of Metal Physics"],
+    }
+    rows = build_authors_table(article)
+    assert "Уральский" in rows[0]["affiliation_ru"]
+    assert "Ural" in rows[0]["affiliation_en"]
+    assert "Институт" in rows[1]["affiliation_ru"] or "физики" in rows[1]["affiliation_ru"]
+    assert "Уральский" in rows[2]["affiliation_ru"]  # Бирюков → aff1
+    assert rows[2]["problems"] == []
+    # Без xref — мягкое замечание, не ложные «нет аффилиации RUS/ENG»
+    assert any("не указана организация" in p for p in rows[3]["problems"])
+    assert "нет аффилиации (RUS)" not in rows[3]["problems"]
+
+
+def test_glued_references_preview_shows_first_and_last_parts() -> None:
+    text = (
+        "1. БОГАЧЕВА Д.Н. Книга. 2024. – 772 с.2. ВЕНТЦЕЛЬ Е.С. Введение. 1964. – 388 с."
+        "3. КОРЕПАНОВ В.О. Статья // Журнал. – 2011. – С. 66–73.4. ЛАРЮШИН И.Д. Модель. 2020."
+    )
+    article = {
+        "references": [text],
+        "references_count": 1,
+        "references_lang_source": "unspecified",
+    }
+    enrich_article_report_display(article)
+    assert article["references_display_unk"] >= 4
+    row = article["references_preview"][0]
+    assert row["lang"] == "UNK"
+    assert row["count"] >= 4
+    assert "БОГАЧЕВА" in row["first"]
+    assert "ЛАРЮШИН" in row["last"]
+    assert not row["same"]

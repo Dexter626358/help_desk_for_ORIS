@@ -1,0 +1,23 @@
+<div class="article-list border rounded bg-white">
+  <div class="p-2 border-bottom fw-semibold small">Статьи</div>
+  <div class="list-group list-group-flush">
+    {% for a in articles %}
+    <a
+      href="{{ url_for('xml_editor.editor', session_id=session_id, article_id=a.id) }}"
+      class="list-group-item list-group-item-action article-item {% if a.id == article_id %}active{% endif %}"
+    >
+      <div class="article-title">{{ a.index }}. {{ a.title }}</div>
+      <div class="small {% if a.id == article_id %}text-white-50{% else %}text-muted{% endif %}">{{ a.authors_label or '—' }}</div>
+      {% if a.issue_summary and a.issue_summary.total %}
+      <div class="small mt-1">
+        {% if a.has_errors %}
+          <span class="badge text-bg-danger">Есть ошибки ({{ a.issue_summary.errors }})</span>
+        {% elif a.has_warnings %}
+          <span class="badge text-bg-warning">Замечания ({{ a.issue_summary.warnings }})</span>
+        {% endif %}
+      </div>
+      {% endif %}
+    </a>
+    {% endfor %}
+  </div>
+</div>

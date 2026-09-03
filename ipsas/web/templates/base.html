@@ -23,9 +23,10 @@
 {% set pdf_active = ep.startswith('pdf_matching.') %}
 {% set csv_active = ep.startswith('issue_pdf_csv.') %}
 {% set typo_active = ep == 'main.xml_typo_fixes_page' %}
+{% set xml_edit_active = ep.startswith('xml_editor.') %}
 {% set site_active = ep.startswith('journal_site_check.') %}
 {% set check_open = xml_active or issue_active or site_active %}
-{% set fix_open = bib_active or pdf_active or typo_active %}
+{% set fix_open = bib_active or pdf_active or typo_active or xml_edit_active %}
 {% set issue_open = issue_active or csv_active %}
 {% set meta_open = site_active %}
 
@@ -92,6 +93,16 @@
                     <span class="chevron" aria-hidden="true">▸</span>
                 </button>
                 <ul class="nav-section-body">
+                    <li>
+                        <a class="nav-link {{ 'is-active' if xml_edit_active else '' }}"
+                           href="{{ url_for('xml_editor.index') }}"
+                           data-tooltip="Редактор XML"
+                           title="Редактор XML"
+                           {{ 'aria-current="page"' if xml_edit_active else '' }}>
+                            <span class="nav-ico" aria-hidden="true">{{ icon('pencil', 18) }}</span>
+                            <span class="nav-label">Редактор XML</span>
+                        </a>
+                    </li>
                     <li>
                         <a class="nav-link {{ 'is-active' if typo_active else '' }}"
                            href="{{ url_for('main.xml_typo_fixes_page') }}"

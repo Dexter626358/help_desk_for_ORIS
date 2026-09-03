@@ -19,6 +19,39 @@ def test_extract_pages_from_doi() -> None:
     assert v.extract_pages_from_doi("10.37791/2687-0649-2024-19-4-94-106") == (94, 106)
 
 
+def test_years_mentioned_in_doi_skips_issn() -> None:
+    # ISSN 2072-0823 в суффиксе DOI — не год публикации
+    assert v._years_mentioned_in_doi("10.7868/2072-0823-2025-1-43") == ["2025"]
+    assert v._years_mentioned_in_doi("10.7868/2072-0823-7-5") == []
+    assert "2024" in v._years_mentioned_in_doi("10.37791/2687-0649-2024-19-4-94-106")
+
+
+def test_issn_in_doi_does_not_trigger_year_mismatch() -> None:
+    articles = [
+        {
+            "identifiers": {"doi": "10.7868/2072-0823-2025-1-43"},
+            "title_ru": "Статья с ISSN в DOI",
+        },
+    ]
+    warnings = v.build_issue_warnings(
+        {
+            "journal_title": "J",
+            "issue_title": "№ 1 (2025)",
+            "issue": "1",
+            "year": "2025",
+            "article_urls": ["u1"],
+            "article_count": 1,
+            "issn": "2072-0823",
+            "eissn": "2072-0823",
+            "issue_galleys": [{"url": "https://example.com/issue.pdf"}],
+            "uses_volume": False,
+        },
+        articles=articles,
+    )
+    membership = [w for w in warnings if w.get("category") == "issue_membership"]
+    assert not membership
+
+
 def test_keywords_language_mismatch_is_error() -> None:
     article = {
         "title_ru": "Достаточно длинное название статьи",
@@ -585,6 +618,96 @@ def test_bibliography_truly_glued_and_broken_still_detected() -> None:
     assert analysis["broken"]
 
 
+def test_bibliography_leading_numbering_is_flagged() -> None:
+    """Номер в тексте citation при наличии label — замечание (как в journal XML)."""
+    items = [
+        "1. БЕЛОВ И.Р. Анизотропийный анализ // Управление большими системами. – 2021. – Вып. 91. – С. 38–77.",
+        "2. ВЛАДИМИРОВ И.Г., КУРДЮКОВ А.П., СЕМЕНОВ А.В. Анизотропия сигналов // Доклады РАН. – 1995. – Т. 342. – С. 583–585.",
+        "3. КУСТОВ А.Ю. Параметризация регуляторов // Автоматика и телемеханика. – 2023. – №10. – С. 59–71.",
+    ]
+    article = {
+        "title_ru": "Достаточно длинное название статьи",
+        "title_en": "Long enough English title here",
+        "abstract_ru": " ".join(["слово"] * 40),
+        "abstract_en": " ".join(["word"] * 40),
+        "abstract_ru_stats": {"length": 40},
+        "abstract_en_stats": {"length": 40},
+        "keywords_ru": ["метод"],
+        "keywords_en": ["method"],
+        "keywords_ru_count": 1,
+        "keywords_en_count": 1,
+        "references_count": 3,
+        "references": items,
+        "references_lang_source": "unspecified",
+        "identifiers": {"doi": "10.1234/abcdef.ghijkl"},
+        "authors_ru": ["Иванов И. И."],
+        "authors_en": ["Ivanov I. I."],
+        "authors_count": 1,
+        "organizations": ["Org"],
+        "pdf_files": [{"url": "https://example.com/a.pdf", "lang": "RU", "locked": False}],
+    }
+    issues = v.build_article_issues(article)
+    numbered = [
+        i
+        for i in issues
+        if "нумерацию" in str(i.get("text", "")).lower()
+        or i.get("rule_id") == "REF_NUMBERING"
+    ]
+    assert numbered
+    assert "3 из 3" in str(numbered[0]["text"])
+    assert "систему" in str(numbered[0]["text"]).lower() or "система" in str(numbered[0]["text"]).lower()
+    assert numbered[0]["severity"] == "warning"
+
+
+def test_bibliography_gost_glued_pages_detected() -> None:
+    """Склейка ГОСТ: «…772 с.2. ВЕНТЦЕЛЬ…» и «…С. 66–73.4. ЛАРЮШИН…»."""
+    text = (
+        "1. БОГАЧЕВА Д.Н., ДОРРИ М.Х., РОЩИН А.А. и др. Моделирование в программном комплексе "
+        "«Расчет динамических систем» (РДС) версии 2.0. Руководство пользователя. – М.: "
+        "Горячая линия – Телеком, 2024. – 772 с.2. ВЕНТЦЕЛЬ Е.С. Введение в исследование "
+        "операций. – М.: Советское радио, 1964. – 388 с.3. КОРЕПАНОВ В.О., НОВИКОВ ДА. "
+        "Задача о диффузной бомбе // Проблемы управления. – 2011. – №5. – С. 66–73.4. "
+        "ЛАРЮШИН И.Д., КОЛТОЧЕНКО Я.А. Расширенная модель Ланчестера // Автоматика и "
+        "телемеханика. – 2024. – №10. – C. 144–154.5. МАКАРЕНКО С.И. Обобщенная модель "
+        "Ланчестера // Автоматизация процессов управления. – 2021. – №2(64). – С. 66–76.6. "
+        "Модели военных действий: монография / Под ред. Д.А. Новикова. – М.: Изд-во, 2020."
+    )
+    assert v.bibliography_item_looks_glued(text)
+    parts = v.split_glued_bibliography_item(text)
+    assert len(parts) >= 5
+    assert parts[0].startswith("1. БОГАЧЕВА")
+    assert "ВЕНТЦЕЛЬ" in parts[1]
+    analysis = v.analyze_bibliography_items([text])
+    assert analysis["glued"]
+    assert int(analysis["glued"][0]["estimated_parts"]) >= 5
+
+    article = {
+        "title_ru": "Достаточно длинное название статьи",
+        "title_en": "Long enough English title here",
+        "abstract_ru": " ".join(["слово"] * 40),
+        "abstract_en": " ".join(["word"] * 40),
+        "abstract_ru_stats": {"length": 40},
+        "abstract_en_stats": {"length": 40},
+        "keywords_ru": ["метод"],
+        "keywords_en": ["method"],
+        "keywords_ru_count": 1,
+        "keywords_en_count": 1,
+        "references_count": 1,
+        "references": [text],
+        "references_lang_source": "unspecified",
+        "identifiers": {"doi": "10.1234/abcdef.ghijkl"},
+        "authors_ru": ["Иванов И. И."],
+        "authors_en": ["Ivanov I. I."],
+        "authors_count": 1,
+        "organizations": ["Org"],
+        "pdf_files": [{"url": "https://example.com/a.pdf", "lang": "RU", "locked": False}],
+    }
+    issues = v.build_article_issues(article)
+    glued_msgs = [i for i in issues if "склеен" in str(i.get("text", "")).lower()]
+    assert glued_msgs
+    assert glued_msgs[0]["severity"] == "error"
+
+
 def test_bibliography_suspicious_normalization() -> None:
     items = [
         "1. Saldan~a J. The coding manual. 2021.",
@@ -1133,6 +1256,37 @@ def test_analyze_doi_stages() -> None:
     assert bad["present"] is True
     assert bad["format_ok"] is False
     assert any("URL" in m or "точк" in m.lower() or "doi:" in m.lower() for m in bad["format_errors"])
+
+
+def test_missing_doi_is_not_an_issue_for_published_issue() -> None:
+    """Журнал может не присваивать DOI — отсутствие не замечание."""
+    article = {
+        "title_ru": "Достаточно длинное название статьи",
+        "title_en": "Long enough English title here",
+        "abstract_ru": " ".join(["слово"] * 40),
+        "abstract_en": " ".join(["word"] * 40),
+        "keywords_ru": ["метод"],
+        "keywords_en": ["method"],
+        "identifiers": {"edn": "ABCDEF", "internal_id": "417122"},
+        "authors_ru": ["Иванов И. И."],
+        "authors_en": ["Ivanov I. I."],
+        "authors_count": 1,
+        "organizations": ["Org"],
+        "affiliations_ru": ["Org"],
+        "affiliations_en": ["Org"],
+        "pdf_files": [{"url": "https://example.com/a.pdf"}],
+        "page_start": 43,
+        "page_end": 46,
+        "references_count": 1,
+        "references": ["1. Author A. Title. Journal. 2020."],
+        "references_lang_source": "unspecified",
+    }
+    issues = v.build_article_issues(article)
+    assert not any("DOI отсутствует" in str(i.get("text")) for i in issues)
+    assert not any(
+        i.get("field") == "doi" and "отсутств" in str(i.get("text") or "").lower()
+        for i in issues
+    )
 
 
 def test_collect_page_affiliations_empty_name() -> None:

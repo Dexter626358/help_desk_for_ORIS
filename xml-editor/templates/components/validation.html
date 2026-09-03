@@ -1,0 +1,11 @@
+{% if issues %}
+  <div class="mb-3">
+    {% for issue in issues %}
+      <div class="alert alert-{{ 'danger' if issue.severity == 'error' else 'warning' }} py-2 mb-2">
+        {{ issue.text }}
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="alert alert-success py-2">Замечаний по текущей статье нет.</div>
+{% endif %}

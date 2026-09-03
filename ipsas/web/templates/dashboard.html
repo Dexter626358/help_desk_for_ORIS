@@ -70,6 +70,18 @@
       </div>
     </a>
 
+    <a class="action-card" href="{{ url_for('xml_editor.index') }}">
+      <div class="action-card-head">
+        <span class="action-card-ico" aria-hidden="true">{{ icon('pencil', 20) }}</span>
+      </div>
+      <h3>Редактор XML</h3>
+      <p class="action-card-desc">Правка метаданных статей через форму без ручной работы с тегами</p>
+      <div class="action-card-foot">
+        <p class="action-card-io">XML журнала → исправленный XML</p>
+        <span class="action-card-cta">Открыть инструмент →</span>
+      </div>
+    </a>
+
     <a class="action-card" href="{{ url_for('main.xml_typo_fixes_page') }}">
       <div class="action-card-head">
         <span class="action-card-ico" aria-hidden="true">{{ icon('wand', 20) }}</span>
@@ -134,6 +146,13 @@
         <p>Формирование таблицы для площадки</p>
       </div>
       <a class="btn btn-secondary" href="{{ url_for('issue_pdf_csv.issue_pdf_csv_page') }}">Открыть</a>
+    </div>
+    <div class="tool-row">
+      <div>
+        <h3>Редактор XML</h3>
+        <p>Визуальное редактирование метаданных статей journal XML</p>
+      </div>
+      <a class="btn btn-secondary" href="{{ url_for('xml_editor.index') }}">Открыть</a>
     </div>
     <div class="tool-row">
       <div>

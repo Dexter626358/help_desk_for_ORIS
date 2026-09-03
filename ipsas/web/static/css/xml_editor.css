@@ -1,0 +1,62 @@
+:root {
+  --xe-bg: #f4f6f8;
+  --xe-border: #d9dee5;
+}
+
+body {
+  background: var(--xe-bg);
+  color: #1f2933;
+}
+
+.upload-dropzone {
+  border: 2px dashed var(--xe-border);
+  border-radius: 0.75rem;
+  background: #fff;
+  padding: 1.5rem;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.upload-dropzone.dragover {
+  border-color: #0d6efd;
+  background: #f0f6ff;
+}
+
+.article-list {
+  max-height: calc(100vh - 180px);
+  overflow: auto;
+}
+
+.article-item .article-title {
+  font-size: 0.92rem;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.author-block {
+  background: #fafbfc;
+}
+
+.xml-preview {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  max-height: 60vh;
+  overflow: auto;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.editor-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+@media (max-width: 991.98px) {
+  .article-list {
+    max-height: 240px;
+    margin-bottom: 0.5rem;
+  }
+}

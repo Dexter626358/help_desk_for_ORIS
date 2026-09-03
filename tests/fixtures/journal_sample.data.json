@@ -1,0 +1,107 @@
+{
+  "99": {
+    "journal": {"path": "9999-0001", "enabled": "1"},
+    "settings": {
+      "title": {"ru_RU": "Тестовый журнал", "en_US": "Test Journal"},
+      "printIssn": "1026-3543",
+      "onlineIssn": "2949-2556",
+      "description": {
+        "ru_RU": "<p>В журнале публикуются результаты фундаментальных исследований по морфологии и смежным дисциплинам.</p>",
+        "en_US": "<p>The journal publishes research results in morphology and related fields of science.</p>"
+      },
+      "openAccessPolicy": {
+        "ru_RU": "<p>Журнал предоставляет открытый доступ ко всем материалам на условиях Creative Commons CC BY.</p>",
+        "en_US": "<p>The journal provides open access to all content under Creative Commons CC BY.</p>"
+      },
+      "authorGuidelines": {
+        "ru_RU": "<p>Правила для авторов включают требования к структуре рукописи, оформлению списка литературы и сведениям об авторах.</p>",
+        "en_US": ""
+      },
+      "privacyStatement": {
+        "ru_RU": "<p>Имена и адреса электронной почты, введенные на сайте журнала, будут использованы исключительно для целей журнала.</p>",
+        "en_US": "<p>The names and email addresses entered on this journal site will be used exclusively for the stated purposes.</p>"
+      },
+      "copyrightNotice": {
+        "ru_RU": "<p>Авторы сохраняют авторские права и предоставляют журналу право первой публикации.</p>",
+        "en_US": "<p>Authors retain copyright and grant the journal right of first publication.</p>"
+      },
+      "contactEmail": "editor@example.com",
+      "contactName": {"ru_RU": "Редакция", "en_US": "Editorial office"},
+      "publisherInstitution": "Eco-Vector",
+      "publisherNote": {"ru_RU": "<p>Издатель Eco-Vector</p>", "en_US": "<p>Publisher Eco-Vector</p>"},
+      "reviewPolicy": {
+        "ru_RU": "<p>Все рукописи проходят двойное слепое рецензирование двумя независимыми рецензентами.</p>",
+        "en_US": "<p>All manuscripts undergo double-blind peer review by two independent reviewers.</p>"
+      },
+      "pubFreqPolicy": {
+        "ru_RU": "<p>4 выпуска в год</p>",
+        "en_US": "<p>4 issues per year</p>"
+      },
+      "lockssLicense": {
+        "ru_RU": "<p>Журнал использует PKP Preservation Network для долговременной архивации.</p>",
+        "en_US": "<p>The journal uses PKP Preservation Network for long-term archiving.</p>"
+      },
+      "homepageImage": {
+        "ru_RU": {"name": "cover.jpg", "uploadName": "homepageImage_ru_RU.jpg", "width": 400, "height": 500},
+        "en_US": {"name": "cover.jpg", "uploadName": "homepageImage_en_US.jpg", "width": 400, "height": 500}
+      },
+      "displayCurrentIssue": true,
+      "acceptSubscriptionPayments": false,
+      "publicationFeeEnabled": false,
+      "submissionFeeEnabled": false,
+      "openAccessFeeEnabled": false,
+      "publishingMode": 0,
+      "supportedLocales": ["ru_RU", "en_US"],
+      "boardCustomText": {
+        "ru_RU": "<h2>Главный редактор</h2><p>Иванов И.И., МГУ</p><h2>Редакционная коллегия</h2><p>Петров П.П.</p>",
+        "en_US": "<h2>Editor-in-Chief</h2><p>Ivanov I.I., MSU</p><h2>Editorial Board</h2><p>Petrov P.P.</p>"
+      },
+      "customAboutItems": {
+        "ru_RU": [
+          {"title": "Индексирование", "content": "<p>Журнал индексируется в Scopus и RSCI.</p>"},
+          {"title": "Этический кодекс", "content": "<p>Журнал следует принципам COPE и публикационной этики.</p>"}
+        ],
+        "en_US": [
+          {"title": "Indexing", "content": "<p>The journal is indexed in Scopus and RSCI.</p>"},
+          {"title": "Publication Ethics", "content": "<p>The journal follows COPE publication ethics principles.</p>"}
+        ]
+      },
+      "mailingAddress": {
+        "ru_RU": "<p><iframe src=\"https://www.google.com/maps/embed?pb=test\"></iframe></p>",
+        "en_US": "<p><iframe src=\"https://www.google.com/maps/embed?pb=test\"></iframe></p>"
+      }
+    },
+    "plugins": {
+      "dimensionsplugin": {"category": "metrics", "settings": {"enabled": true}},
+      "plumxplugin": {"category": "metrics", "settings": {"enabled": true}},
+      "crossrefcitedbyplugin": {"category": "metrics", "settings": {"enabled": true}},
+      "almplugin": {"category": "metrics", "settings": {"enabled": true}},
+      "customblockmanagerplugin": {"category": "generic", "settings": {"enabled": true}},
+      "driverplugin": {"category": "generic", "settings": {"enabled": true}},
+      "pdfjsviewerplugin": {"category": "generic", "settings": {"enabled": true}},
+      "sehlplugin": {"category": "generic", "settings": {"enabled": true}},
+      "staticpagesplugin": {"category": "generic", "settings": {"enabled": true}},
+      "tinymceplugin": {"category": "generic", "settings": {"enabled": true}},
+      "fundrefplugin": {"category": "generic", "settings": {"enabled": true}},
+      "altmetricsplugin": {"category": "metrics", "settings": []},
+      "PublonsPlugin": {"category": "generic", "settings": []},
+      "DOIPubIdPlugin": {
+        "category": "pubIds",
+        "settings": {"enabled": true, "doiPrefix": "10.17816"}
+      },
+      "CrossRefExportPlugin": {
+        "category": "importexport",
+        "settings": {
+          "username": "demo",
+          "depositorEmail": "crossref@example.com",
+          "depositorName": "Demo"
+        }
+      }
+    },
+    "sections": [
+      {"title": {"ru_RU": "Статьи", "en_US": "Articles"}, "abbrev": {"ru_RU": "СТ", "en_US": "ART"}},
+      {"title": {"ru_RU": "Обзоры", "en_US": "Reviews"}, "abbrev": {"ru_RU": "ОБЗ", "en_US": "REV"}}
+    ],
+    "staticPages": []
+  }
+}

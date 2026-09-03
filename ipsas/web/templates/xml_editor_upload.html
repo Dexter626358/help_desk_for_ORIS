@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs, file_upload %}
+
+{% block title %}Редактор XML — IPSAS{% endblock %}
+{% block topbar %}Исправление XML{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/xml_editor.css') }}" />
+{% endblock %}
+
+{% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Редактор XML'}
+]) }}
+
+<div class="card">
+  <h1 class="page-title">Редактор XML</h1>
+  <p class="page-lead">
+    Загрузите journal XML, отредактируйте метаданные статей через форму
+    (без ручной правки тегов) и скачайте исправленный файл.
+    Неизменённые элементы и неизвестные теги сохраняются.
+  </p>
+
+  <form method="POST"
+        action="{{ url_for('xml_editor.upload') }}"
+        enctype="multipart/form-data"
+        id="upload-form"
+        data-loading-form>
+    <div class="upload-dropzone" id="dropzone">
+      <p class="mb-2" style="font-weight:600;margin:0 0 0.5rem;">Перетащите XML сюда или выберите файл</p>
+      <p class="muted" style="margin:0 0 1rem;">Только <code>.xml</code>, до {{ max_mb }} МБ. Временные файлы удаляются после закрытия сессии или через 24 часа.</p>
+      {{ file_upload(
+        name='xml_file',
+        input_id='xml_file',
+        accept='.xml,application/xml,text/xml',
+        label='XML-файл журнала',
+        help_text='Корневой элемент journal (eLIBRARY / ORIS)'
+      ) }}
+      <div class="form-actions" style="margin-top:1rem;">
+        <button type="submit" class="btn btn-primary">Загрузить</button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/xml_editor.js') }}" defer></script>
+{% endblock %}

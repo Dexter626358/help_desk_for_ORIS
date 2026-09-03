@@ -5,6 +5,10 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, Sequence
 
 from ipsas.modules.issue_metadata.lang import detect_lang
+from ipsas.modules.issue_metadata.validators import (
+    bibliography_item_looks_glued,
+    split_glued_bibliography_item,
+)
 
 
 def _as_str_list(value: object) -> List[str]:
@@ -18,49 +22,47 @@ def _dash(value: Optional[str]) -> str:
     return text if text else "—"
 
 
-def _aff_map(jats_affs: Sequence[object]) -> Dict[str, Dict[str, object]]:
-    out: Dict[str, Dict[str, object]] = {}
+def _aff_map(jats_affs: Sequence[object]) -> Dict[str, List[Dict[str, object]]]:
+    out: Dict[str, List[Dict[str, object]]] = {}
     for item in jats_affs:
         if not isinstance(item, dict):
             continue
         aff_id = str(item.get("id") or "").strip()
         if aff_id:
-            out[aff_id] = item
+            out.setdefault(aff_id, []).append(item)
     return out
 
 
 def _aff_names_for_rids(
     rids: Sequence[str],
-    aff_by_id: Dict[str, Dict[str, object]],
+    aff_by_id: Dict[str, List[Dict[str, object]]],
     *,
     lang: str,
 ) -> str:
     names: List[str] = []
     for rid in rids:
-        aff = aff_by_id.get(str(rid).strip())
-        if not aff:
-            continue
-        name = str(aff.get("name") or "").strip()
-        if not name:
-            continue
-        aff_lang = str(aff.get("lang") or "").strip().lower() or detect_lang(name) or "unk"
-        if lang == "ru" and aff_lang in {"en"}:
-            continue
-        if lang == "en" and aff_lang in {"ru"}:
-            continue
-        if name not in names:
-            names.append(name)
+        for aff in aff_by_id.get(str(rid).strip()) or []:
+            preferred = ""
+            if lang == "ru":
+                preferred = str(aff.get("name_ru") or "").strip()
+            elif lang == "en":
+                preferred = str(aff.get("name_en") or "").strip()
+            if preferred:
+                if preferred not in names:
+                    names.append(preferred)
+                continue
+            name = str(aff.get("name") or "").strip()
+            if not name:
+                continue
+            aff_lang = str(aff.get("lang") or "").strip().lower() or detect_lang(name) or "unk"
+            if lang == "ru" and aff_lang in {"en"}:
+                continue
+            if lang == "en" and aff_lang in {"ru"}:
+                continue
+            if lang == "any" or aff_lang in {lang, "unk"} or lang not in {"ru", "en"}:
+                if name not in names:
+                    names.append(name)
     return "; ".join(names)
-
-
-def _pick_list_value(values: Sequence[str], index: int) -> str:
-    if not values:
-        return ""
-    if len(values) == 1:
-        return values[0]
-    if index < len(values):
-        return values[index]
-    return ""
 
 
 def _page_aff_by_index(page_affs: Sequence[object]) -> Dict[int, str]:
@@ -121,12 +123,14 @@ def build_authors_table(article: Dict[str, object]) -> List[Dict[str, object]]:
 
         aff_ru = ""
         aff_en = ""
+        author_has_aff_link = False
         if i < len(contrib_refs) and isinstance(contrib_refs[i], dict):
             rids = [
                 str(x).strip()
                 for x in (contrib_refs[i].get("rid") or [])
                 if str(x).strip()
             ]
+            author_has_aff_link = bool(rids)
             if rids and aff_by_id:
                 aff_ru = _aff_names_for_rids(rids, aff_by_id, lang="ru")
                 aff_en = _aff_names_for_rids(rids, aff_by_id, lang="en")
@@ -150,31 +154,39 @@ def build_authors_table(article: Dict[str, object]) -> List[Dict[str, object]]:
                         page_names.append(name)
                 joined = "; ".join(page_names)
                 if joined:
+                    author_has_aff_link = True
                     if not aff_ru:
                         aff_ru = joined
                     if not aff_en:
-                        # page usually one language; leave EN empty unless only EN authors
                         if not name_ru and name_en:
                             aff_en = joined
                         elif not aff_en and detect_lang(joined) == "en":
                             aff_en = joined
 
-        if not aff_ru:
-            aff_ru = _pick_list_value(affiliations_ru, i) or (
-                organizations[0] if len(organizations) == 1 else _pick_list_value(organizations, i)
-            )
-        if not aff_en:
-            aff_en = _pick_list_value(affiliations_en, i)
+        # Только если организация одна на статью — копируем всем авторам.
+        # Нельзя раздавать список организаций по индексу автора.
+        if not aff_ru and len(affiliations_ru) == 1:
+            aff_ru = affiliations_ru[0]
+        if not aff_en and len(affiliations_en) == 1:
+            aff_en = affiliations_en[0]
+        if not aff_ru and len(organizations) == 1:
+            aff_ru = organizations[0]
 
         problems: List[str] = []
         if name_ru and not name_en:
             problems.append("нет ФИО (ENG)")
         if name_en and not name_ru:
             problems.append("нет ФИО (RUS)")
-        if name_ru and not aff_ru:
-            problems.append("нет аффилиации (RUS)")
-        if name_en and not aff_en:
-            problems.append("нет аффилиации (ENG)")
+        if (name_ru or name_en) and not aff_ru and not aff_en:
+            if author_has_aff_link:
+                problems.append("не удалось сопоставить организацию автора")
+            else:
+                problems.append("в метаданных не указана организация автора")
+        else:
+            if name_ru and not aff_ru:
+                problems.append("нет аффилиации (RUS)")
+            if name_en and not aff_en:
+                problems.append("нет аффилиации (ENG)")
 
         rows.append(
             {
@@ -227,6 +239,10 @@ def _ref_counts_for_display(article: Dict[str, object]) -> Dict[str, int]:
     if article.get("references_lang_source") == "unspecified":
         items = article.get("references") or []
         n = len(items) if isinstance(items, list) and items else total
+        if isinstance(items, list) and len(items) == 1 and bibliography_item_looks_glued(str(items[0])):
+            parts = split_glued_bibliography_item(str(items[0]))
+            if len(parts) >= 2:
+                n = len(parts)
         return {"ru": 0, "en": 0, "unk": n, "total": n}
 
     if total and not (ru or en or unk):
@@ -262,6 +278,12 @@ def build_references_preview(article: Dict[str, object]) -> List[Dict[str, Any]]
     if isinstance(items, list) and items:
         primary_first = primary_first or items[0]
         primary_last = primary_last or items[-1]
+        # Одна «запись» = несколько слипшихся источников — показать реальные первый/последний
+        if len(items) == 1 and bibliography_item_looks_glued(str(items[0])):
+            parts = split_glued_bibliography_item(str(items[0]))
+            if len(parts) >= 2:
+                primary_first = parts[0]
+                primary_last = parts[-1]
 
     # Один список без xml:lang — одна строка UNK
     if article.get("references_lang_source") == "unspecified" or (

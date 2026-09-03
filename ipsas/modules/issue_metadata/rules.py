@@ -126,7 +126,7 @@ RULES: List[RuleInfo] = [
     {"id": "ISSUE_ARTICLE_COUNT", "category": "issue", "title": "Число статей в карточке и по ссылкам", "field": "article_count"},
     {"id": "ISSUE_ISSN", "category": "issue", "title": "ISSN / eISSN формат и совпадение", "field": "issn"},
     # --- Идентификаторы ---
-    {"id": "ID_DOI_PRESENT", "category": "identifiers", "title": "DOI присутствует", "field": "doi"},
+    {"id": "ID_DOI_PRESENT", "category": "identifiers", "title": "DOI (если присвоен)", "field": "doi"},
     {"id": "ID_DOI_FORMAT", "category": "identifiers", "title": "DOI: синтаксис (//, пробелы, URL, хвост)", "field": "doi"},
     {"id": "ID_DOI_RESOLVE", "category": "identifiers", "title": "DOI resolve через doi.org (информативно, без замечаний)", "field": "doi"},
     {"id": "ID_DOI_META", "category": "identifiers", "title": "Метаданные DOI соответствуют статье", "field": "doi"},
@@ -251,6 +251,8 @@ def resolve_rule_id(*, field: Optional[str] = None, text: Optional[str] = None) 
         ("pdf файл статьи", "FILE_ARTICLE_PDF"),
         ("не найден pdf", "FILE_ARTICLE_PDF"),
         ("список литературы", "REF_PRESENT"),
+        ("содержит нумерацию", "REF_NUMBERING"),
+        ("нумерация источников", "REF_NUMBERING"),
         ("подозрительная запись библиографии", "REF_SUSPICIOUS"),
         ("склеенн", "REF_GLUE_BREAK"),
         ("разорван", "REF_GLUE_BREAK"),

@@ -1,0 +1,110 @@
+{% if field_errors.get('authors') %}
+  <div class="alert alert-danger py-2">{{ field_errors['authors'] }}</div>
+{% endif %}
+
+<div id="authors-list">
+  {% for author in article.authors %}
+  {% set rus = author.RUS %}
+  {% set eng = author.ENG %}
+  <div class="author-block border rounded p-3 mb-3" data-author-index="{{ author.id }}">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <strong>Автор {{ loop.index }}</strong>
+      <div class="d-flex flex-wrap gap-1">
+        <button type="button" class="btn btn-sm btn-outline-secondary btn-copy-eng-rus" title="Скопировать ENG → RUS">ENG → RUS</button>
+        <button type="submit" class="btn btn-sm btn-outline-secondary"
+                formaction="{{ url_for('xml_editor.authors_move', session_id=session_id, article_id=article_id, author_id=author.id) }}"
+                formmethod="post" name="direction" value="up">↑</button>
+        <button type="submit" class="btn btn-sm btn-outline-secondary"
+                formaction="{{ url_for('xml_editor.authors_move', session_id=session_id, article_id=article_id, author_id=author.id) }}"
+                formmethod="post" name="direction" value="down">↓</button>
+        <button type="submit" class="btn btn-sm btn-outline-danger"
+                formaction="{{ url_for('xml_editor.authors_delete', session_id=session_id, article_id=article_id, author_id=author.id) }}"
+                formmethod="post"
+                data-confirm="Удалить автора {{ loop.index }}?">Удалить</button>
+      </div>
+    </div>
+
+    <div class="row g-2 author-field-pairs">
+      <div class="col-md-6">
+        <label class="form-label">Фамилия (RUS)</label>
+        <input class="form-control" name="authors-{{ author.id }}-RUS-surname" value="{{ rus.surname }}" data-lang="RUS" data-field="surname">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Фамилия (ENG)</label>
+        <input class="form-control" name="authors-{{ author.id }}-ENG-surname" value="{{ eng.surname }}" data-lang="ENG" data-field="surname">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Инициалы (RUS)</label>
+        <input class="form-control" name="authors-{{ author.id }}-RUS-initials" value="{{ rus.initials }}" data-lang="RUS" data-field="initials">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Инициалы (ENG)</label>
+        <input class="form-control" name="authors-{{ author.id }}-ENG-initials" value="{{ eng.initials }}" data-lang="ENG" data-field="initials">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Имя (RUS)</label>
+        <input class="form-control" name="authors-{{ author.id }}-RUS-first_name" value="{{ rus.first_name }}" data-lang="RUS" data-field="first_name">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Имя (ENG)</label>
+        <input class="form-control" name="authors-{{ author.id }}-ENG-first_name" value="{{ eng.first_name }}" data-lang="ENG" data-field="first_name">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Отчество (RUS)</label>
+        <input class="form-control" name="authors-{{ author.id }}-RUS-middle_name" value="{{ rus.middle_name }}" data-lang="RUS" data-field="middle_name">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Отчество (ENG)</label>
+        <input class="form-control" name="authors-{{ author.id }}-ENG-middle_name" value="{{ eng.middle_name }}" data-lang="ENG" data-field="middle_name">
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Организация (RUS)</label>
+        <input class="form-control" name="authors-{{ author.id }}-RUS-org_name" value="{{ rus.org_name }}" data-lang="RUS" data-field="org_name">
+      </div>
+      <div class="col-12">
+        <label class="form-label">Организация (ENG)</label>
+        <input class="form-control" name="authors-{{ author.id }}-ENG-org_name" value="{{ eng.org_name }}" data-lang="ENG" data-field="org_name">
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Адрес (RUS)</label>
+        <input class="form-control" name="authors-{{ author.id }}-RUS-address" value="{{ rus.address }}" data-lang="RUS" data-field="address">
+      </div>
+      <div class="col-12">
+        <label class="form-label">Адрес (ENG)</label>
+        <input class="form-control" name="authors-{{ author.id }}-ENG-address" value="{{ eng.address }}" data-lang="ENG" data-field="address">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Email (RUS)</label>
+        <input class="form-control" name="authors-{{ author.id }}-RUS-email" value="{{ rus.email }}" data-lang="RUS" data-field="email">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Email (ENG)</label>
+        <input class="form-control" name="authors-{{ author.id }}-ENG-email" value="{{ eng.email }}" data-lang="ENG" data-field="email">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">ORCID</label>
+        <input class="form-control {% if field_errors.get('author_' ~ (loop.index) ~ '_orcid') %}is-invalid{% endif %}"
+               name="authors-{{ author.id }}-orcid"
+               value="{{ author.orcid }}"
+               placeholder="0000-0000-0000-0000"
+               data-field="orcid">
+        <div class="form-text">Один на автора (`authorCodes/orcid`)</div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <p class="text-muted">Авторов пока нет.</p>
+  {% endfor %}
+</div>
+
+<button type="submit"
+        class="btn btn-outline-primary btn-sm"
+        formaction="{{ url_for('xml_editor.authors_add', session_id=session_id, article_id=article_id) }}"
+        formmethod="post">Добавить автора</button>

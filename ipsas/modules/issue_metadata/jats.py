@@ -226,37 +226,138 @@ def parse_jats_xml(
         aff_nodes = root.xpath(
             ".//*[local-name()='article-meta']//*[local-name()='aff']"
         )
-        affiliations: List[Dict[str, object]] = []
-        aff_ids: set[str] = set()
+        raw_entries: List[Dict[str, object]] = []
         for node in aff_nodes:
-            aff_id = (node.get("id") or "").strip()
-            name = extract_text(node)
-            if name:
-                name = re.sub(r"^\d+\s*[.)]?\s*", "", name).strip() or name
-            lang = normalize_lang(get_lang_attr(node)) or detect_lang(name)
-            if aff_id:
-                aff_ids.add(aff_id)
-            affiliations.append({
-                "id": aff_id or None,
-                "name": name,
-                "lang": lang,
-                "empty": not bool(name),
-            })
+            aff_id = (node.get("id") or "").strip() or None
+            inst_nodes = node.xpath(".//*[local-name()='institution']")
+            if inst_nodes:
+                for inst in inst_nodes:
+                    name = extract_text(inst)
+                    if name:
+                        name = re.sub(r"^\d+\s*[.)]?\s*", "", name).strip() or name
+                    lang = normalize_lang(get_lang_attr(inst)) or detect_lang(name)
+                    raw_entries.append(
+                        {
+                            "id": aff_id,
+                            "name": name,
+                            "lang": lang,
+                            "empty": not bool(name),
+                        }
+                    )
+            else:
+                name = extract_text(node)
+                if name:
+                    name = re.sub(r"^\d+\s*[.)]?\s*", "", name).strip() or name
+                lang = normalize_lang(get_lang_attr(node)) or detect_lang(name)
+                raw_entries.append(
+                    {
+                        "id": aff_id,
+                        "name": name,
+                        "lang": lang,
+                        "empty": not bool(name),
+                    }
+                )
+
+        has_real_ids = any(bool(e.get("id")) for e in raw_entries)
+        affiliations: List[Dict[str, object]] = []
+        if has_real_ids:
+            affiliations = raw_entries
+        elif raw_entries:
+            # Нет id у <aff>, но авторы ссылаются на aff1/aff2 — нумеруем
+            # организации по порядку RU/EN institution.
+            ru_list = [e for e in raw_entries if e.get("lang") == "ru" and e.get("name")]
+            en_list = [e for e in raw_entries if e.get("lang") == "en" and e.get("name")]
+            other = [
+                e
+                for e in raw_entries
+                if e.get("lang") not in {"ru", "en"} and e.get("name")
+            ]
+            n_slots = max(len(ru_list), len(en_list), len(other), 0)
+            for i in range(n_slots):
+                sid = f"aff{i + 1}"
+                ru_name = str(ru_list[i]["name"]) if i < len(ru_list) else None
+                en_name = str(en_list[i]["name"]) if i < len(en_list) else None
+                other_name = str(other[i]["name"]) if i < len(other) else None
+                if ru_name:
+                    affiliations.append(
+                        {
+                            "id": sid,
+                            "name": ru_name,
+                            "name_ru": ru_name,
+                            "name_en": en_name,
+                            "lang": "ru",
+                            "empty": False,
+                        }
+                    )
+                if en_name:
+                    affiliations.append(
+                        {
+                            "id": sid,
+                            "name": en_name,
+                            "name_ru": ru_name,
+                            "name_en": en_name,
+                            "lang": "en",
+                            "empty": False,
+                        }
+                    )
+                if other_name and not ru_name and not en_name:
+                    affiliations.append(
+                        {
+                            "id": sid,
+                            "name": other_name,
+                            "lang": other[i].get("lang"),
+                            "empty": False,
+                        }
+                    )
+        else:
+            affiliations = []
+
+        aff_ids: set[str] = {
+            str(a.get("id")).strip()
+            for a in affiliations
+            if a.get("id") and str(a.get("id")).strip()
+        }
 
         contrib_refs: List[Dict[str, object]] = []
         broken: List[Dict[str, object]] = []
         for contrib in root.xpath(
             ".//*[local-name()='article-meta']//*[local-name()='contrib']"
         ):
-            name_parts = [
-                (n.text or "").strip()
-                for n in contrib.xpath(
-                    ".//*[local-name()='surname' or local-name()='given-names'"
-                    " or local-name()='string-name']"
-                )
-                if (n.text or "").strip()
-            ]
-            author_name = " ".join(name_parts).strip() or None
+            ctype = (contrib.get("contrib-type") or "").strip().lower()
+            if ctype and ctype not in {"author", "aut"}:
+                continue
+            # Предпочитаем RU-имя для сообщений редакции
+            author_name = None
+            for name_node in contrib.xpath(
+                ".//*[local-name()='name-alternatives']"
+                "/*[local-name()='name' or local-name()='string-name']"
+                " | ./*[local-name()='name' or local-name()='string-name']"
+            ):
+                formatted = None
+                local = etree.QName(name_node).localname
+                if local == "string-name":
+                    formatted = extract_text(name_node)
+                else:
+                    surname = ""
+                    given = ""
+                    for sn in name_node.xpath(".//*[local-name()='surname']"):
+                        surname = (sn.text or "").strip()
+                        if surname:
+                            break
+                    for gn in name_node.xpath(".//*[local-name()='given-names']"):
+                        given = (gn.text or "").strip()
+                        if given:
+                            break
+                    if surname or given:
+                        formatted = f"{surname} {given}".strip()
+                if not formatted:
+                    continue
+                lang = normalize_lang(get_lang_attr(name_node)) or detect_lang(formatted)
+                if lang == "ru" or author_name is None:
+                    author_name = formatted
+                if lang == "ru":
+                    break
+
             rids: List[str] = []
             for xref in contrib.xpath(".//*[local-name()='xref']"):
                 ref_type = (xref.get("ref-type") or "").strip().lower()
@@ -270,21 +371,25 @@ def parse_jats_xml(
                         continue
                     rids.append(part)
                     if aff_ids and part not in aff_ids:
-                        broken.append({
-                            "author": author_name,
-                            "rid": part,
-                            "reason": "missing_aff",
-                        })
-            if rids:
-                contrib_refs.append({"author": author_name, "rid": rids})
+                        broken.append(
+                            {
+                                "author": author_name,
+                                "rid": part,
+                                "reason": "missing_aff",
+                            }
+                        )
+            # Всегда по одному элементу на автора — для выравнивания с authors_ru/en
+            contrib_refs.append({"author": author_name, "rid": rids})
 
         for aff in affiliations:
             if aff.get("empty") and aff.get("id"):
-                broken.append({
-                    "author": None,
-                    "rid": aff.get("id"),
-                    "reason": "empty_aff",
-                })
+                broken.append(
+                    {
+                        "author": None,
+                        "rid": aff.get("id"),
+                        "reason": "empty_aff",
+                    }
+                )
 
         return {
             "jats_affiliations": affiliations,

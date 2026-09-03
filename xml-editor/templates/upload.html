@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Редактор XML — загрузка{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7 col-xl-6">
+    <h1 class="h3 mb-2">Редактор XML</h1>
+    <p class="text-muted mb-4">
+      Загрузите XML выпуска научного журнала (формат eLIBRARY/ORIS), отредактируйте
+      метаданные статей через форму и скачайте исправленный файл. Теги, которые вы
+      не меняете, сохраняются без пересборки документа.
+    </p>
+
+    <form method="post" action="{{ url_for('xml_editor.upload') }}" enctype="multipart/form-data" id="upload-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="upload-dropzone" id="dropzone">
+        <p class="mb-2 fw-semibold">Перетащите XML сюда или выберите файл</p>
+        <p class="small text-muted mb-3">Только `.xml`, до {{ max_mb }} МБ. Файлы удаляются после завершения сессии (или через 24 часа).</p>
+        <input type="file" name="xml_file" id="xml_file" accept=".xml,application/xml,text/xml" class="form-control mb-3" required>
+        <div class="d-flex gap-2 flex-wrap">
+          <label for="xml_file" class="btn btn-outline-primary mb-0">Выбрать XML</label>
+          <button type="submit" class="btn btn-primary">Загрузить</button>
+        </div>
+        <div class="small text-muted mt-3" id="chosen-name"></div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

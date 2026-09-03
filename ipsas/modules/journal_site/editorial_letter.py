@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from html import escape
 from typing import Any, Mapping, Optional, Sequence
 
 _STATUS_LABELS = {
@@ -140,16 +141,44 @@ def build_journal_site_editorial_letter(
     locales = report.get("locales") if isinstance(report.get("locales"), dict) else {}
     has_en = isinstance(locales.get("en"), Mapping)
 
+    check_mode = str(report.get("check_mode") or "site")
+    data_source = report.get("data_source") if isinstance(report.get("data_source"), Mapping) else {}
+
+    if check_mode == "data":
+        return _build_data_checklist_letter(
+            report,
+            title=title,
+            when=when,
+            data_source=data_source,
+            overall=overall,
+            level_label=level_label or level,
+        )
+
+    if check_mode == "site+data":
+        intro = (
+            "Направляем результаты автоматизированной проверки публичного сайта "
+            f"и файла настроек OJS (.data) журнала «{title}»."
+        )
+    else:
+        intro = (
+            "Направляем результаты автоматизированной проверки заполненности "
+            f"публичного сайта журнала «{title}»."
+        )
+
     lines: list[str] = [
         "Уважаемые коллеги!",
         "",
-        (
-            "Направляем результаты автоматизированной проверки заполненности "
-            f"публичного сайта журнала «{title}»."
-        ),
+        intro,
     ]
     if url:
         lines.append(f"Ссылка на сайт: {url}")
+    if data_source:
+        fname = str(data_source.get("filename") or "").strip()
+        path = str(data_source.get("path") or "").strip()
+        if fname:
+            lines.append(f"Файл настроек: {fname}")
+        if path:
+            lines.append(f"Path журнала в OJS: {path}")
     lines.extend(
         [
             f"Дата проверки: {when}.",
@@ -245,6 +274,46 @@ def build_journal_site_editorial_letter(
 
         section_no += 1
 
+    plugins = _as_list(report.get("plugins_must_fix")) or [
+        p
+        for p in _as_list(report.get("plugins_results"))
+        if p.get("status") in {"missing", "error"}
+    ]
+    if plugins or report.get("plugins_results"):
+        lines.append(f"{section_no}. Настройки плагинов (из .data)")
+        lines.append("")
+        if plugins:
+            lines.append("Необходимо исправить:")
+            for i, item in enumerate(plugins, start=1):
+                title_p = str(item.get("title") or item.get("id") or "Плагин").strip()
+                note = str(item.get("note") or "").strip()
+                status = str(item.get("status") or "")
+                status_label = _STATUS_LABELS.get(status, status or "требует внимания")
+                line = f"{i}. {title_p} — {status_label}"
+                if note:
+                    line += f" ({note})"
+                lines.append(line)
+            lines.append("")
+            any_must = True
+        else:
+            lines.append("По эталонному списку плагинов замечаний нет.")
+            lines.append("")
+        section_no += 1
+
+    settings_must = _as_list(report.get("settings_must_fix"))
+    if settings_must and check_mode == "site+data":
+        lines.append(f"{section_no}. Замечания по файлу настроек .data")
+        lines.append("")
+        lines.append("Необходимо заполнить / исправить в настройках OJS:")
+        for i, item in enumerate(settings_must[:20], start=1):
+            field_title = str(item.get("title") or item.get("id") or "Поле").strip()
+            status = str(item.get("status") or "")
+            status_label = _STATUS_LABELS.get(status, status or "требует внимания")
+            lines.append(f"{i}. {field_title} — {status_label}")
+        lines.append("")
+        any_must = True
+        section_no += 1
+
     if not any_must and not any_tips:
         lines.extend(
             [
@@ -278,3 +347,212 @@ def build_journal_site_editorial_letter(
             ]
         )
     return "\n".join(lines) + "\n"
+
+
+def build_journal_site_editorial_letter_html(
+    report: Mapping[str, Any],
+    *,
+    journal_url: str = "",
+    generated_at: Optional[str] = None,
+) -> str:
+    """HTML-фрагмент письма (абзацы, список, ссылки) для показа и копирования."""
+    when = generated_at or str(report.get("generated_at") or "") or datetime.now().strftime(
+        "%d.%m.%Y %H:%M"
+    )
+    title = str(report.get("journal_title") or "журнал").strip() or "журнал"
+    check_mode = str(report.get("check_mode") or "site")
+    if check_mode == "data":
+        return _build_data_checklist_letter_html(report, title=title, when=when)
+    text = build_journal_site_editorial_letter(
+        report,
+        journal_url=journal_url,
+        generated_at=when,
+    )
+    return _plain_letter_to_html(text)
+
+
+def wrap_editorial_letter_html_document(fragment: str) -> str:
+    """Минимальный HTML-документ для скачивания."""
+    return (
+        "<!DOCTYPE html>\n"
+        '<html lang="ru">\n'
+        "<head>\n"
+        '<meta charset="utf-8">\n'
+        "<title>Письмо для редакции</title>\n"
+        "</head>\n"
+        "<body>\n"
+        f"{fragment.rstrip()}\n"
+        "</body>\n"
+        "</html>\n"
+    )
+
+
+def _plain_letter_to_html(text: str) -> str:
+    """Простой HTML из текстового письма (режим проверки сайта)."""
+    blocks = [b.strip() for b in text.strip().split("\n\n") if b.strip()]
+    parts: list[str] = []
+    for block in blocks:
+        inner = "<br>\n".join(escape(line) for line in block.split("\n"))
+        parts.append(f"<p>{inner}</p>")
+    return "\n".join(parts) + "\n"
+
+
+def _append_letter_item_plain(lines: list[str], index: int, item: Mapping[str, Any]) -> None:
+    """Добавить пункт письма с инструкцией в TXT."""
+    text = str(item.get("text") or "").strip()
+    lines.append(f"{index}. {text}")
+    path = str(item.get("fix_path") or "").strip()
+    role = str(item.get("fix_role") or "").strip()
+    steps = [str(s).strip() for s in (item.get("fix_steps") or []) if str(s).strip()]
+    doc_url = str(item.get("fix_doc_url") or item.get("doc_url") or "").strip()
+    if path:
+        lines.append(f"   Где исправить: {path}")
+    if role:
+        lines.append(f"   Роль: {role}")
+    if steps:
+        lines.append("   Как исправить:")
+        for step in steps:
+            lines.append(f"   — {step}")
+    if doc_url:
+        lines.append(f"   Инструкция: {doc_url}")
+
+
+def _format_letter_item_html(item: Mapping[str, Any]) -> str:
+    """HTML одного пункта письма с инструкцией."""
+    text = escape(str(item.get("text") or "").strip())
+    path = str(item.get("fix_path") or "").strip()
+    role = str(item.get("fix_role") or "").strip()
+    steps = [str(s).strip() for s in (item.get("fix_steps") or []) if str(s).strip()]
+    doc_url = str(item.get("fix_doc_url") or item.get("doc_url") or "").strip()
+    parts = [f"<div>{text}</div>"]
+    if path:
+        parts.append(f"<div><strong>Где исправить:</strong> {escape(path)}</div>")
+    if role:
+        parts.append(f'<div style="color:#555;font-size:0.95em;">Роль: {escape(role)}</div>')
+    if steps:
+        parts.append("<div><strong>Как исправить:</strong></div>")
+        parts.append("<ul>")
+        for step in steps:
+            parts.append(f"  <li>{escape(step)}</li>")
+        parts.append("</ul>")
+    if doc_url:
+        href = escape(doc_url, quote=True)
+        parts.append(
+            f'<div><a href="{href}" target="_blank" rel="noopener noreferrer">Открыть инструкцию</a></div>'
+        )
+    return "<li>\n" + "\n".join(f"  {p}" for p in parts) + "\n</li>"
+
+
+def _build_data_checklist_letter(
+    report: Mapping[str, Any],
+    *,
+    title: str,
+    when: str,
+    data_source: Mapping[str, Any],
+    overall: Any,
+    level_label: str,
+) -> str:
+    """Письмо редакции: фактические пробелы + краткая инструкция, как исправить."""
+    from ipsas.modules.journal_site.checklist_messages import (
+        format_letter_date,
+        letter_fix_items,
+    )
+
+    items = letter_fix_items(report)
+    date_line = format_letter_date(when)
+    lines: list[str] = [
+        "Уважаемые коллеги!",
+        "",
+        f"Мы проверили настройки сайта журнала «{title}» "
+        "на Национальной платформе периодических научных изданий.",
+        "",
+    ]
+
+    if not items:
+        lines.extend(
+            [
+                "По результатам проверки обязательных замечаний нет — "
+                "дополнительных изменений не требуется.",
+                "",
+                f"Дата проверки: {date_line}.",
+                "",
+                "Если останутся вопросы по отдельным настройкам, пожалуйста, напишите нам.",
+                "",
+            ]
+        )
+    else:
+        lines.append("По результатам проверки просим внести следующие изменения:")
+        lines.append("")
+        for i, item in enumerate(items, start=1):
+            _append_letter_item_plain(lines, i, item)
+            lines.append("")
+        lines.append(f"Дата проверки: {date_line}.")
+        lines.append("")
+        lines.append(
+            "Если при внесении изменений потребуется помощь или пример заполнения, "
+            "пожалуйста, напишите нам."
+        )
+        lines.append("")
+
+    lines.extend(
+        [
+            "С уважением,",
+            "служба поддержки",
+            "Национальной платформы периодических научных изданий",
+        ]
+    )
+    return "\n".join(lines) + "\n"
+
+
+def _build_data_checklist_letter_html(
+    report: Mapping[str, Any],
+    *,
+    title: str,
+    when: str,
+) -> str:
+    from ipsas.modules.journal_site.checklist_messages import (
+        format_letter_date,
+        letter_fix_items,
+    )
+
+    items = letter_fix_items(report)
+    date_line = escape(format_letter_date(when))
+    title_html = escape(title)
+    parts: list[str] = [
+        "<p>Уважаемые коллеги!</p>",
+        "<p>",
+        "  Мы проверили настройки сайта журнала",
+        f"  <strong>«{title_html}»</strong>",
+        "  на Национальной платформе периодических научных изданий.",
+        "</p>",
+    ]
+    if not items:
+        parts.extend(
+            [
+                "<p>По результатам проверки обязательных замечаний нет — "
+                "дополнительных изменений не требуется.</p>",
+                f"<p><strong>Дата проверки:</strong> {date_line}.</p>",
+                "<p>Если останутся вопросы по отдельным настройкам, пожалуйста, напишите нам.</p>",
+            ]
+        )
+    else:
+        parts.append("<p>По результатам проверки просим внести следующие изменения:</p>")
+        parts.append("<ol>")
+        for item in items:
+            parts.append(_format_letter_item_html(item))
+        parts.append("</ol>")
+        parts.append(f"<p><strong>Дата проверки:</strong> {date_line}.</p>")
+        parts.append(
+            "<p>Если при внесении изменений потребуется помощь или пример заполнения, "
+            "пожалуйста, напишите нам.</p>"
+        )
+    parts.extend(
+        [
+            "<p>",
+            "  С уважением,<br>",
+            "  служба поддержки<br>",
+            "  Национальной платформы периодических научных изданий",
+            "</p>",
+        ]
+    )
+    return "\n".join(parts) + "\n"

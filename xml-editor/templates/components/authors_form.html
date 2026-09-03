@@ -1,0 +1,74 @@
+{% if field_errors.get('authors') %}
+  <div class="alert alert-danger py-2">{{ field_errors['authors'] }}</div>
+{% endif %}
+
+<div id="authors-list">
+  {% for author in article.authors %}
+  <div class="author-block border rounded p-3 mb-3" data-author-index="{{ author.id }}">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+      <strong>Автор {{ loop.index }}</strong>
+      <div class="d-flex flex-wrap gap-1">
+        <button type="button" class="btn btn-sm btn-outline-secondary btn-copy-eng-rus" title="Скопировать ENG → RUS">ENG → RUS</button>
+        <button type="submit" class="btn btn-sm btn-outline-secondary"
+                formaction="{{ url_for('xml_editor.authors_move', session_id=session_id, article_id=article_id, author_id=author.id) }}"
+                formmethod="post" name="direction" value="up">↑</button>
+        <button type="submit" class="btn btn-sm btn-outline-secondary"
+                formaction="{{ url_for('xml_editor.authors_move', session_id=session_id, article_id=article_id, author_id=author.id) }}"
+                formmethod="post" name="direction" value="down">↓</button>
+        <button type="submit" class="btn btn-sm btn-outline-danger"
+                formaction="{{ url_for('xml_editor.authors_delete', session_id=session_id, article_id=article_id, author_id=author.id) }}"
+                formmethod="post"
+                data-confirm="Удалить автора {{ loop.index }}?">Удалить</button>
+      </div>
+    </div>
+
+    {% for lang in ['RUS', 'ENG'] %}
+    {% set block = author[lang] %}
+    <div class="mb-3">
+      <div class="small text-muted mb-2">Блок {{ lang }}</div>
+      <div class="row g-2">
+        <div class="col-md-4">
+          <label class="form-label">Фамилия</label>
+          <input class="form-control" name="authors-{{ author.id }}-{{ lang }}-surname" value="{{ block.surname }}" data-lang="{{ lang }}" data-field="surname">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Инициалы</label>
+          <input class="form-control" name="authors-{{ author.id }}-{{ lang }}-initials" value="{{ block.initials }}" data-lang="{{ lang }}" data-field="initials">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Имя</label>
+          <input class="form-control" name="authors-{{ author.id }}-{{ lang }}-first_name" value="{{ block.first_name }}" data-lang="{{ lang }}" data-field="first_name">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Отчество</label>
+          <input class="form-control" name="authors-{{ author.id }}-{{ lang }}-middle_name" value="{{ block.middle_name }}" data-lang="{{ lang }}" data-field="middle_name">
+        </div>
+        <div class="col-md-8">
+          <label class="form-label">Организация</label>
+          <input class="form-control" name="authors-{{ author.id }}-{{ lang }}-org_name" value="{{ block.org_name }}" data-lang="{{ lang }}" data-field="org_name">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Адрес</label>
+          <input class="form-control" name="authors-{{ author.id }}-{{ lang }}-address" value="{{ block.address }}" data-lang="{{ lang }}" data-field="address">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Email</label>
+          <input class="form-control" name="authors-{{ author.id }}-{{ lang }}-email" value="{{ block.email }}" data-lang="{{ lang }}" data-field="email">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">ORCID</label>
+          <input class="form-control" name="authors-{{ author.id }}-{{ lang }}-orcid" value="{{ block.orcid }}" data-lang="{{ lang }}" data-field="orcid">
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-muted">Авторов пока нет.</p>
+  {% endfor %}
+</div>
+
+<button type="submit"
+        class="btn btn-outline-primary btn-sm"
+        formaction="{{ url_for('xml_editor.authors_add', session_id=session_id, article_id=article_id) }}"
+        formmethod="post">Добавить автора</button>

@@ -12,31 +12,26 @@
 ]) }}
 
 {% set pct = report.completeness_percent or 0 %}
-{% set summary_level = 'ok' if pct >= 70 else ('warning' if pct >= 40 else 'error') %}
+{% set summary_level = report.level if report.level in ['ok', 'warning', 'error'] else ('ok' if pct >= 70 else ('warning' if pct >= 40 else 'error')) %}
 {% set loc_ru = report.locales.ru if report.locales else none %}
 {% set loc_en = report.locales.en if report.locales else none %}
+{% set is_data = report.check_mode == 'data' %}
 
 {% macro status_chip(st) -%}
-  {% if st == 'complete' %}
-    <span class="chip" style="background:var(--success-bg, #e8f7ee);color:var(--success, #1b7a3d);">полное</span>
-  {% elif st == 'partial' %}
-    <span class="chip" style="background:var(--warning-bg);color:var(--warning);">частично</span>
-  {% elif st == 'formal' %}
-    <span class="chip" style="background:var(--warning-bg);color:var(--warning);">формально</span>
-  {% elif st == 'missing' %}
-    <span class="chip" style="background:var(--error-bg, #fdecea);color:var(--error, #b42318);">нет</span>
-  {% elif st == 'conflict' %}
-    <span class="chip" style="background:var(--error-bg, #fdecea);color:var(--error, #b42318);">конфликт</span>
-  {% elif st == 'error' %}
-    <span class="chip" style="background:var(--error-bg, #fdecea);color:var(--error, #b42318);">ошибка</span>
-  {% elif st == 'not_applicable' %}
+  {% if st in ['complete', 'ok', 'filled'] %}
+    <span class="chip" style="background:var(--success-bg, #e8f7ee);color:var(--success, #1b7a3d);">{% if st == 'ok' %}выполнено{% else %}полное{% endif %}</span>
+  {% elif st in ['partial', 'warn', 'weak', 'formal'] %}
+    <span class="chip" style="background:var(--warning-bg);color:var(--warning);">
+      {% if st == 'warn' or st == 'partial' %}частично{% elif st == 'formal' %}формально{% else %}частично{% endif %}
+    </span>
+  {% elif st == 'manual' %}
+    <span class="chip" style="background:var(--warning-bg);color:var(--warning);">проверить вручную</span>
+  {% elif st in ['missing', 'fail', 'error', 'conflict', 'empty'] %}
+    <span class="chip" style="background:var(--error-bg, #fdecea);color:var(--error, #b42318);">
+      {% if st == 'fail' %}не выполнено{% elif st == 'missing' %}нет{% else %}{{ st }}{% endif %}
+    </span>
+  {% elif st in ['not_applicable', 'na'] %}
     <span class="chip">н/п</span>
-  {% elif st == 'filled' %}
-    <span class="chip" style="background:var(--success-bg, #e8f7ee);color:var(--success, #1b7a3d);">заполнено</span>
-  {% elif st == 'weak' %}
-    <span class="chip" style="background:var(--warning-bg);color:var(--warning);">слабо</span>
-  {% elif st == 'empty' %}
-    <span class="chip" style="background:var(--error-bg, #fdecea);color:var(--error, #b42318);">пусто</span>
   {% elif st %}
     <span class="chip">{{ st }}</span>
   {% else %}
@@ -44,12 +39,31 @@
   {% endif %}
 {%- endmacro %}
 
+{% macro result_chip(item) -%}
+  {% set st = item.ui_status or item.status %}
+  {% if item.result_label %}
+    {% if st == 'ok' %}
+      <span class="chip" style="background:var(--success-bg, #e8f7ee);color:var(--success, #1b7a3d);">{{ item.result_label }}</span>
+    {% elif st in ['warn', 'partial', 'manual'] %}
+      <span class="chip" style="background:var(--warning-bg);color:var(--warning);">{{ item.result_label }}</span>
+    {% elif st in ['fail', 'error'] %}
+      <span class="chip" style="background:var(--error-bg, #fdecea);color:var(--error, #b42318);">{{ item.result_label }}</span>
+    {% else %}
+      <span class="chip">{{ item.result_label }}</span>
+    {% endif %}
+  {% else %}
+    {{ status_chip(st) }}
+  {% endif %}
+{%- endmacro %}
+
 {% macro req_chip(req) -%}
   {% if req == 'required' %}
     <span class="chip">обязательно</span>
+  {% elif req == 'recommended' %}
+    <span class="chip">рекомендация</span>
   {% elif req == 'conditional' %}
     <span class="chip">условно</span>
-  {% elif req == 'optional' %}
+  {% elif req == 'optional' or req == 'info' %}
     <span class="chip">дополнительно</span>
   {% endif %}
 {%- endmacro %}
@@ -73,10 +87,290 @@
   {% endif %}
 {%- endmacro %}
 
+{% macro fix_guide_block(item) -%}
+  {% if item.fix_path or item.fix_steps %}
+  <div class="fix-guide">
+    {% if item.fix_path %}
+    <div><strong>Где исправить:</strong> {{ item.fix_path }}</div>
+    {% endif %}
+    {% if item.fix_role %}
+    <div class="muted" style="font-size:0.85rem;">Роль: {{ item.fix_role }}</div>
+    {% endif %}
+    {% if item.fix_steps %}
+    <ol class="fix-guide-steps">
+      {% for step in item.fix_steps %}
+      <li>{{ step }}</li>
+      {% endfor %}
+    </ol>
+    {% endif %}
+    {% if item.fix_doc_url or item.doc_url %}
+    <div class="muted" style="font-size:0.8rem;">
+      <a href="{{ item.fix_doc_url or item.doc_url }}" target="_blank" rel="noopener noreferrer">Открыть инструкцию</a>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+{%- endmacro %}
+
+{% macro editorial_letter_card() %}
+{% if letter_html or letter_filename %}
+<div class="card" style="margin-top:1rem;">
+  <h2 class="section-title">Письмо для редакции</h2>
+  <p class="muted" style="margin-top:0;">
+    Основной вид — оформленный HTML для вставки в почту. TXT сохраняется как резервная копия.
+  </p>
+  {% if report.staff_manual %}
+  <p class="letter-pending-warning" data-letter-pending hidden></p>
+  {% endif %}
+  <div class="btn-row letter-actions" style="margin:1rem 0;">
+    {% if letter_html %}
+    <button type="button" class="btn btn-primary" data-copy-letter="html">Копировать с форматированием</button>
+    <button type="button" class="btn btn-secondary" data-copy-letter="plain">Копировать обычный текст</button>
+    {% endif %}
+    {% if letter_filename %}
+    <a class="btn btn-secondary" href="{{ url_for('journal_site_check.download_editorial_letter', filename=letter_filename) }}">Скачать TXT</a>
+    {% endif %}
+    {% if letter_html_filename %}
+    <a class="btn btn-secondary" href="{{ url_for('journal_site_check.download_editorial_letter', filename=letter_html_filename) }}">Скачать HTML</a>
+    {% endif %}
+  </div>
+  {% if letter_html %}
+  {% if report.letter_payload %}
+  <script type="application/json" data-letter-payload>{{ report.letter_payload | tojson }}</script>
+  {% endif %}
+  <div class="editorial-letter-preview" data-letter-html>{{ letter_html|safe }}</div>
+  <textarea hidden readonly data-letter-plain>{{ letter_text or '' }}</textarea>
+  {% endif %}
+</div>
+{% endif %}
+{% endmacro %}
+
+{% if is_data %}
+<div class="jsc-check-result">
+{# —— Отчёт для проверяющего (режим .data) —— #}
+<div class="card">
+  <h2 class="section-title">Результат проверки</h2>
+  <p style="margin:0.35rem 0;">
+    <strong>Журнал:</strong> {{ report.journal_title or '—' }}<br>
+    <strong>ISSN:</strong> {{ report.journal_issn or (report.data_source.issn if report.data_source else '') or '—' }}<br>
+    <strong>Дата проверки:</strong> {{ report.generated_at or '—' }}
+  </p>
+  <p style="margin:0.75rem 0 0.35rem;">
+    <strong>Обязательная готовность:</strong>
+    {{ report.mandatory_percent or pct }}% — выполнено полностью
+    {{ report.mandatory_done or report.required_filled or 0 }} из
+    {{ report.mandatory_total or report.required_total or 0 }} проверок
+  </p>
+  <div class="table-container" style="max-height:none;margin:0.75rem 0;">
+    <table>
+      <thead>
+        <tr>
+          <th>Показатель</th>
+          <th style="width:22%;">Количество</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Выполнено полностью</td>
+          <td>{{ report.mandatory_done or 0 }}</td>
+        </tr>
+        <tr>
+          <td>Не выполнено (проверок)</td>
+          <td>{{ report.fail_check_count if report.fail_check_count is not none else (report.must_fix|length if report.must_fix else 0) }}</td>
+        </tr>
+        <tr>
+          <td>Выполнено частично</td>
+          <td>{{ report.partial_count or 0 }}</td>
+        </tr>
+        <tr>
+          <td>Требуется ручная проверка</td>
+          <td>{{ report.manual_count or 0 }}</td>
+        </tr>
+        <tr>
+          <td>Уникальных исправлений для редакции</td>
+          <td>{{ report.must_fix_count if report.must_fix_count is not none else (report.must_fix|length if report.must_fix else 0) }}</td>
+        </tr>
+        <tr>
+          <td>Невыполненных рекомендаций</td>
+          <td>{{ report.recommendations_open_count or 0 }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  {% if (report.fail_check_count or 0) != (report.must_fix_count or 0) %}
+  <p class="muted" style="margin:0 0 0.75rem;font-size:0.9rem;">
+    Число непройденных проверок может быть больше числа замечаний: одинаковые по смыслу пункты (например, редакция в двух разделах) объединяются.
+  </p>
+  {% endif %}
+  <p style="margin:0;">
+    <strong>Заключение:</strong> {{ report.conclusion or report.level_label or '—' }}
+  </p>
+  <div class="btn-row" style="margin-top:1rem;">
+    <a class="btn btn-primary" href="{{ url_for('journal_site_check.journal_site_check_page') }}">Новая проверка</a>
+  </div>
+</div>
+
+{% if report.staff_must_fix or report.must_fix %}
+<div class="card" style="margin-top:1rem;">
+  <h2 class="section-title">Необходимо исправить</h2>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:28%;">Раздел</th>
+          <th>Что необходимо сделать</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in (report.staff_must_fix or report.must_fix) %}
+        <tr>
+          <td>{{ item.section_title or item.section or '—' }}</td>
+          <td>
+            <div>{{ item.action or item.requirement_label or item.title }}</div>
+            {{ fix_guide_block(item) }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if report.staff_manual %}
+<div class="card" style="margin-top:1rem;">
+  <h2 class="section-title">Проверить вручную</h2>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:28%;">Раздел</th>
+          <th>Что проверить</th>
+          <th style="width:42%;">Результат проверки</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in report.staff_manual %}
+        <tr>
+          <td>{{ item.section_title or item.section or '—' }}</td>
+          <td>
+            <div>{{ item.action or item.requirement_label or item.title }}</div>
+            {{ fix_guide_block(item) }}
+          </td>
+          <td>
+            <fieldset class="manual-resolve" data-manual-id="{{ item.id }}">
+              <legend class="visually-hidden">Результат: {{ item.requirement_label or item.title }}</legend>
+              <label><input type="radio" name="manual-{{ item.id }}" value="ok"> Выполнено</label>
+              <label><input type="radio" name="manual-{{ item.id }}" value="fail"> Не выполнено</label>
+              <label><input type="radio" name="manual-{{ item.id }}" value="na"> Не применимо</label>
+            </fieldset>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if report.staff_partial %}
+<div class="card" style="margin-top:1rem;">
+  <h2 class="section-title">Заполнено частично</h2>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:28%;">Раздел</th>
+          <th>Что необходимо сделать</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in report.staff_partial %}
+        <tr>
+          <td>{{ item.section_title or item.section or '—' }}</td>
+          <td>
+            <div>{{ item.action or item.requirement_label or item.title }}</div>
+            {{ fix_guide_block(item) }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if report.checklist_sections %}
+<div class="card" style="margin-top:1rem;">
+  <h2 class="section-title">Подробный отчёт</h2>
+  <p class="muted" style="margin:0 0 0.75rem;">
+    {% if report.data_source and report.data_source.filename %}
+      <span class="mono">{{ report.data_source.filename }}</span> ·
+    {% endif %}
+    Методика: чек-лист настройки +
+    <a href="https://docs.rfbr.ru/doc/chek-list-baza-R1h7hW4AxG" target="_blank" rel="noopener noreferrer">БАЗА</a>
+  </p>
+</div>
+  {% for sec in report.checklist_sections %}
+<div class="card" style="margin-top:1rem;">
+  <h2 class="section-title">
+    {{ sec.title }}
+    <span class="chip" style="margin-left:0.35rem;">{{ sec.completeness_percent }}%</span>
+    <span class="muted" style="font-size:0.85rem;font-weight:normal;">{{ sec.ok }}/{{ sec.total }}</span>
+  </h2>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:28%;">Требование</th>
+          <th style="width:14%;">Результат</th>
+          <th style="width:28%;">Обнаружено</th>
+          <th>Необходимо сделать</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in sec.entries %}
+          {% if item.status != 'na' %}
+        <tr>
+          <td>
+            {{ item.requirement_label or item.title }}
+            <div style="margin-top:0.25rem;">{{ req_chip(item.severity) }}</div>
+          </td>
+          <td>{{ result_chip(item) }}</td>
+          <td style="font-size:0.9rem;">{{ item.detected or '—' }}</td>
+          <td style="font-size:0.9rem;">
+            {% if item.ui_status == 'ok' or item.status == 'ok' %}
+              <span class="muted">—</span>
+            {% else %}
+              <div><strong>Что сделать:</strong> {{ item.action or '—' }}</div>
+              {{ fix_guide_block(item) }}
+            {% endif %}
+            {% if item.tech_detail %}
+            <details class="tech-details">
+              <summary>Подробности</summary>
+              <div class="muted mono" style="font-size:0.8rem;margin-top:0.35rem;">{{ item.tech_detail }}</div>
+            </details>
+            {% endif %}
+          </td>
+        </tr>
+          {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+  {% endfor %}
+{% endif %}
+
+{{ editorial_letter_card() }}
+</div>
+
+{% else %}
+{# —— Отчёт по публичному сайту —— #}
 {% call result_summary(
   summary_level,
-  'Проверка сайта завершена',
-  report.journal_title or journal_url,
+  'Проверка сайта' ~ (' · ' ~ (report.check_mode or '') if report.check_mode else ''),
+  report.journal_title or journal_url or 'журнал',
   [
     {'label': 'базовая', 'value': pct ~ '%'},
     {'label': 'качество', 'value': (report.quality_percent or 0) ~ '%'},
@@ -86,20 +380,13 @@
 ) %}
   <div class="btn-row" style="margin-top:0.5rem;">
     <a class="btn btn-primary" href="{{ url_for('journal_site_check.journal_site_check_page') }}">Новая проверка</a>
+    {% if journal_url %}
     <a class="btn btn-secondary" href="{{ journal_url }}" target="_blank" rel="noopener noreferrer">Открыть сайт</a>
-    {% if letter_filename %}
-    <a class="btn btn-secondary" href="{{ url_for('journal_site_check.download_editorial_letter', filename=letter_filename) }}">Скачать письмо для редакции</a>
     {% endif %}
   </div>
 {% endcall %}
 
-{% if letter_filename %}
-<div class="card" style="margin-top:1rem;">
-  <h2 class="section-title">Письмо для редакции</h2>
-  <p class="muted">Текст разделяет обязательные пробелы и дополнительные рекомендации. Формат — TXT (UTF-8).</p>
-  <a class="btn btn-secondary" href="{{ url_for('journal_site_check.download_editorial_letter', filename=letter_filename) }}">Скачать письмо (.txt)</a>
-</div>
-{% endif %}
+{{ editorial_letter_card() }}
 
 {# Итог для редакции: обязательное отдельно от рекомендаций #}
 {% macro locale_action_block(loc) %}
@@ -133,67 +420,33 @@
     'contact.persons': 'Contact Persons',
     'journal.access_model': 'Access Model'
   } %}
-  <div class="card" style="margin:0;">
-    <h2 class="section-title">{{ loc.label }}
-      <span class="chip" style="margin-left:0.5rem;">{{ loc.completeness_percent }}%</span>
-    </h2>
-    <p style="margin:0 0 0.75rem;">
-      {% if is_en %}
-        Required information — {{ loc.required_filled or 0 }} of {{ loc.required_total or 0 }} provided.
-        <span class="muted">Presentation quality: {{ loc.quality_percent or 0 }}% · {{ loc.level_label or loc.level }}</span>
-      {% else %}
-        Обязательные сведения — {{ loc.required_filled or 0 }} из {{ loc.required_total or 0 }} заполнены.
-        <span class="muted">Качество представления: {{ loc.quality_percent or 0 }}% · {{ loc.level_label or loc.level }}</span>
-      {% endif %}
-    </p>
+  <div class="card" style="margin-top:1rem;">
+    <h2 class="section-title">{{ loc.label }} · действия</h2>
     {% set must = loc.must_fix or [] %}
-    {% if must %}
-    <h3 style="font-size:1rem;margin:0.5rem 0;">
-      {% if is_en %}Please complete{% else %}Необходимо заполнить{% endif %}
-    </h3>
-    <ol style="margin:0;padding-left:1.25rem;">
-      {% for item in must %}
-      <li style="margin-bottom:0.4rem;">
-        <strong>{{ (title_en_map[item.id] if (is_en and item.id in title_en_map) else item.title) }}</strong>
-        {{ status_chip(item.status) }}
-        {% if item.page_label %}
-          <div class="muted" style="font-size:0.85rem;">
-            {% if is_en %}Page: {{ item.page_label }}{% else %}Страница: {{ item.page_label }}{% endif %}
-          </div>
-        {% endif %}
-        {% if item.note %}<div class="muted" style="font-size:0.85rem;">{{ item.note }}</div>{% endif %}
-      </li>
-      {% endfor %}
-    </ol>
-    {% else %}
-    <p class="muted">
-      {% if is_en %}
-        No issues were found for required and conditionally required information.
-      {% else %}
-        По обязательным и условно обязательным сведениям замечаний нет.
-      {% endif %}
-    </p>
-    {% endif %}
     {% set tips = loc.recommendations or [] %}
+    {% if must %}
+      <h3 class="muted" style="font-size:1rem;">Необходимо заполнить</h3>
+      <ul>
+        {% for item in must %}
+        <li>{{ title_en_map.get(item.id, item.title) if is_en else item.title }} — {{ item.status }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">По обязательным сведениям замечаний нет.</p>
+    {% endif %}
     {% if tips %}
-    <h3 style="font-size:1rem;margin:1rem 0 0.5rem;">
-      {% if is_en %}Additional recommendations{% else %}Дополнительные рекомендации{% endif %}
-    </h3>
-    <ol style="margin:0;padding-left:1.25rem;">
-      {% for item in tips[:10] %}
-      <li style="margin-bottom:0.35rem;">
-        {{ (title_en_map[item.id] if (is_en and item.id in title_en_map) else item.title) }}
-      </li>
-      {% endfor %}
-    </ol>
+      <h3 class="muted" style="font-size:1rem;">Рекомендации</h3>
+      <ul>
+        {% for item in tips[:12] %}
+        <li>{{ title_en_map.get(item.id, item.title) if is_en else item.title }}</li>
+        {% endfor %}
+      </ul>
     {% endif %}
   </div>
 {% endmacro %}
 
-<div class="jsc-locale-grid" style="margin-top:1rem;">
-  {% if loc_ru %}{{ locale_action_block(loc_ru) }}{% else %}<div></div>{% endif %}
-  {% if loc_en %}{{ locale_action_block(loc_en) }}{% else %}<div></div>{% endif %}
-</div>
+{% if loc_ru %}{{ locale_action_block(loc_ru) }}{% endif %}
+{% if loc_en %}{{ locale_action_block(loc_en) }}{% endif %}
 
 {% if loc_ru or loc_en %}
 <div class="card" style="margin-top:1rem;">
@@ -284,10 +537,11 @@
   {% endfor %}
 {% endif %}
 
+{% if loc_ru or loc_en %}
 <details class="details-box" style="margin-top:1rem;">
   <summary>Загруженные страницы</summary>
   <div class="jsc-locale-grid" style="margin-top:0.75rem;">
-    {% if loc_ru %}
+    {% if loc_ru and loc_ru.pages %}
     <div>
       <strong>{{ loc_ru.label }}</strong>
       <ul class="muted">
@@ -295,13 +549,13 @@
         <li>
           {{ key }}:
           {% if page.ok %}OK{% else %}ошибка — {{ page.error }}{% endif %}
-          · <a href="{{ page.url }}" target="_blank" rel="noopener noreferrer">ссылка</a>
+          {% if page.url %} · <a href="{{ page.url }}" target="_blank" rel="noopener noreferrer">ссылка</a>{% endif %}
         </li>
         {% endfor %}
       </ul>
     </div>
     {% endif %}
-    {% if loc_en %}
+    {% if loc_en and loc_en.pages %}
     <div>
       <strong>{{ loc_en.label }}</strong>
       <ul class="muted">
@@ -309,7 +563,7 @@
         <li>
           {{ key }}:
           {% if page.ok %}OK{% else %}ошибка — {{ page.error }}{% endif %}
-          · <a href="{{ page.url }}" target="_blank" rel="noopener noreferrer">ссылка</a>
+          {% if page.url %} · <a href="{{ page.url }}" target="_blank" rel="noopener noreferrer">ссылка</a>{% endif %}
         </li>
         {% endfor %}
       </ul>
@@ -317,12 +571,94 @@
     {% endif %}
   </div>
 </details>
+{% endif %}
+{% endif %}
 
 <p class="muted" style="margin-top:1rem;">
-  Дата проверки: {{ report.generated_at }} · база URL: <span class="mono">{{ report.base_url }}</span>
+  Дата проверки: {{ report.generated_at }}
+  {% if report.base_url %} · база: <span class="mono">{{ report.base_url }}</span>{% endif %}
+  {% if report.check_mode %} · режим: <span class="mono">{{ report.check_mode }}</span>{% endif %}
 </p>
 
 <style>
+  .editorial-letter-preview {
+    padding: 0.25rem 0.15rem 0;
+    line-height: 1.55;
+  }
+  .editorial-letter-preview p {
+    margin: 0 0 0.85em;
+  }
+  .editorial-letter-preview ol {
+    margin: 0 0 0.85em;
+    padding-left: 1.4em;
+  }
+  .editorial-letter-preview li {
+    margin: 0.4em 0;
+  }
+  .letter-actions {
+    gap: 0.75rem;
+  }
+  .letter-pending-warning {
+    margin: 0.75rem 0 0;
+    padding: 0.65rem 0.85rem;
+    background: var(--warning-bg, #fff6e5);
+    color: var(--warning, #8a5a00);
+    border-radius: var(--radius-sm, 6px);
+  }
+  .manual-resolve {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem 1rem;
+  }
+  .manual-resolve label {
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .tech-details {
+    margin-top: 0.6rem;
+    padding-top: 0.45rem;
+    border-top: 1px solid var(--border, #e5e7eb);
+  }
+  .tech-details summary {
+    cursor: pointer;
+    color: var(--text-secondary, #64748b);
+    font-size: 0.8rem;
+  }
+  .fix-guide {
+    margin-top: 0.55rem;
+    padding: 0.55rem 0.7rem;
+    background: var(--surface-muted, #f8fafc);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: var(--radius-sm, 6px);
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+  .fix-guide-steps {
+    margin: 0.35rem 0 0.35rem 1.1rem;
+    padding: 0;
+  }
+  .fix-guide-steps li {
+    margin: 0.2rem 0;
+  }
+  .jsc-check-result table th {
+    border-right: 1px solid var(--border);
+  }
+  .jsc-check-result table th:last-child,
+  .jsc-check-result table td:last-child {
+    border-right: 0;
+  }
   .jsc-locale-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;

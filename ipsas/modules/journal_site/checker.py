@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Callable, Optional
@@ -21,7 +22,11 @@ from ipsas.modules.journal_site.evaluate import (
     summarize_results,
 )
 from ipsas.modules.journal_site.fields import AboutMenuItem
-from ipsas.modules.journal_site.locale_fetch import LOCALE_LABELS, fetch_bytes_for_locale
+from ipsas.modules.journal_site.locale_fetch import (
+    LOCALE_LABELS,
+    LocaleSession,
+    fetch_bytes_for_locale,
+)
 from ipsas.modules.journal_site.parser import (
     content_for_about_item,
     extract_about_menu,
@@ -42,6 +47,8 @@ LEVEL_LABELS = {
     "medium": "средняя заполненность",
     "low": "низкая заполненность",
 }
+
+_MAX_FETCH_WORKERS = 6
 
 
 @dataclass(slots=True)
@@ -211,14 +218,31 @@ class JournalSiteChecker:
         max_bytes: int = 2_500_000,
         languages: tuple[str, ...] = ("ru", "en"),
     ) -> None:
-        self._http = http or HttpClient.from_env(max_bytes=max_bytes)
+        self._http = http or HttpClient(
+            max_bytes=max_bytes,
+            timeout_s=12,
+            retries=1,
+            backoff_s=0.2,
+            issue_timeout_s=12,
+            issue_retries=1,
+        )
         self._fetch = fetch
         self._languages = languages
+        self._sessions: dict[str, LocaleSession] = {}
+
+    def _session_for(self, lang: str) -> LocaleSession:
+        sess = self._sessions.get(lang)
+        if sess is None:
+            sess = LocaleSession(self._http, lang)
+            self._sessions[lang] = sess
+        return sess
 
     def _get(self, url: str, lang: str) -> tuple[bytes, str]:
         if self._fetch is not None:
             return self._fetch(url, lang), lang
-        return fetch_bytes_for_locale(self._http, url, lang=lang)
+        return fetch_bytes_for_locale(
+            self._http, url, lang=lang, session=self._session_for(lang)
+        )
 
     def _fetch_page(
         self, url: str, lang: str
@@ -230,47 +254,89 @@ class JournalSiteChecker:
             logger.warning("Не удалось загрузить %s [%s]: %s", url, lang, e)
             return None, str(e), lang
 
+    def _store_page(
+        self,
+        bundle: PageBundle,
+        key: str,
+        url: str,
+        doc: Any,
+        err: Optional[str],
+    ) -> None:
+        bundle.urls[key] = url
+        if doc is None:
+            if err:
+                bundle.errors[key] = err
+            return
+        bundle.docs[key] = doc
+        bundle.texts[key] = page_main_text(doc)
+        bundle.fragments.update(_extract_known_fragments(doc))
+
     def _build_bundle(self, base: str, lang: str) -> tuple[PageBundle, str, str]:
         bundle = PageBundle()
         used_locale = lang
         journal_title = ""
 
-        for key, rel in STANDARD_PAGES:
-            url = journal_page_url(base, *rel.split("/"))
-            doc, err, code = self._fetch_page(url, lang)
-            used_locale = code or used_locale
-            bundle.urls[key] = url
-            if doc is None:
-                if err:
-                    bundle.errors[key] = err
-                continue
-            bundle.docs[key] = doc
-            bundle.texts[key] = page_main_text(doc)
-            bundle.fragments.update(_extract_known_fragments(doc))
+        # Первую страницу — синхронно, чтобы прогнать prime локали один раз
+        first_key, first_rel = STANDARD_PAGES[0]
+        first_url = journal_page_url(base, *first_rel.split("/"))
+        doc, err, code = self._fetch_page(first_url, lang)
+        used_locale = code or used_locale
+        self._store_page(bundle, first_key, first_url, doc, err)
+
+        rest = list(STANDARD_PAGES[1:])
+        if rest:
+            def _job(item: tuple[str, str]) -> tuple[str, str, Optional[Any], Optional[str], str]:
+                key, rel = item
+                url = journal_page_url(base, *rel.split("/"))
+                page_doc, page_err, page_code = self._fetch_page(url, lang)
+                return key, url, page_doc, page_err, page_code
+
+            with ThreadPoolExecutor(max_workers=min(_MAX_FETCH_WORKERS, len(rest))) as pool:
+                futures = [pool.submit(_job, item) for item in rest]
+                for fut in as_completed(futures):
+                    key, url, page_doc, page_err, page_code = fut.result()
+                    used_locale = page_code or used_locale
+                    self._store_page(bundle, key, url, page_doc, page_err)
 
         # Дополнить корпус пунктами меню /about (custom-политики и т.п.)
         about_doc = bundle.docs.get("about")
         if about_doc is not None:
             menu: list[AboutMenuItem] = extract_about_menu(about_doc, base_url=base)
+            known_urls = {u for u in bundle.urls.values() if u}
+            extra_urls: dict[str, str] = {}
             for item in menu:
-                # уже загруженная страница
+                if item.page_url in known_urls or item.page_url in extra_urls.values():
+                    continue
+                tail = item.page_url.rstrip("/").split("/")[-1] or f"about_{len(extra_urls)}"
+                key = tail
+                n = 1
+                while key in bundle.docs or key in extra_urls:
+                    n += 1
+                    key = f"{tail}_{n}"
+                extra_urls[key] = item.page_url
+
+            if extra_urls:
+                def _extra(item: tuple[str, str]) -> tuple[str, str, Optional[Any], Optional[str]]:
+                    key, url = item
+                    page_doc, page_err, _ = self._fetch_page(url, lang)
+                    return key, url, page_doc, page_err
+
+                with ThreadPoolExecutor(
+                    max_workers=min(_MAX_FETCH_WORKERS, len(extra_urls))
+                ) as pool:
+                    futures = [pool.submit(_extra, kv) for kv in extra_urls.items()]
+                    for fut in as_completed(futures):
+                        key, url, page_doc, page_err = fut.result()
+                        self._store_page(bundle, key, url, page_doc, page_err)
+
+            for item in menu:
                 page_doc = None
-                for key, doc in bundle.docs.items():
+                for key, cached in bundle.docs.items():
                     if bundle.urls.get(key) == item.page_url:
-                        page_doc = doc
+                        page_doc = cached
                         break
                 if page_doc is None:
-                    doc, err, _ = self._fetch_page(item.page_url, lang)
-                    if doc is None:
-                        continue
-                    page_doc = doc
-                    # кэш по хвосту пути
-                    tail = item.page_url.rstrip("/").split("/")[-1]
-                    if tail and tail not in bundle.docs:
-                        bundle.docs[tail] = doc
-                        bundle.texts[tail] = page_main_text(doc)
-                        bundle.urls[tail] = item.page_url
-                        bundle.fragments.update(_extract_known_fragments(doc))
+                    continue
                 value = content_for_about_item(page_doc, item)
                 if item.fragment and value:
                     bundle.fragments[item.fragment] = value
@@ -359,9 +425,16 @@ class JournalSiteChecker:
 
         bundles: dict[str, PageBundle] = {}
         built: dict[str, tuple[PageBundle, str, str]] = {}
-        for lang in self._languages:
-            built[lang] = self._build_bundle(base, lang)
-            bundles[lang] = built[lang][0]
+
+        # RU и EN собираем параллельно (у каждой локали своя LocaleSession)
+        with ThreadPoolExecutor(max_workers=len(self._languages) or 1) as pool:
+            futs = {
+                pool.submit(self._build_bundle, base, lang): lang for lang in self._languages
+            }
+            for fut in as_completed(futs):
+                lang = futs[fut]
+                built[lang] = fut.result()
+                bundles[lang] = built[lang][0]
 
         en_bundle = bundles.get("en")
         for lang in self._languages:
