@@ -100,9 +100,9 @@
         <span class="action-card-ico" aria-hidden="true">{{ icon('radar', 20) }}</span>
       </div>
       <h3>Проверить сайт журнала</h3>
-      <p class="action-card-desc">Проверка заполненности полей на публичном сайте журнала</p>
+      <p class="action-card-desc">Проверка настроек журнала по файлу экспорта OJS (.data)</p>
       <div class="action-card-foot">
-        <p class="action-card-io">URL сайта → отчёт</p>
+        <p class="action-card-io">.data → отчёт и письмо редакции</p>
         <span class="action-card-cta">Открыть →</span>
       </div>
     </a>
@@ -164,7 +164,7 @@
     <div class="tool-row">
       <div>
         <h3>Проверить сайт журнала</h3>
-        <p>Заполненность полей публичного сайта журнала</p>
+        <p>Проверка настроек журнала по файлу экспорта OJS (.data)</p>
       </div>
       <a class="btn btn-secondary" href="{{ url_for('journal_site_check.journal_site_check_page') }}">Открыть</a>
     </div>

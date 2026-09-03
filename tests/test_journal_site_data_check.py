@@ -424,9 +424,14 @@ def test_execute_data_only(sample_bytes: bytes) -> None:
     assert report["checklist_sections"]
 
 
-def test_execute_requires_source() -> None:
-    with pytest.raises(ValueError, match="Укажите"):
+def test_execute_requires_data_file() -> None:
+    with pytest.raises(ValueError, match=r"\.data"):
         check_journal_site(None, data_file=None)
+
+
+def test_execute_rejects_url_only() -> None:
+    with pytest.raises(ValueError, match="ссылке"):
+        check_journal_site("https://journals.example/2312-1327/index", data_file=None)
 
 
 def test_upload_route_accepts_data_file(sample_bytes: bytes) -> None:
@@ -435,7 +440,6 @@ def test_upload_route_accepts_data_file(sample_bytes: bytes) -> None:
     resp = client.post(
         "/services/journal-site-check/process",
         data={
-            "journal_url": "",
             "data_file": (BytesIO(sample_bytes), "journal_sample.data"),
         },
         content_type="multipart/form-data",
@@ -449,21 +453,18 @@ def test_upload_route_accepts_data_file(sample_bytes: bytes) -> None:
     assert "data-letter-html" in body
 
 
-def test_upload_rejects_both_url_and_file(sample_bytes: bytes) -> None:
+def test_upload_rejects_url_only() -> None:
     app = create_app()
     client = app.test_client()
     resp = client.post(
         "/services/journal-site-check/process",
-        data={
-            "journal_url": "https://journals.example/2312-1327/index",
-            "data_file": (BytesIO(sample_bytes), "journal_sample.data"),
-        },
+        data={"journal_url": "https://journals.example/2312-1327/index"},
         content_type="multipart/form-data",
         follow_redirects=True,
     )
     assert resp.status_code == 200
     body = resp.get_data(as_text=True)
-    assert "один источник" in body or "либо" in body.lower()
+    assert "Загрузите файл" in body or ".data" in body
 
 
 def test_upload_rejects_bad_extension() -> None:

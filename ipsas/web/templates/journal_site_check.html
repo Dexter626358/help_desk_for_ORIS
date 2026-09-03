@@ -14,40 +14,22 @@
 <div class="card">
   <h1 class="page-title">Проверить сайт журнала</h1>
   <p class="page-lead">
-    Укажите <strong>либо</strong> ссылку на публичную страницу журнала,
-    <strong>либо</strong> файл экспорта настроек OJS (<span class="mono">.data</span>) — один источник на проверку.
+    Загрузите файл экспорта настроек OJS (<span class="mono">.data</span>) —
+    проверка по чек-листу «Настройка журнала по умолчанию».
   </p>
 
   <form method="POST"
         action="{{ url_for('journal_site_check.process_journal_site_check') }}"
         enctype="multipart/form-data"
         novalidate
-        data-loading-form
-        data-source-xor>
-    <div class="form-group" data-xor-url>
-      <label for="journal_url">Ссылка на журнал</label>
-      <input
-        type="url"
-        id="journal_url"
-        name="journal_url"
-        data-url-field
-        placeholder="https://journals.rcsi.science/2312-1327/index"
-        autocomplete="url"
-      >
-      <span class="form-help">
-        Пример: <span class="mono">https://journals.rcsi.science/2312-1327/index</span>
-      </span>
-    </div>
-
-    <p class="muted" style="margin:0.25rem 0 0.75rem;text-align:center;">или</p>
-
+        data-loading-form>
     {{ file_upload(
       name='data_file',
       input_id='data_file',
       accept='.data,.json',
       label='Файл настроек OJS (.data)',
       help_text='Экспорт настроек журнала. Проверка по чек-листу «Настройка журнала по умолчанию» (страницы, модули, 5 шагов).',
-      required=false
+      required=true
     ) }}
 
     <div class="btn-row">
@@ -59,13 +41,11 @@
 
   <p class="muted" style="margin-top:0.75rem;">
     Файл <span class="mono">.data</span> обычно проверяется за секунды.
-    Проверка по ссылке дольше — нужно скачать страницы сайта (RU и EN).
   </p>
 
   <details class="details-box">
     <summary>Что проверяется</summary>
     <p class="muted">
-      По URL: заполненность публичного сайта (RU/EN).
       По файлу .data: чек-лист «Настройка журнала по умолчанию»
       (языки, разделы, плагины, DOI/EDN, метрики, 5 шагов настройки) в связке с
       <a href="https://docs.rfbr.ru/doc/chek-list-baza-R1h7hW4AxG" target="_blank" rel="noopener noreferrer">БАЗА</a>.

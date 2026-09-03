@@ -1,4 +1,4 @@
-"""Роуты: проверка заполненности сайта журнала и/или OJS .data."""
+"""Роуты: проверка настроек журнала по файлу OJS .data."""
 
 from __future__ import annotations
 
@@ -12,7 +12,6 @@ from flask import Blueprint, Response, flash, redirect, render_template, request
 from werkzeug.utils import secure_filename
 
 from ipsas.config.settings import get_settings
-from ipsas.modules.validator import Validator
 from ipsas.services.check_journal_site import (
     build_editorial_letter_html,
     build_editorial_letter_html_document,
@@ -48,7 +47,7 @@ def _letter_basename(report: dict) -> str:
 
 @journal_site_check_bp.route("/journal-site-check")
 def journal_site_check_page():
-    """Форма проверки сайта журнала."""
+    """Форма проверки настроек журнала по .data."""
     settings = get_settings()
     external = settings.journal_site_check_url
     if external:
@@ -58,57 +57,40 @@ def journal_site_check_page():
 
 @journal_site_check_bp.route("/journal-site-check/process", methods=["POST"])
 def process_journal_site_check():
-    """Запуск проверки по URL журнала либо по файлу .data (взаимоисключающе)."""
+    """Запуск проверки по файлу .data."""
     settings = get_settings()
     t0 = time.perf_counter()
 
-    validator = Validator()
-    journal_url = (request.form.get("journal_url") or "").strip()
     upload = request.files.get("data_file")
     has_upload = bool(upload and upload.filename)
 
-    if not journal_url and not has_upload:
-        flash("Укажите ссылку на журнал или загрузите файл .data", "error")
+    if not has_upload:
+        flash("Загрузите файл настроек журнала (.data)", "error")
         return redirect(url_for("journal_site_check.journal_site_check_page"))
 
-    if journal_url and has_upload:
-        flash("Выберите один источник: либо ссылку на журнал, либо файл .data", "error")
+    assert upload is not None
+    original_name = upload.filename or "journal.data"
+    original = secure_filename(original_name) or "journal.data"
+    lower = original.lower()
+    raw_name = original_name.lower()
+    if not lower.endswith(_DATA_SUFFIXES) and not raw_name.endswith(_DATA_SUFFIXES):
+        flash("Поддерживаются файлы .data или .json (экспорт настроек OJS)", "error")
         return redirect(url_for("journal_site_check.journal_site_check_page"))
+    if not lower.endswith(_DATA_SUFFIXES):
+        original = Path(original_name).name
 
-    if journal_url and not validator.validate_url(journal_url):
-        flash("Некорректная или небезопасная ссылка на журнал", "error")
+    data_bytes = upload.read()
+    if not data_bytes:
+        flash("Файл пустой", "error")
         return redirect(url_for("journal_site_check.journal_site_check_page"))
-
-    data_bytes: bytes | None = None
-    data_filename = ""
-
-    if has_upload:
-        assert upload is not None
-        original_name = upload.filename or "journal.data"
-        original = secure_filename(original_name) or "journal.data"
-        lower = original.lower()
-        raw_name = original_name.lower()
-        if not lower.endswith(_DATA_SUFFIXES) and not raw_name.endswith(_DATA_SUFFIXES):
-            flash("Поддерживаются файлы .data или .json (экспорт настроек OJS)", "error")
-            return redirect(url_for("journal_site_check.journal_site_check_page"))
-        if not lower.endswith(_DATA_SUFFIXES):
-            original = Path(original_name).name
-
-        # Читаем в память — без записи в OneDrive/temp (это часто тормозит)
-        data_bytes = upload.read()
-        if not data_bytes:
-            flash("Файл пустой", "error")
-            return redirect(url_for("journal_site_check.journal_site_check_page"))
-        if len(data_bytes) > settings.max_file_size:
-            max_mb = settings.max_file_size / (1024 * 1024)
-            flash(f"Файл слишком большой. Максимальный размер: {max_mb:.1f} MB", "error")
-            return redirect(url_for("journal_site_check.journal_site_check_page"))
-        data_filename = original
-        journal_url = ""  # на всякий случай не смешиваем с сайтом
+    if len(data_bytes) > settings.max_file_size:
+        max_mb = settings.max_file_size / (1024 * 1024)
+        flash(f"Файл слишком большой. Максимальный размер: {max_mb:.1f} MB", "error")
+        return redirect(url_for("journal_site_check.journal_site_check_page"))
+    data_filename = original
 
     try:
         report = check_journal_site(
-            journal_url or None,
             data_file=data_bytes,
             data_filename=data_filename,
         )
@@ -116,8 +98,8 @@ def process_journal_site_check():
         flash(str(e), "error")
         return redirect(url_for("journal_site_check.journal_site_check_page"))
     except Exception as e:
-        logger.error("Ошибка проверки сайта журнала: %s", e, exc_info=True)
-        flash(f"Ошибка проверки сайта: {e}", "error")
+        logger.error("Ошибка проверки настроек журнала: %s", e, exc_info=True)
+        flash(f"Ошибка проверки настроек: {e}", "error")
         return redirect(url_for("journal_site_check.journal_site_check_page"))
 
     elapsed = time.perf_counter() - t0
@@ -125,19 +107,19 @@ def process_journal_site_check():
         "journal_site_check done mode=%s in %.2fs title=%s",
         report.get("check_mode"),
         elapsed,
-        report.get("journal_title") or data_filename or journal_url,
+        report.get("journal_title") or data_filename,
     )
 
     pct = report.get("completeness_percent") or 0
     ru = report.get("completeness_ru") or 0
     en = report.get("completeness_en") or 0
-    title = report.get("journal_title") or journal_url or data_filename
+    title = report.get("journal_title") or data_filename
     plugin_issues = len(report.get("plugins_must_fix") or [])
     status = "ok" if pct >= 70 and plugin_issues == 0 else ("warning" if pct >= 40 else "error")
-    mode = report.get("check_mode") or "site"
-    detail = f"{title}; RU {ru}% · EN {en}% · итого {pct}% · {elapsed:.1f}с"
-    if mode != "site":
-        detail += f" · плагины: {plugin_issues} замечаний"
+    detail = (
+        f"{title}; RU {ru}% · EN {en}% · итого {pct}% · {elapsed:.1f}с"
+        f" · плагины: {plugin_issues} замечаний"
+    )
     record_operation(
         tool="journal_site_check",
         title="Проверить сайт журнала",
@@ -147,21 +129,9 @@ def process_journal_site_check():
     )
 
     generated_at = str(report.get("generated_at") or datetime.now().strftime("%d.%m.%Y %H:%M"))
-    letter_text = build_editorial_letter_text(
-        report,
-        journal_url=journal_url,
-        generated_at=generated_at,
-    )
-    letter_html = build_editorial_letter_html(
-        report,
-        journal_url=journal_url,
-        generated_at=generated_at,
-    )
-    letter_html_doc = build_editorial_letter_html_document(
-        report,
-        journal_url=journal_url,
-        generated_at=generated_at,
-    )
+    letter_text = build_editorial_letter_text(report, generated_at=generated_at)
+    letter_html = build_editorial_letter_html(report, generated_at=generated_at)
+    letter_html_doc = build_editorial_letter_html_document(report, generated_at=generated_at)
     unique_id = uuid.uuid4().hex[:8]
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     letter_base = _letter_basename(report)
@@ -174,7 +144,7 @@ def process_journal_site_check():
 
     return render_template(
         "journal_site_check_result.html",
-        journal_url=journal_url,
+        journal_url="",
         report=report,
         letter_text=letter_text,
         letter_html=letter_html,

@@ -31,7 +31,9 @@ FRIENDLY_ACTION_BY_ID: dict[str, str] = {
     "pages.sections_other": "Добавить и настроить остальные разделы журнала",
     "modules.mets_gateway": "Выключить плагин шлюза METS",
     "modules.recognition": "Включить плагин распознавания",
-    "modules.doi": "Включить DOI и указать префикс DOI",
+    "modules.doi": (
+        "Если журнал присваивает DOI — включить DOI и указать префикс DOI"
+    ),
     "modules.edn": "Включить модуль EDN",
     "modules.urn": "Выключить модуль URN",
     "modules.url_pubid": "Выключить публичный идентификатор URL",
@@ -46,7 +48,7 @@ FRIENDLY_ACTION_BY_ID: dict[str, str] = {
     "modules.webfeed": (
         "Настроить новостную ленту: отображение на страницах выпуска и текущего выпуска"
     ),
-    "modules.fundref": "Включить плагин FundRef",
+    "modules.fundref": "Включить FundRef и обновить базу организаций",
     "modules.acron": "Проверить, что ACRON включён на уровне администратора сайта",
     "modules.extra_off": "Выключить лишние основные модули вне эталона настройки",
     "metrics.dimensions": "При наличии DOI включить метрику Dimensions",
@@ -159,6 +161,7 @@ REQUIREMENT_LABEL_BY_ID: dict[str, str] = {
     "step2.focus": "Предметная область и цели журнала",
     "modules.browse": "Плагин «Браузер»",
     "modules.webfeed": "Новостная лента выпуска",
+    "modules.doi": "DOI (если журнал присваивает DOI)",
     "pages.editorial_board": "Редакция журнала",
     "step1.board": "Редакция журнала",
     "pages.section_articles": "Раздел «Статьи»",

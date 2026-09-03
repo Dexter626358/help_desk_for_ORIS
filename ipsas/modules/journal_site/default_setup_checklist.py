@@ -163,7 +163,7 @@ DEFAULT_SETUP_CHECKLIST: tuple[ChecklistItem, ...] = (
     ChecklistItem(
         "modules.doi",
         "modules_pubids",
-        "DOI: включен, настроен (doiPrefix)",
+        "DOI: включен, настроен (doiPrefix), если журнал присваивает DOI",
         "plugin",
         plugin_keys=("DOIPubIdPlugin",),
         expect_enabled=True,
@@ -268,7 +268,7 @@ DEFAULT_SETUP_CHECKLIST: tuple[ChecklistItem, ...] = (
     ChecklistItem(
         "modules.fundref",
         "modules_generic",
-        "FundRef: включен",
+        "FundRef: включен, база организаций обновлена",
         "plugin",
         plugin_keys=("fundrefplugin",),
         expect_enabled=True,

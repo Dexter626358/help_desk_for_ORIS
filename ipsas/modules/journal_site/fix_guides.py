@@ -103,20 +103,20 @@ _FIX_BY_ID: dict[str, FixGuide] = {
     "modules.doi": FixGuide(
         path=f"{_PATH_PLUGINS} → Публичные идентификаторы",
         steps=(
+            "Пункт актуален, если журнал присваивает DOI статьям.",
             "Включите плагин DOI.",
             "Укажите префикс DOI журнала.",
-            "Сохраните настройки.",
         ),
         doc_url=_DOC_DOI,
     ),
     "modules.edn": FixGuide(
         path=f"{_PATH_PLUGINS} → Публичные идентификаторы",
-        steps=("Включите модуль EDN и сохраните настройки.",),
+        steps=("Включите модуль EDN.",),
         doc_url=_DOC_DOI,
     ),
     "modules.browse": FixGuide(
         path=f"{_PATH_PLUGINS} → Основные модули",
-        steps=("Включите плагин «Браузер» и сохраните.",),
+        steps=("Включите плагин «Браузер».",),
     ),
     "modules.webfeed": FixGuide(
         path=f"{_PATH_SETUP} → Шаг 4. Управление → Объявления",
@@ -129,47 +129,50 @@ _FIX_BY_ID: dict[str, FixGuide] = {
     ),
     "modules.coins": FixGuide(
         path=f"{_PATH_PLUGINS} → Основные модули",
-        steps=("Включите плагин COinS и сохраните.",),
+        steps=("Включите плагин COinS.",),
     ),
     "modules.custom_blocks": FixGuide(
         path=f"{_PATH_PLUGINS} → Основные модули",
-        steps=("Включите «Управление блоками пользователя» и сохраните.",),
+        steps=("Включите «Управление блоками пользователя».",),
     ),
     "modules.driver": FixGuide(
         path=f"{_PATH_PLUGINS} → Основные модули",
-        steps=("Включите плагин DRIVER и сохраните.",),
+        steps=("Включите плагин DRIVER.",),
     ),
     "modules.pdfjs": FixGuide(
         path=f"{_PATH_PLUGINS} → Основные модули",
-        steps=("Включите PDF.JS и сохраните.",),
+        steps=("Включите PDF.JS.",),
     ),
     "modules.sehl": FixGuide(
         path=f"{_PATH_PLUGINS} → Основные модули",
-        steps=("Включите плагин SEHL и сохраните.",),
+        steps=("Включите плагин SEHL.",),
     ),
     "modules.static_pages": FixGuide(
         path=f"{_PATH_PLUGINS} → Основные модули",
-        steps=("Включите плагин статических страниц и сохраните.",),
+        steps=("Включите плагин статических страниц.",),
     ),
     "modules.tinymce": FixGuide(
         path=f"{_PATH_PLUGINS} → Основные модули",
-        steps=("Включите TinyMCE и сохраните.",),
+        steps=("Включите TinyMCE.",),
     ),
     "modules.fundref": FixGuide(
         path=f"{_PATH_PLUGINS} → Основные модули",
-        steps=("Включите FundRef и сохраните.",),
+        steps=(
+            "Включите FundRef.",
+            "Обновите базу организаций.",
+        ),
     ),
     "modules.mets_gateway": FixGuide(
         path=f"{_PATH_PLUGINS} → Шлюзы",
-        steps=("Выключите плагин шлюза METS и сохраните.",),
+        steps=("Выключите плагин шлюза METS.",),
     ),
     "modules.urn": FixGuide(
         path=f"{_PATH_PLUGINS} → Публичные идентификаторы",
-        steps=("Выключите модуль URN и сохраните.",),
+        steps=("Выключите модуль URN.",),
     ),
     "modules.url_pubid": FixGuide(
         path=f"{_PATH_PLUGINS} → Публичные идентификаторы",
-        steps=("Выключите публичный идентификатор URL и сохраните.",),
+        steps=("Выключите публичный идентификатор URL.",),
     ),
     "modules.extra_off": FixGuide(
         path=f"{_PATH_PLUGINS} → Основные модули",
@@ -182,40 +185,31 @@ _FIX_BY_ID: dict[str, FixGuide] = {
     ),
     "modules.recognition": FixGuide(
         path=f"{_PATH_PLUGINS} → Шлюзы / основные модули",
-        steps=("Включите плагин распознавания по инструкции и сохраните.",),
+        steps=("Включите плагин распознавания по инструкции.",),
     ),
     "metrics.dimensions": FixGuide(
         path=_PATH_METRICS,
-        steps=(
-            "При наличии DOI включите метрику Dimensions.",
-            "Сохраните настройки.",
-        ),
+        steps=("При наличии DOI включите метрику Dimensions.",),
     ),
     "metrics.plumx": FixGuide(
         path=_PATH_METRICS,
-        steps=(
-            "Если журнал индексируется в Scopus — включите PlumX.",
-            "Сохраните настройки.",
-        ),
+        steps=("Если журнал индексируется в Scopus — включите PlumX.",),
     ),
     "metrics.citedby": FixGuide(
         path=_PATH_METRICS,
-        steps=(
-            "При наличии DOI включите Cited-by (нужен кабинет Crossref).",
-            "Сохраните настройки.",
-        ),
+        steps=("При наличии DOI включите Cited-by (нужен кабинет Crossref).",),
     ),
     "metrics.alm": FixGuide(
         path=_PATH_METRICS,
-        steps=("Включите плагин ALM и сохраните.",),
+        steps=("Включите плагин ALM.",),
     ),
     "metrics.altmetrics": FixGuide(
         path=_PATH_METRICS,
-        steps=("Выключите метрику Altmetrics и сохраните.",),
+        steps=("Выключите метрику Altmetrics.",),
     ),
     "metrics.publons": FixGuide(
         path=_PATH_METRICS,
-        steps=("Выключите метрику Publons и сохраните.",),
+        steps=("Выключите метрику Publons.",),
     ),
     "step1.title": FixGuide(
         path=f"{_PATH_SETUP} → Шаг 1. Детали → Общая информация",
