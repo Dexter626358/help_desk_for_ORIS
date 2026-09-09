@@ -32,12 +32,13 @@ FRIENDLY_ACTION_BY_ID: dict[str, str] = {
     "modules.mets_gateway": "Выключить плагин шлюза METS",
     "modules.recognition": "Включить плагин распознавания",
     "modules.doi": (
-        "Если журнал присваивает DOI — включить DOI и указать префикс DOI"
+        "Если журнал присваивает DOI — включить DOI и указать префикс DOI "
+        "(иначе пункт можно пропустить)"
     ),
     "modules.edn": "Включить модуль EDN",
     "modules.urn": "Выключить модуль URN",
     "modules.url_pubid": "Выключить публичный идентификатор URL",
-    "modules.browse": "Включить плагин «Браузер»",
+    "modules.browse": "Включить плагин «Браузер» и режим просмотра по разделам",
     "modules.coins": "Включить плагин COinS",
     "modules.custom_blocks": "Включить плагин «Управление блоками пользователя»",
     "modules.driver": "Включить плагин DRIVER",
@@ -63,19 +64,37 @@ FRIENDLY_ACTION_BY_ID: dict[str, str] = {
     "step1.issn": "Указать ISSN (печатный и/или онлайн)",
     "step1.elibrary": "Указать идентификатор журнала в eLIBRARY.RU",
     "step1.mailing": "Заполнить почтовый адрес и карту на русском и английском языках",
-    "step1.board": "Заполнить раздел «Редакция» на русском и английском языках",
+    "step1.board": (
+        "Указать ФИО контактного лица редакции на русском и английском "
+        "и адрес электронной почты"
+    ),
     "step1.support": "Заполнить блок технической поддержки (имя и адрес электронной почты)",
     "step1.email": "Проверить исходящую почту или оставить глобальные настройки сайта",
     "step1.publisher": (
         "Указать наименование издателя и сведения об издателе "
         "на русском и английском языках"
     ),
+    "step1.sponsors": (
+        "При наличии спонсоров заполнить сведения "
+        "(иначе можно оставить пустым)"
+    ),
+    "step1.funding": (
+        "При наличии финансовой поддержки заполнить сведения "
+        "(иначе можно оставить пустым)"
+    ),
+    "step1.history": (
+        "Указать дату создания журнала или краткую историю "
+        "(пусто допустимо)"
+    ),
     "step1.indexing_kw": (
-        "Добавить ключевые слова для индексации на русском и английском языках. "
-        "Ключевые слова необходимо разделять запятыми"
+        "Заполнить описание журнала для индексации и добавить ключевые слова "
+        "на русском и английском языках. Ключевые слова необходимо разделять запятыми"
     ),
     "step2.focus": "Заполнить сведения о предметной области и целях журнала",
     "step2.review": "Разместить принципы рецензирования на русском и английском языках",
+    "step2.privacy": (
+        "Разместить заявление о конфиденциальности на русском и английском языках"
+    ),
     "step3.guidelines": "Разместить правила для авторов на русском и английском языках",
     "step3.checklist": "Добавить список требований к статьям на русском и английском языках",
     "step3.copyright": (
@@ -143,6 +162,13 @@ DEFICIT_ACTIONS: dict[str, str] = {
         "Русская версия уже заполнена"
     ),
     "board.both": "Заполнить раздел «Редакция» на русском и английском языках",
+    "contact.name_ru": (
+        "Указать ФИО контактного лица редакции на русском языке"
+    ),
+    "contact.name_en": (
+        "Указать ФИО контактного лица редакции на английском языке"
+    ),
+    "contact.email": "Указать e-mail контактного лица редакции",
     "submission_ack": (
         "Включить отправку уведомления о поступлении новой рукописи контактному лицу "
         "журнала либо указать адрес электронной почты для отправки копии уведомления"
@@ -159,11 +185,46 @@ REQUIREMENT_LABEL_BY_ID: dict[str, str] = {
     "step1.publisher": "Сведения об издателе на русском и английском",
     "step1.issn": "ISSN печатной и/или электронной версии",
     "step2.focus": "Предметная область и цели журнала",
-    "modules.browse": "Плагин «Браузер»",
-    "modules.webfeed": "Новостная лента выпуска",
+    "step2.review": "Принципы рецензирования",
+    "step2.privacy": "Заявление о конфиденциальности",
     "modules.doi": "DOI (если журнал присваивает DOI)",
+    "modules.edn": "Модуль EDN (должен быть включён)",
+    "modules.urn": "Модуль URN (должен быть выключен)",
+    "modules.url_pubid": "URL-идентификатор статей (должен быть выключен)",
+    "modules.browse": "Плагин «Браузер» (просмотр по разделам)",
+    "modules.coins": "Плагин COinS (должен быть включён)",
+    "modules.custom_blocks": "Управление блоками пользователя (включён)",
+    "modules.driver": "Плагин DRIVER (должен быть включён)",
+    "modules.pdfjs": "PDF-просмотрщик PDF.JS (должен быть включён)",
+    "modules.sehl": "Плагин SEHL (должен быть включён)",
+    "modules.static_pages": "Статические страницы (должны быть включены)",
+    "modules.tinymce": "Редактор TinyMCE (должен быть включён)",
+    "modules.webfeed": "Новостная лента выпуска",
+    "modules.fundref": "FundRef (включён, база организаций обновлена)",
+    "modules.acron": "ACRON на уровне администратора сайта",
+    "modules.mets_gateway": "Шлюз METS (должен быть выключен)",
+    "modules.recognition": "Плагин распознавания (должен быть включён)",
+    "modules.extra_off": "Лишние основные модули (должны быть выключены)",
+    "metrics.dimensions": "Метрика Dimensions (при наличии DOI)",
+    "metrics.plumx": "Метрика PlumX (если журнал в Scopus)",
+    "metrics.citedby": "Метрика Cited-by (при наличии DOI)",
+    "metrics.alm": "Метрика ALM (должна быть включена)",
+    "metrics.altmetrics": "Метрика Altmetrics (должна быть выключена)",
+    "metrics.publons": "Метрика Publons (должна быть выключена)",
     "pages.editorial_board": "Редакция журнала",
-    "step1.board": "Редакция журнала",
+    "step1.board": "Контактное лицо редакции",
+    "step1.indexing_kw": "Описание и ключевые слова для индексации",
+    "step1.history": "История журнала (можно оставить пустой)",
+    "step1.sponsors": "Спонсоры (можно оставить пустым)",
+    "step1.funding": "Финансовая поддержка (можно оставить пустой)",
+    "step5.thumbnail": "Миниатюра журнала загружена",
+    "step5.cover": "Обложка на главной загружена",
+    "step5.description": "Описание журнала на главной",
+    "step5.home_header": "Название в колонтитуле главной страницы",
+    "step5.page_header": "Название в колонтитуле всех страниц",
+    "step5.current_issue": "Текущий выпуск на главной",
+    "step5.additional": "Дополнительное содержание на главной",
+    "step5.dates": "Даты на страницах выпусков и статей",
     "pages.section_articles": "Раздел «Статьи»",
 }
 
@@ -173,20 +234,19 @@ _FIELD_SUBJECT_BY_ID: dict[str, str] = {
     "step1.initials": "инициалы журнала",
     "step1.abbreviation": "сокращённое название журнала",
     "step1.publisher": "наименование издателя и сведения об издателе",
-    "step1.indexing_kw": "ключевые слова для индексации",
+    "step1.indexing_kw": "описание и ключевые слова для индексации",
     "step1.mailing": "почтовый адрес",
     "step1.support": "сведения о технической поддержке",
     "step2.focus": "сведения о предметной области и целях журнала",
     "step2.review": "принципы рецензирования",
+    "step2.privacy": "заявление о конфиденциальности",
     "step3.guidelines": "правила для авторов",
     "step5.home_header": "название журнала для верхнего колонтитула главной страницы",
     "step5.page_header": "название журнала для верхнего колонтитула всех страниц",
     "step5.description": "описание журнала на главной",
 }
 
-_DEDUPE_GROUPS: tuple[frozenset[str], ...] = (
-    frozenset({"pages.editorial_board", "step1.board"}),
-)
+_DEDUPE_GROUPS: tuple[frozenset[str], ...] = ()
 
 RESULT_LABELS = {
     "ok": "Выполнено",
@@ -458,7 +518,7 @@ def _letter_fail_action(
             "на страницах выпуска и текущего выпуска"
         )
     if iid == "modules.browse":
-        return "Включить плагин «Браузер»"
+        return "Включить плагин «Браузер» и режим просмотра по разделам"
     if letter_actions:
         return str(letter_actions[0])
     return FRIENDLY_ACTION_BY_ID.get(iid, "")
@@ -497,6 +557,14 @@ def precise_actions(
     if deficits:
         if iid == "step3.copyright" or any(d.startswith("copyright.") for d in deficits):
             return [_copyright_action(list(deficits))]
+        if iid == "step1.indexing_kw":
+            indexing = _indexing_action(list(deficits))
+            if indexing:
+                return indexing
+        if iid == "step1.board" and any(d.startswith("contact.") for d in deficits):
+            mapped_contact = [DEFICIT_ACTIONS[d] for d in deficits if d in DEFICIT_ACTIONS]
+            if mapped_contact:
+                return mapped_contact
         mapped = [DEFICIT_ACTIONS[d] for d in deficits if d in DEFICIT_ACTIONS]
         if mapped:
             return mapped
@@ -510,7 +578,7 @@ def precise_actions(
         return _section_articles_from_note(str(row.get("note") or ""), actual)
     if iid == "step3.checklist":
         return _checklist_from_actual(actual)
-    if iid in {"pages.editorial_board", "step1.board"}:
+    if iid == "pages.editorial_board":
         return _board_from_actual(actual, status)
     if iid == "step1.issn" and status == "warn":
         low = actual.lower()
@@ -534,6 +602,59 @@ def precise_actions(
     if base:
         return [base]
     return [_fallback_action(row)]
+
+
+def _indexing_action(deficits: list[str]) -> list[str]:
+    need_desc = any(d.startswith("searchDescription") for d in deficits)
+    need_kw = any(d.startswith("searchKeywords") for d in deficits)
+    desc_langs = {
+        d.rsplit("/", 1)[-1].lower()
+        for d in deficits
+        if d.startswith("searchDescription/")
+    }
+    kw_langs = {
+        d.rsplit("/", 1)[-1].lower()
+        for d in deficits
+        if d.startswith("searchKeywords/")
+    }
+    actions: list[str] = []
+    if need_desc:
+        if desc_langs == {"ru"}:
+            actions.append(
+                "Заполнить описание журнала для индексации на русском языке. "
+                "Английская версия уже заполнена"
+            )
+        elif desc_langs == {"en"}:
+            actions.append(
+                "Заполнить описание журнала для индексации на английском языке. "
+                "Русская версия уже заполнена"
+            )
+        else:
+            actions.append(
+                "Заполнить описание журнала для индексации "
+                "на русском и английском языках"
+            )
+    if need_kw:
+        if kw_langs == {"ru"}:
+            actions.append(
+                "Добавить ключевые слова для индексации на русском языке. "
+                "Английская версия уже заполнена. "
+                "Ключевые слова необходимо разделять запятыми"
+            )
+        elif kw_langs == {"en"}:
+            actions.append(
+                "Добавить ключевые слова для индексации на английском языке. "
+                "Русская версия уже заполнена. "
+                "Ключевые слова необходимо разделять запятыми"
+            )
+        else:
+            actions.append(
+                "Добавить ключевые слова для индексации на русском и английском языках. "
+                "Ключевые слова необходимо разделять запятыми"
+            )
+    if actions:
+        return actions
+    return [FRIENDLY_ACTION_BY_ID["step1.indexing_kw"]]
 
 
 def _copyright_action(deficits: list[str]) -> str:
@@ -584,29 +705,31 @@ def _actions_from_locale_missing(iid: str, missing: list[str]) -> list[str]:
     only_ru = langs == {"ru"}
     only_en = langs == {"en"}
     if only_en and subject:
-        verb = "Добавить" if iid in {"step1.indexing_kw", "step3.guidelines", "step2.review"} else "Указать"
-        if iid in {"step2.review", "step3.guidelines"}:
+        verb = "Добавить" if iid in {"step1.indexing_kw", "step3.guidelines", "step2.review", "step2.privacy"} else "Указать"
+        if iid in {"step2.review", "step2.privacy", "step3.guidelines"}:
             verb = "Разместить"
-        if iid in {"step1.publisher", "step2.focus", "pages.editorial_board", "step1.board"}:
+        if iid in {"step1.publisher", "step2.focus", "pages.editorial_board"}:
             verb = "Заполнить"
         if iid == "step1.indexing_kw":
             return [
-                "Добавить ключевые слова для индексации на английском языке. "
-                "Русская версия уже заполнена. Ключевые слова необходимо разделять запятыми"
+                "Заполнить описание журнала для индексации и добавить ключевые слова "
+                "на английском языке. Русская версия уже заполнена. "
+                "Ключевые слова необходимо разделять запятыми"
             ]
         return [
             f"{verb} {subject} на английском языке. Русская версия уже заполнена"
         ]
     if only_ru and subject:
         verb = "Указать"
-        if iid in {"step2.review", "step3.guidelines"}:
+        if iid in {"step2.review", "step2.privacy", "step3.guidelines"}:
             verb = "Разместить"
-        if iid in {"step1.publisher", "step2.focus", "pages.editorial_board", "step1.board"}:
+        if iid in {"step1.publisher", "step2.focus", "pages.editorial_board"}:
             verb = "Заполнить"
         if iid == "step1.indexing_kw":
             return [
-                "Добавить ключевые слова для индексации на русском языке. "
-                "Английская версия уже заполнена. Ключевые слова необходимо разделять запятыми"
+                "Заполнить описание журнала для индексации и добавить ключевые слова "
+                "на русском языке. Английская версия уже заполнена. "
+                "Ключевые слова необходимо разделять запятыми"
             ]
         return [
             f"{verb} {subject} на русском языке. Английская версия уже заполнена"
@@ -786,6 +909,12 @@ def _detected_label(row: Mapping[str, Any]) -> str:
     if iid == "step4.access" and actual:
         return _humanize_access_actual(actual)
 
+    if actual in {"нет в экспорте", "enabled"}:
+        return {
+            "нет в экспорте": "отсутствует в экспорте (считаем выключенным)",
+            "enabled": "включён",
+        }[actual]
+
     locale_keys = _humanize_setting_locale_actual(actual)
     if locale_keys:
         return locale_keys
@@ -802,19 +931,39 @@ def _humanize_setting_locale_actual(actual: str) -> str:
     labels = {
         "homeHeaderTitle": "колонтитул главной",
         "pageHeaderTitle": "колонтитул всех страниц",
+        "title": "название журнала",
+        "initials": "инициалы",
         "abbreviation": "сокращённое название",
         "publisherInstitution": "наименование издателя",
         "publisherNote": "сведения об издателе",
+        "searchDescription": "описание для индексации",
         "searchKeywords": "ключевые слова",
         "authorGuidelines": "правила для авторов",
         "reviewPolicy": "принципы рецензирования",
+        "privacyStatement": "заявление о конфиденциальности",
         "focusAndScope": "предметная область",
+        "focusScopeDesc": "предметная область",
         "description": "описание на главной",
+        "additionalHomeContent": "дополнительное содержание",
+        "journalThumbnail": "миниатюра журнала",
+        "homepageImage": "обложка на главной",
+        "history": "история журнала",
+        "sponsors": "спонсоры",
+        "contributors": "финансовая поддержка",
+        "contributorNote": "примечание о поддержке",
+        "supportName": "имя техподдержки",
+        "supportEmail": "e-mail техподдержки",
+        "mailingAddress": "почтовый адрес",
+        "contactName": "ФИО контактного лица",
+        "boardCustomText": "текст редакции",
     }
     lang_labels = {"ru": "русский", "en": "английский"}
     by_field: dict[str, list[str]] = {}
-    for chunk in actual.split(","):
+    # и запятая, и точка с запятой (как в history/ru; history/en)
+    for chunk in re.split(r"[,;]", actual):
         token = chunk.strip()
+        if not token:
+            continue
         if "/" not in token or "=" in token:
             return ""
         field, lang = token.split("/", 1)
@@ -827,7 +976,12 @@ def _humanize_setting_locale_actual(actual: str) -> str:
         return ""
     parts = []
     for field, langs in by_field.items():
-        parts.append(f"{labels[field]}: {', '.join(langs)}")
+        # убрать дубли языков с сохранением порядка
+        uniq: list[str] = []
+        for lang in langs:
+            if lang not in uniq:
+                uniq.append(lang)
+        parts.append(f"{labels[field]}: {', '.join(uniq)}")
     return "; ".join(parts)
 
 
@@ -870,7 +1024,16 @@ def _humanize_access_actual(actual: str) -> str:
 
 def _humanize_actual_generic(actual: str) -> str:
     """Заменить техярлыки True/False и известные ключи на понятный текст."""
+    from ipsas.modules.journal_site.data_check import plugin_display_name
+
     text = actual
+    # Имена классов плагинов → понятные названия
+    for token in re.findall(r"\b[A-Za-z][A-Za-z0-9_]*(?:Plugin|plugin)\b", text):
+        friendly = plugin_display_name(token)
+        if friendly and friendly != token:
+            text = text.replace(token, friendly)
+    if text.strip().lower() == "нет в экспорте":
+        return "отсутствует в экспорте (считаем выключенным)"
     replacements = (
         ("disableUserReg", "регистрация отключена"),
         ("enablePageNumber", "пагинация"),
@@ -882,6 +1045,8 @@ def _humanize_actual_generic(actual: str) -> str:
         ("emailFrom", "исходящая почта"),
         ("hideAbout", "скрыт в «О журнале»"),
         ("editorRestriction", "только редакторы"),
+        ("doiPrefix", "префикс DOI"),
+        ("enableBrowseBySections", "просмотр по разделам"),
         ("primary", "контактному лицу"),
         ("specified", "отдельный адрес"),
         ("address", "адрес"),
@@ -932,9 +1097,9 @@ def _tech_detail(row: Mapping[str, Any]) -> str:
     actual = str(row.get("actual") or "").strip()
     deficits = row.get("deficits") or []
     if note:
-        bits.append(note)
+        bits.append(_humanize_note(note))
     if actual:
-        bits.append(f"факт: {actual}")
+        bits.append("факт: " + _humanize_actual_generic(actual))
     if deficits:
         bits.append("дефициты: " + ", ".join(str(x) for x in deficits))
     return " · ".join(bits)
@@ -960,14 +1125,23 @@ def _safe_http_url(url: str) -> str:
 
 
 def _humanize_note(note: str) -> str:
+    from ipsas.modules.journal_site.data_check import plugin_display_name
+
     text = note
+    for token in re.findall(r"\b[A-Za-z][A-Za-z0-9_]*(?:Plugin|plugin)\b", text):
+        friendly = plugin_display_name(token)
+        if friendly and friendly != token:
+            text = text.replace(token, friendly)
     replacements = (
         ("boardCustomText", "текст редакции"),
         ("focusAndScope", "предметная область"),
+        ("focusScopeDesc", "предметная область"),
         ("authorGuidelines", "правила для авторов"),
         ("reviewPolicy", "принципы рецензирования"),
+        ("privacyStatement", "заявление о конфиденциальности"),
         ("copyrightNotice", "уведомление об авторских правах"),
         ("searchKeywords", "ключевые слова"),
+        ("searchDescription", "описание для индексации"),
         ("pageHeaderTitle", "название в колонтитуле"),
         ("publisherInstitution", "название издателя"),
         ("publisherNote", "сведения об издателе"),
@@ -977,6 +1151,9 @@ def _humanize_note(note: str) -> str:
         ("onlineIssn", "онлайн ISSN"),
         ("hideAbout", "скрытие в «О журнале»"),
         ("editorRestriction", "ограничение «только редакторы»"),
+        ("doiPrefix", "префикс DOI"),
+        ("enableBrowseBySections", "просмотр по разделам"),
+        ("pubIds", "публичные идентификаторы"),
     )
     for old, new in replacements:
         text = text.replace(old, new)

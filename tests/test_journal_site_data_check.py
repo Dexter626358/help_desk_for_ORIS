@@ -106,6 +106,192 @@ def test_articles_section_rules(sample_export) -> None:
     assert evaluate_checklist_item(sample_export, item, ctx)["status"] == "ok"
 
 
+def test_indexing_and_history_detected_are_human_readable() -> None:
+    from ipsas.modules.journal_site.checklist_messages import enrich_result_row
+
+    indexing = enrich_result_row(
+        {
+            "id": "step1.indexing_kw",
+            "title": "1.8 Индексация",
+            "status": "ok",
+            "severity": "required",
+            "actual": (
+                "searchDescription/ru, searchDescription/en, "
+                "searchKeywords/ru, searchKeywords/en"
+            ),
+            "note": "Заполнено.",
+        }
+    )
+    assert "searchDescription" not in indexing["detected"]
+    assert "searchKeywords" not in indexing["detected"]
+    assert "описание для индексации" in indexing["detected"]
+    assert "ключевые слова" in indexing["detected"]
+    assert "русский" in indexing["detected"]
+
+    history = enrich_result_row(
+        {
+            "id": "step1.history",
+            "title": "1.9 История",
+            "status": "ok",
+            "severity": "info",
+            "actual": "history/ru; history/en",
+            "note": "Заполнено.",
+        }
+    )
+    assert "history/" not in history["detected"]
+    assert "история журнала" in history["detected"]
+    assert "русский" in history["detected"]
+    assert "английский" in history["detected"]
+
+    thumb = enrich_result_row(
+        {
+            "id": "step5.thumbnail",
+            "title": "5.1 Миниатюра",
+            "status": "ok",
+            "severity": "required",
+            "actual": "journalThumbnail/ru, journalThumbnail/en",
+        }
+    )
+    assert "journalThumbnail" not in thumb["detected"]
+    assert "миниатюра журнала" in thumb["detected"]
+
+    cover = enrich_result_row(
+        {
+            "id": "step5.cover",
+            "title": "5.2 Обложка",
+            "status": "ok",
+            "severity": "required",
+            "actual": "homepageImage/ru, homepageImage/en",
+        }
+    )
+    assert "homepageImage" not in cover["detected"]
+    assert "обложка на главной" in cover["detected"]
+
+
+def test_plugin_detected_labels_are_human_readable(sample_export) -> None:
+    from ipsas.modules.journal_site.checklist_messages import enrich_result_row
+
+    ctx = _detect_flags(sample_export)
+    for iid in ("modules.edn", "modules.urn", "modules.url_pubid"):
+        item = next(i for i in DEFAULT_SETUP_CHECKLIST if i.id == iid)
+        row = enrich_result_row(evaluate_checklist_item(sample_export, item, ctx))
+        detected = (row.get("detected") or "").lower()
+        assert "plugin" not in detected
+        assert "нет в экспорте" not in detected
+        assert detected and detected != "—"
+
+
+def test_privacy_statement_required(sample_export) -> None:
+    ctx = _detect_flags(sample_export)
+    item = next(i for i in DEFAULT_SETUP_CHECKLIST if i.id == "step2.privacy")
+    assert item.setting_keys == ("privacyStatement",)
+
+    sample_export.settings["privacyStatement"] = {
+        "ru_RU": "Журнал соблюдает конфиденциальность персональных данных авторов и рецензентов.",
+        "en_US": "The journal respects the confidentiality of personal data of authors and reviewers.",
+    }
+    assert evaluate_checklist_item(sample_export, item, ctx)["status"] == "ok"
+
+    sample_export.settings["privacyStatement"] = {"ru_RU": "коротко", "en_US": ""}
+    bad = evaluate_checklist_item(sample_export, item, ctx)
+    assert bad["status"] in {"warn", "fail"}
+
+
+def test_primary_contact_requires_name_and_email(sample_export) -> None:
+    ctx = _detect_flags(sample_export)
+    item = next(i for i in DEFAULT_SETUP_CHECKLIST if i.id == "step1.board")
+    assert item.kind == "primary_contact"
+    ok = evaluate_checklist_item(sample_export, item, ctx)
+    assert ok["status"] == "ok"
+
+    sample_export.settings["contactEmail"] = ""
+    sample_export.settings["contactName"] = {"ru_RU": "Иванов", "en_US": ""}
+    bad = evaluate_checklist_item(sample_export, item, ctx)
+    assert bad["status"] in {"warn", "fail"}
+    assert "contact.email" in bad["deficits"]
+    assert "contact.name_en" in bad["deficits"]
+
+
+def test_indexing_requires_description_and_keywords(sample_export) -> None:
+    ctx = _detect_flags(sample_export)
+    item = next(i for i in DEFAULT_SETUP_CHECKLIST if i.id == "step1.indexing_kw")
+    assert "searchDescription" in item.setting_keys
+    assert "searchKeywords" in item.setting_keys
+
+    sample_export.settings["searchDescription"] = {
+        "ru_RU": "Описание журнала для поиска",
+        "en_US": "Journal search description",
+    }
+    sample_export.settings["searchKeywords"] = {
+        "ru_RU": "философия, антропология",
+        "en_US": "philosophy, anthropology",
+    }
+    assert evaluate_checklist_item(sample_export, item, ctx)["status"] == "ok"
+
+    sample_export.settings["searchKeywords"] = {"ru_RU": "", "en_US": ""}
+    partial = evaluate_checklist_item(sample_export, item, ctx)
+    assert partial["status"] in {"warn", "fail"}
+    assert any(str(d).startswith("searchKeywords") for d in partial["deficits"])
+
+
+def test_focus_accepts_focus_scope_desc(sample_export) -> None:
+    """В экспортах RAS предметная область часто в focusScopeDesc, не в focusAndScope."""
+    sample_export.settings.pop("focusAndScope", None)
+    sample_export.settings["focusScopeDesc"] = {
+        "ru_RU": "Журнал публикует исследования по прикладной математике и смежным областям.",
+        "en_US": "The journal publishes research in applied mathematics and related fields.",
+    }
+    ctx = _detect_flags(sample_export)
+    item = next(i for i in DEFAULT_SETUP_CHECKLIST if i.id == "step2.focus")
+    assert "focusScopeDesc" in item.setting_keys
+    row = evaluate_checklist_item(sample_export, item, ctx)
+    assert row["status"] == "ok"
+
+
+def test_browse_requires_sections_mode(sample_export) -> None:
+    from ipsas.modules.journal_site.data_export import PluginInfo
+
+    item = next(i for i in DEFAULT_SETUP_CHECKLIST if i.id == "modules.browse")
+    ctx = _detect_flags(sample_export)
+
+    sample_export.plugins["browseplugin"] = PluginInfo(
+        name="browseplugin",
+        category="generic",
+        enabled=True,
+        settings={"enableBrowseBySections": True, "enableBrowseByIdentifyTypes": False},
+    )
+    ok = evaluate_checklist_item(sample_export, item, ctx)
+    assert ok["status"] == "ok"
+    assert "раздел" in (ok.get("note") or "").lower()
+
+    sample_export.plugins["browseplugin"] = PluginInfo(
+        name="browseplugin",
+        category="generic",
+        enabled=True,
+        settings={"enableBrowseBySections": False},
+    )
+    bad = evaluate_checklist_item(sample_export, item, ctx)
+    assert bad["status"] == "fail"
+    assert "раздел" in (bad.get("note") or "").lower()
+
+
+def test_recognition_reports_disabled_when_present(sample_export) -> None:
+    from ipsas.modules.journal_site.data_export import PluginInfo
+
+    sample_export.plugins["ResolverPlugin"] = PluginInfo(
+        name="ResolverPlugin", category="generic", enabled=False, settings={}
+    )
+    for key in ("referralplugin", "RecommendBySimilarityPlugin"):
+        sample_export.plugins[key] = PluginInfo(
+            name=key, category="generic", enabled=False, settings={}
+        )
+    ctx = _detect_flags(sample_export)
+    item = next(i for i in DEFAULT_SETUP_CHECKLIST if i.id == "modules.recognition")
+    row = evaluate_checklist_item(sample_export, item, ctx)
+    assert row["status"] == "fail"
+    assert "выключен" in (row.get("actual") or "").lower()
+
+
 def test_build_data_report_dict(sample_bytes: bytes) -> None:
     export = parse_journal_data(sample_bytes)
     report = build_data_report_dict(export, source_name="journal_sample.data.json")
@@ -177,7 +363,7 @@ def test_editorial_letter_for_data_checklist(sample_bytes: bytes) -> None:
             "section": "step1",
             "status": "fail",
             "severity": "required",
-            "deficits": ["board.both"],
+            "deficits": ["contact.name_ru", "contact.name_en", "contact.email"],
         },
     ]
     report["must_fix"] = fake_must
@@ -193,6 +379,7 @@ def test_editorial_letter_for_data_checklist(sample_bytes: bytes) -> None:
     assert "Указать сокращённое название журнала" in text
     assert "eLIBRARY.RU" in text
     assert "Заполнить раздел «Редакция»" in text
+    assert "контактного лица" in text.lower()
     assert "Где исправить:" in text
     assert "Личный кабинет" in text
     assert "Как исправить:" in text
@@ -203,7 +390,6 @@ def test_editorial_letter_for_data_checklist(sample_bytes: bytes) -> None:
     assert "Дата проверки:" in text
     # дата ближе к концу, после списка
     assert text.index("просим внести") < text.index("Дата проверки:")
-    assert text.lower().count("редакц") <= 3
 
     html = build_journal_site_editorial_letter_html(report)
     assert "<strong>«" in html
@@ -366,7 +552,7 @@ def test_staff_summary_separates_checks_and_unique_remarks() -> None:
             "section": "step1",
             "status": "fail",
             "severity": "required",
-            "deficits": ["board.both"],
+            "deficits": ["contact.email"],
         },
         {
             "id": "step1.title",
@@ -377,7 +563,7 @@ def test_staff_summary_separates_checks_and_unique_remarks() -> None:
     ]
     staff = build_staff_summary(rows)
     assert staff["fail_check_count"] == 2
-    assert staff["must_fix_count"] == 1
+    assert staff["must_fix_count"] == 2
 
 
 def test_staff_summary_buckets(sample_bytes: bytes) -> None:

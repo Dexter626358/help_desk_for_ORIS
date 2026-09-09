@@ -1,0 +1,167 @@
+{
+  "n_journals": 8,
+  "compare_counts": {
+    "true_negative": 369,
+    "false_positive": 15,
+    "true_positive": 53,
+    "cannot_compare": 32,
+    "false_negative": 14,
+    "severity_mismatch": 13
+  },
+  "top_rule_mismatches": [
+    [
+      "STEP3_SUBMISSION_ACK:false_negative",
+      8
+    ],
+    [
+      "STEP4_ACCESS:false_positive",
+      7
+    ],
+    [
+      "MODULES_EXTRA_OFF:false_positive",
+      7
+    ],
+    [
+      "STEP3_COPYRIGHT:severity_mismatch",
+      7
+    ],
+    [
+      "STEP1_MAILING:false_negative",
+      6
+    ],
+    [
+      "PAGES_SECTION_ARTICLES:severity_mismatch",
+      5
+    ],
+    [
+      "PAGES_READER_TOOLS:false_positive",
+      1
+    ],
+    [
+      "STEP3_CHECKLIST:severity_mismatch",
+      1
+    ]
+  ],
+  "journals": [
+    {
+      "filename": "0869-7698.data",
+      "journal_name": "Вестник Дальневосточного отделения Российской академии наук",
+      "completeness_score": 80.5,
+      "expected_readiness": "not_ready",
+      "service_score": 76.8,
+      "service_readiness": "needs_revision",
+      "false_positives": 2,
+      "false_negatives": 2,
+      "mismatches": 4,
+      "failed": 7,
+      "partial": 5,
+      "cannot_determine": 4,
+      "not_applicable": 0
+    },
+    {
+      "filename": "0367-6765.data",
+      "journal_name": "Известия Российской академии наук. Серия физическая",
+      "completeness_score": 81.1,
+      "expected_readiness": "needs_revision",
+      "service_score": 80.4,
+      "service_readiness": "mostly_ready",
+      "false_positives": 2,
+      "false_negatives": 2,
+      "mismatches": 5,
+      "failed": 8,
+      "partial": 4,
+      "cannot_determine": 3,
+      "not_applicable": 0
+    },
+    {
+      "filename": "0016-7770.data",
+      "journal_name": "Геология рудных месторождений",
+      "completeness_score": 81.7,
+      "expected_readiness": "mostly_ready",
+      "service_score": 78.6,
+      "service_readiness": "needs_revision",
+      "false_positives": 2,
+      "false_negatives": 2,
+      "mismatches": 6,
+      "failed": 7,
+      "partial": 6,
+      "cannot_determine": 3,
+      "not_applicable": 0
+    },
+    {
+      "filename": "2686-7400.data",
+      "journal_name": "Доклады Российской академии наук. Физика, технические науки",
+      "completeness_score": 83.9,
+      "expected_readiness": "mostly_ready",
+      "service_score": 82.1,
+      "service_readiness": "mostly_ready",
+      "false_positives": 2,
+      "false_negatives": 2,
+      "mismatches": 5,
+      "failed": 7,
+      "partial": 4,
+      "cannot_determine": 3,
+      "not_applicable": 0
+    },
+    {
+      "filename": "0869-8139.data",
+      "journal_name": "Российский физиологический журнал им. И.М. Сеченова",
+      "completeness_score": 84.4,
+      "expected_readiness": "mostly_ready",
+      "service_score": 82.1,
+      "service_readiness": "mostly_ready",
+      "false_positives": 2,
+      "false_negatives": 2,
+      "mismatches": 6,
+      "failed": 7,
+      "partial": 4,
+      "cannot_determine": 3,
+      "not_applicable": 0
+    },
+    {
+      "filename": "0203-0306.data",
+      "journal_name": "Вулканология и сейсмология",
+      "completeness_score": 84.7,
+      "expected_readiness": "mostly_ready",
+      "service_score": 82.1,
+      "service_readiness": "mostly_ready",
+      "false_positives": 2,
+      "false_negatives": 2,
+      "mismatches": 6,
+      "failed": 6,
+      "partial": 5,
+      "cannot_determine": 3,
+      "not_applicable": 0
+    },
+    {
+      "filename": "2949-124X.data",
+      "journal_name": "Российская история",
+      "completeness_score": 87.8,
+      "expected_readiness": "mostly_ready",
+      "service_score": 83.9,
+      "service_readiness": "mostly_ready",
+      "false_positives": 2,
+      "false_negatives": 1,
+      "mismatches": 5,
+      "failed": 5,
+      "partial": 4,
+      "cannot_determine": 3,
+      "not_applicable": 0
+    },
+    {
+      "filename": "0235-0106.data",
+      "journal_name": "Расплавы",
+      "completeness_score": 90.3,
+      "expected_readiness": "mostly_ready",
+      "service_score": 87.5,
+      "service_readiness": "mostly_ready",
+      "false_positives": 1,
+      "false_negatives": 1,
+      "mismatches": 5,
+      "failed": 3,
+      "partial": 5,
+      "cannot_determine": 3,
+      "not_applicable": 0
+    }
+  ]
+}

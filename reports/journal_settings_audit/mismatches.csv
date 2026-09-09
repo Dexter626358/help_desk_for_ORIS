@@ -1,0 +1,455 @@
+﻿filename,journal_name,rule_id,checklist_id,compare,independent_status,service_status,severity,json_path,evidence,explanation
+0002-1881.data,Агрохимия,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0002-1881.data,Агрохимия,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0002-3310.data,Известия Российской академии наук. Энергетика,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0002-3310.data,Известия Российской академии наук. Энергетика,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0002-3310.data,Известия Российской академии наук. Энергетика,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0002-3310.data,Известия Российской академии наук. Энергетика,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0002-3337.data,Физика земли,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0002-3337.data,Физика земли,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0002-3337.data,Физика земли,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0002-3337.data,Физика земли,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0002-337X.data,Неорганические материалы,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0002-337X.data,Неорганические материалы,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0002-337X.data,Неорганические материалы,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0002-3388.data,Известия Российской академии наук. Теория и системы управления,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0002-3388.data,Известия Российской академии наук. Теория и системы управления,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0002-3388.data,Известия Российской академии наук. Теория и системы управления,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0002-3515.data,Известия Российской академии наук. Физика атмосферы и океана,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0002-3515.data,Известия Российской академии наук. Физика атмосферы и океана,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0002-3515.data,Известия Российской академии наук. Физика атмосферы и океана,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0002-3515.data,Известия Российской академии наук. Физика атмосферы и океана,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0004-6299.data,Астрономический журнал,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0004-6299.data,Астрономический журнал,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0004-6299.data,Астрономический журнал,STEP1_MAILING,step1.mailing,false_negative,partial,pass,error,settings.mailingAddress,ru_len=0; en_len=120,Адрес неполный/пуст
+0004-6299.data,Астрономический журнал,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0005-2310.data,Автоматика и телемеханика,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0006-3029.data,Биофизика,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0006-3029.data,Биофизика,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0006-8136.data,Ботанический журнал,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0006-8136.data,Ботанический журнал,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0015-3230.data,Физика металлов и металловедение,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0015-3230.data,Физика металлов и металловедение,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0015-3230.data,Физика металлов и металловедение,STEP1_EMAIL,step1.email,false_positive,pass,partial,error,settings.envelopeSender|contactEmail,fmm@imp.uran.ru,Исходящая почта журнала
+0015-3230.data,Физика металлов и металловедение,STEP3_CHECKLIST,step3.checklist,severity_mismatch,partial,fail,error,settings.submissionChecklist,ru=1; en=0,Чек-лист отсутствует/неполный
+0015-3303.data,Физиология растений,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],"['hideAbout', 'editorRestriction']","Проблемы: hideAbout, editorRestriction"
+0015-3303.data,Физиология растений,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0015-3303.data,Физиология растений,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0015-3303.data,Физиология растений,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0016-6758.data,Генетика,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0016-6758.data,Генетика,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0016-6758.data,Генетика,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0016-7525.data,Геохимия,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0016-7525.data,Геохимия,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0016-7525.data,Геохимия,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0016-7770.data,Геология рудных месторождений,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0016-7770.data,Геология рудных месторождений,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0016-7770.data,Геология рудных месторождений,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0016-7770.data,Геология рудных месторождений,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0016-7940.data,Геомагнетизм и аэрономия,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0016-7940.data,Геомагнетизм и аэрономия,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0016-7940.data,Геомагнетизм и аэрономия,STEP1_MAILING,step1.mailing,false_negative,partial,pass,error,settings.mailingAddress,ru_len=62; en_len=0,Адрес неполный/пуст
+0016-7940.data,Геомагнетизм и аэрономия,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0016-853X.data,Геотектоника,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0016-853X.data,Геотектоника,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0016-853X.data,Геотектоника,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0016-853X.data,Геотектоника,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0023-1177.data,Химия твердого топлива,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0023-1177.data,Химия твердого топлива,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0023-1177.data,Химия твердого топлива,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0023-1177.data,Химия твердого топлива,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0023-1193.data,Химия высоких энергий,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0023-1193.data,Химия высоких энергий,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0023-2912.data,Коллоидный журнал,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0023-2912.data,Коллоидный журнал,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0023-2912.data,Коллоидный журнал,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0023-2912.data,Коллоидный журнал,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0023-4206.data,Космические исследования,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0023-4206.data,Космические исследования,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0023-4206.data,Космические исследования,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0023-4206.data,Космические исследования,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0023-4761.data,Кристаллография,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0023-4761.data,Кристаллография,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0023-4761.data,Кристаллография,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0024-1148.data,Лесоведение,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0024-1148.data,Лесоведение,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0024-497X.data,Литология и полезные ископаемые,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0024-497X.data,Литология и полезные ископаемые,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0024-497X.data,Литология и полезные ископаемые,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0024-497X.data,Литология и полезные ископаемые,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0026-3648.data,Микология и фитопатология,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0026-3648.data,Микология и фитопатология,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0026-3656.data,Микробиология,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0026-3656.data,Микробиология,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0026-8984.data,Молекулярная биология,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0026-8984.data,Молекулярная биология,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0028-2421.data,Нефтехимия,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0028-2421.data,Нефтехимия,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0028-2421.data,Нефтехимия,STEP3_COPYRIGHT,step3.copyright,severity_mismatch,partial,fail,critical,settings.copyrightNotice|copyrightHolderType|licenseURL,"deficits=['notice_en', 'license']","Не хватает: notice_en, license"
+0028-2421.data,Нефтехимия,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0030-1574.data,Океанология,STEP3_CHECKLIST,step3.checklist,severity_mismatch,partial,fail,error,settings.submissionChecklist,ru=1; en=0,Чек-лист отсутствует/неполный
+0031-031X.data,Палеонтологический журнал,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0031-031X.data,Палеонтологический журнал,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0031-031X.data,Палеонтологический журнал,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0031-1847.data,Паразитология,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0031-1847.data,Паразитология,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0031-1847.data,Паразитология,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0032-180X.data,Почвоведение,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0032-180X.data,Почвоведение,STEP1_MAILING,step1.mailing,false_negative,partial,pass,error,settings.mailingAddress,ru_len=151; en_len=0,Адрес неполный/пуст
+0032-180X.data,Почвоведение,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0032-8162.data,Приборы и техника эксперимента,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0032-8162.data,Приборы и техника эксперимента,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0032-8162.data,Приборы и техника эксперимента,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0032-8235.data,Прикладная математика и механика,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0032-8235.data,Прикладная математика и механика,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0032-8235.data,Прикладная математика и механика,STEP1_MAILING,step1.mailing,false_negative,partial,pass,error,settings.mailingAddress,ru_len=25; en_len=0,Адрес неполный/пуст
+0032-8235.data,Прикладная математика и механика,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0033-8311.data,Радиохимия,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0033-8311.data,Радиохимия,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0033-8311.data,Радиохимия,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0033-8494.data,Радиотехника и электроника,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0033-8494.data,Радиотехника и электроника,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0033-9946.data,Растительные ресурсы,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0033-9946.data,Растительные ресурсы,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0040-3571.data,Теоретические основы химической технологии,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0040-3571.data,Теоретические основы химической технологии,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0040-3571.data,Теоретические основы химической технологии,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0040-3571.data,Теоретические основы химической технологии,STEP1_EMAIL,step1.email,false_positive,pass,partial,error,settings.envelopeSender|contactEmail,j.toht@mail.ru,Исходящая почта журнала
+0040-3571.data,Теоретические основы химической технологии,STEP3_CHECKLIST,step3.checklist,severity_mismatch,partial,fail,error,settings.submissionChecklist,ru=1; en=0,Чек-лист отсутствует/неполный
+0040-3571.data,Теоретические основы химической технологии,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0040-3644.data,Теплофизика высоких температур,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0040-3644.data,Теплофизика высоких температур,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0040-3644.data,Теплофизика высоких температур,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0041-3771.data,Цитология,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0041-3771.data,Цитология,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0041-3771.data,Цитология,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0041-3771.data,Цитология,STEP3_CHECKLIST,step3.checklist,severity_mismatch,partial,fail,error,settings.submissionChecklist,ru=1; en=0,Чек-лист отсутствует/неполный
+0041-3771.data,Цитология,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0042-1324.data,Успехи современной биологии,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0042-1324.data,Успехи современной биологии,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0042-1324.data,Успехи современной биологии,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0042-8752.data,Вопросы ихтиологии,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0042-8752.data,Вопросы ихтиологии,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0042-8752.data,Вопросы ихтиологии,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0044-0027.data,Ядерная физика,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0044-0027.data,Ядерная физика,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0044-1856.data,Физикохимия поверхности и защита материалов,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0044-1856.data,Физикохимия поверхности и защита материалов,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0044-1856.data,Физикохимия поверхности и защита материалов,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0044-4502.data,Журнал аналитической химии,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0044-4502.data,Журнал аналитической химии,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0044-4502.data,Журнал аналитической химии,STEP1_EMAIL,step1.email,false_positive,pass,partial,error,settings.envelopeSender|contactEmail,zhakh@geokhi.ru,Исходящая почта журнала
+0044-4510.data,Журнал экспериментальной и теоретической физики,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0044-4510.data,Журнал экспериментальной и теоретической физики,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0044-4529.data,Журнал эволюционной биохимии и физиологии,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0044-4529.data,Журнал эволюционной биохимии и физиологии,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0044-4529.data,Журнал эволюционной биохимии и физиологии,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0044-4537.data,Журнал физической химии,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0044-4537.data,Журнал физической химии,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0044-4537.data,Журнал физической химии,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0044-457X.data,Журнал неорганической химии,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0044-457X.data,Журнал неорганической химии,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0044-457X.data,Журнал неорганической химии,STEP1_EMAIL,step1.email,false_positive,pass,partial,error,settings.envelopeSender|contactEmail,rusjinorgchem@yandex.ru,Исходящая почта журнала
+0044-4596.data,Журнал общей биологии,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0044-4596.data,Журнал общей биологии,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0044-4596.data,Журнал общей биологии,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0044-4596.data,Журнал общей биологии,STEP3_COPYRIGHT,step3.copyright,severity_mismatch,partial,fail,critical,settings.copyrightNotice|copyrightHolderType|licenseURL,"deficits=['notice_en', 'license']","Не хватает: notice_en, license"
+0044-4596.data,Журнал общей биологии,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0044-460X.data,Журнал общей химии,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0044-460X.data,Журнал общей химии,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0044-460X.data,Журнал общей химии,STEP1_MAILING,step1.mailing,severity_mismatch,partial,fail,error,settings.mailingAddress,ru_len=139; en_len=0,Адрес неполный/пуст
+0044-460X.data,Журнал общей химии,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0044-4618.data,Журнал прикладной химии,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0044-4618.data,Журнал прикладной химии,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0044-4618.data,Журнал прикладной химии,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0044-4669.data,Журнал вычислительной математики и математической физики,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0044-4669.data,Журнал вычислительной математики и математической физики,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0044-4677.data,Журнал высшей нервной деятельности им. И.П. Павлова,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0044-4677.data,Журнал высшей нервной деятельности им. И.П. Павлова,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0044-4677.data,Журнал высшей нервной деятельности им. И.П. Павлова,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0044-5134.data,Зоологический журнал,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0044-5134.data,Зоологический журнал,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0044-5134.data,Зоологический журнал,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0044-5134.data,Зоологический журнал,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0044-748X.data,Латинская Америка,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0044-748X.data,Латинская Америка,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0044-748X.data,Латинская Америка,STEP3_CHECKLIST,step3.checklist,false_positive,pass,fail,error,settings.submissionChecklist,ru=1; en=1,Чек-лист есть
+0044-748X.data,Латинская Америка,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0130-3082.data,Дефектоскопия,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0130-3082.data,Дефектоскопия,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0130-3082.data,Дефектоскопия,STEP1_EMAIL,step1.email,false_positive,pass,partial,error,settings.envelopeSender|contactEmail,defect@imp.uran.ru,Исходящая почта журнала
+0130-3082.data,Дефектоскопия,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0130-3864.data,Новая и новейшая история,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0131-1646.data,Физиология человека,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0131-1646.data,Физиология человека,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0131-1646.data,Физиология человека,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0131-2812.data,Проблемы Дальнего Востока,PAGES_READER_TOOLS,pages.reader_tools,false_positive,pass,fail,error,plugins.readingtoolsblockplugin|settings.readingTools,"{'plugin': 'enabled', 'settings': {}}",Инструменты читателя
+0131-2812.data,Проблемы Дальнего Востока,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0131-2812.data,Проблемы Дальнего Востока,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0131-2812.data,Проблемы Дальнего Востока,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0131-6095.data,Русская литература,PAGES_READER_TOOLS,pages.reader_tools,false_positive,pass,fail,error,plugins.readingtoolsblockplugin|settings.readingTools,"{'plugin': 'enabled', 'settings': {}}",Инструменты читателя
+0131-6095.data,Русская литература,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],"['hideAbout', 'editorRestriction']","Проблемы: hideAbout, editorRestriction"
+0131-6095.data,Русская литература,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0131-6095.data,Русская литература,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0131-6117.data,Русская речь,PAGES_READER_TOOLS,pages.reader_tools,false_positive,pass,partial,error,plugins.readingtoolsblockplugin|settings.readingTools,"{'plugin': 'enabled', 'settings': {}}",Инструменты читателя
+0131-6117.data,Русская речь,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],"['hideAbout', 'editorRestriction']","Проблемы: hideAbout, editorRestriction"
+0131-6117.data,Русская речь,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0131-6117.data,Русская речь,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0132-1625.data,Социологические исследования,PAGES_READER_TOOLS,pages.reader_tools,false_positive,pass,fail,error,plugins.readingtoolsblockplugin|settings.readingTools,"{'plugin': 'enabled', 'settings': {}}",Инструменты читателя
+0132-1625.data,Социологические исследования,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0132-1625.data,Социологические исследования,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0132-1625.data,Социологические исследования,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0132-3423.data,Биоорганическая химия,PAGES_READER_TOOLS,pages.reader_tools,false_positive,pass,fail,error,plugins.readingtoolsblockplugin|settings.readingTools,"{'plugin': 'enabled', 'settings': {}}",Инструменты читателя
+0132-3423.data,Биоорганическая химия,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0132-3423.data,Биоорганическая химия,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0132-344X.data,Координационная химия,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0132-344X.data,Координационная химия,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0132-344X.data,Координационная химия,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0132-344X.data,Координационная химия,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0132-3474.data,Программирование,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0132-3474.data,Программирование,STEP1_MAILING,step1.mailing,false_negative,partial,pass,error,settings.mailingAddress,ru_len=25; en_len=0,Адрес неполный/пуст
+0132-6651.data,Физика и химия стекла,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0132-6651.data,Физика и химия стекла,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0134-3475.data,Биология моря,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0201-7083.data,Современная Европа,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0201-7083.data,Современная Европа,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0201-7083.data,Современная Европа,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0203-0306.data,Вулканология и сейсмология,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0203-0306.data,Вулканология и сейсмология,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0203-0306.data,Вулканология и сейсмология,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0203-0306.data,Вулканология и сейсмология,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0205-9592.data,Психологический журнал,PAGES_READER_TOOLS,pages.reader_tools,false_positive,pass,fail,error,plugins.readingtoolsblockplugin|settings.readingTools,"{'plugin': 'enabled', 'settings': {}}",Инструменты читателя
+0205-9592.data,Психологический журнал,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],"['hideAbout', 'editorRestriction']","Проблемы: hideAbout, editorRestriction"
+0205-9592.data,Психологический журнал,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0205-9592.data,Психологический журнал,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0205-9606.data,Вопросы истории естествознания и техники,PAGES_READER_TOOLS,pages.reader_tools,false_positive,pass,fail,error,plugins.readingtoolsblockplugin|settings.readingTools,"{'plugin': 'enabled', 'settings': {}}",Инструменты читателя
+0205-9606.data,Вопросы истории естествознания и техники,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],"['hideAbout', 'editorRestriction']","Проблемы: hideAbout, editorRestriction"
+0205-9606.data,Вопросы истории естествознания и техники,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0205-9614.data,Исследование Земли из космоса,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0205-9614.data,Исследование Земли из космоса,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0205-9614.data,Исследование Земли из космоса,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0207-3676.data,Общество и экономика,PAGES_READER_TOOLS,pages.reader_tools,false_positive,pass,fail,error,plugins.readingtoolsblockplugin|settings.readingTools,"{'plugin': 'enabled', 'settings': {}}",Инструменты читателя
+0207-3676.data,Общество и экономика,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],"['hideAbout', 'editorRestriction']","Проблемы: hideAbout, editorRestriction"
+0207-3676.data,Общество и экономика,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0207-3676.data,Общество и экономика,STEP3_COPYRIGHT,step3.copyright,severity_mismatch,partial,fail,critical,settings.copyrightNotice|copyrightHolderType|licenseURL,"deficits=['notice_en', 'license']","Не хватает: notice_en, license"
+0207-3676.data,Общество и экономика,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0207-401X.data,Химическая физика,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0207-401X.data,Химическая физика,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0207-401X.data,Химическая физика,STEP3_CHECKLIST,step3.checklist,severity_mismatch,partial,fail,error,settings.submissionChecklist,ru=1; en=0,Чек-лист отсутствует/неполный
+0207-401X.data,Химическая физика,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0233-4755.data,Биологические мембраны,PAGES_READER_TOOLS,pages.reader_tools,false_positive,pass,fail,error,plugins.readingtoolsblockplugin|settings.readingTools,"{'plugin': 'enabled', 'settings': {}}",Инструменты читателя
+0233-4755.data,Биологические мембраны,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0233-4755.data,Биологические мембраны,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0235-0092.data,Сенсорные системы,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0235-0092.data,Сенсорные системы,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0235-0106.data,Расплавы,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0235-0106.data,Расплавы,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0235-0106.data,Расплавы,STEP3_CHECKLIST,step3.checklist,severity_mismatch,partial,fail,error,settings.submissionChecklist,ru=1; en=0,Чек-лист отсутствует/неполный
+0235-0106.data,Расплавы,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0235-7119.data,Проблемы машиностроения и надежности машин,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0235-7119.data,Проблемы машиностроения и надежности машин,STEP1_MAILING,step1.mailing,false_negative,partial,pass,error,settings.mailingAddress,ru_len=25; en_len=0,Адрес неполный/пуст
+0235-7119.data,Проблемы машиностроения и надежности машин,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0236-2007.data,Человек,PAGES_READER_TOOLS,pages.reader_tools,false_positive,pass,fail,error,plugins.readingtoolsblockplugin|settings.readingTools,"{'plugin': 'enabled', 'settings': {}}",Инструменты читателя
+0236-2007.data,Человек,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0236-2007.data,Человек,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0236-2007.data,Человек,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0301-1798.data,Успехи физиологических наук,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0301-1798.data,Успехи физиологических наук,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0301-1798.data,Успехи физиологических наук,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0301-1798.data,Успехи физиологических наук,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0320-0108.data,Письма в Астрономический журнал: Астрономия и космическая астрофизика,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0320-0108.data,Письма в Астрономический журнал: Астрономия и космическая астрофизика,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0320-0108.data,Письма в Астрономический журнал: Астрономия и космическая астрофизика,STEP1_MAILING,step1.mailing,false_negative,partial,pass,error,settings.mailingAddress,ru_len=0; en_len=60,Адрес неполный/пуст
+0320-0108.data,Письма в Астрономический журнал: Астрономия и космическая астрофизика,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0320-7919.data,Акустический журнал,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0320-7919.data,Акустический журнал,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0320-7919.data,Акустический журнал,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0320-930X.data,Астрономический вестник. Исследования Солнечной системы,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0320-930X.data,Астрономический вестник. Исследования Солнечной системы,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0320-9652.data,Биология внутренних вод,PAGES_READER_TOOLS,pages.reader_tools,false_positive,pass,fail,error,plugins.readingtoolsblockplugin|settings.readingTools,"{'plugin': 'enabled', 'settings': {}}",Инструменты читателя
+0320-9652.data,Биология внутренних вод,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0320-9652.data,Биология внутренних вод,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0320-9725.data,Биохимия,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0320-9725.data,Биохимия,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0321-0391.data,Вестник древней истории,PAGES_READER_TOOLS,pages.reader_tools,false_positive,pass,fail,error,plugins.readingtoolsblockplugin|settings.readingTools,"{'plugin': 'enabled', 'settings': {}}",Инструменты читателя
+0321-0391.data,Вестник древней истории,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0321-0596.data,Водные ресурсы,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0321-0596.data,Водные ресурсы,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0321-5075.data,Азия и Африка сегодня,STEP1_MAILING,step1.mailing,false_negative,partial,pass,error,settings.mailingAddress,ru_len=51; en_len=0,Адрес неполный/пуст
+0321-5075.data,Азия и Африка сегодня,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0367-0597.data,Экология,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0367-0597.data,Экология,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0367-0597.data,Экология,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0367-0597.data,Экология,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0367-1445.data,Энтомологическое обозрение,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0367-1445.data,Энтомологическое обозрение,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0367-1445.data,Энтомологическое обозрение,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0367-1445.data,Энтомологическое обозрение,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0367-2921.data,Физика плазмы,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0367-2921.data,Физика плазмы,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0367-6765.data,Известия Российской академии наук. Серия физическая,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0367-6765.data,Известия Российской академии наук. Серия физическая,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0367-6765.data,Известия Российской академии наук. Серия физическая,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0370-274X.data,Письма в Журнал экспериментальной и теоретической физики,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0370-274X.data,Письма в Журнал экспериментальной и теоретической физики,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0370-274X.data,Письма в Журнал экспериментальной и теоретической физики,STEP1_EMAIL,step1.email,false_positive,pass,partial,error,settings.envelopeSender|contactEmail,letters@kapitza.ras.ru,Исходящая почта журнала
+0370-274X.data,Письма в Журнал экспериментальной и теоретической физики,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0373-658X.data,Вопросы языкознания,PAGES_READER_TOOLS,pages.reader_tools,false_positive,pass,fail,error,plugins.readingtoolsblockplugin|settings.readingTools,"{'plugin': 'enabled', 'settings': {}}",Инструменты читателя
+0373-658X.data,Вопросы языкознания,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],"['hideAbout', 'editorRestriction']","Проблемы: hideAbout, editorRestriction"
+0373-658X.data,Вопросы языкознания,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0373-658X.data,Вопросы языкознания,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0374-0641.data,Дифференциальные уравнения,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0374-0641.data,Дифференциальные уравнения,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0374-0641.data,Дифференциальные уравнения,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0424-7388.data,Экономика и математические методы,PAGES_READER_TOOLS,pages.reader_tools,false_positive,pass,fail,error,plugins.readingtoolsblockplugin|settings.readingTools,"{'plugin': 'enabled', 'settings': {}}",Инструменты читателя
+0424-7388.data,Экономика и математические методы,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0424-7388.data,Экономика и математические методы,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0424-8570.data,Электрохимия,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0424-8570.data,Электрохимия,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0424-8570.data,Электрохимия,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0424-8570.data,Электрохимия,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0453-8811.data,Кинетика и катализ,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0453-8811.data,Кинетика и катализ,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0453-8811.data,Кинетика и катализ,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0453-8811.data,Кинетика и катализ,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0475-1450.data,Онтогенез,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0475-1450.data,Онтогенез,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0514-7492.data,Журнал органической химии,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0514-7492.data,Журнал органической химии,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0514-7492.data,Журнал органической химии,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0514-7492.data,Журнал органической химии,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0544-1269.data,Микроэлектроника,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0544-1269.data,Микроэлектроника,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0555-1099.data,Прикладная биохимия и микробиология,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0555-1099.data,Прикладная биохимия и микробиология,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0555-1099.data,Прикладная биохимия и микробиология,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0555-1099.data,Прикладная биохимия и микробиология,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0555-2923.data,Проблемы передачи информации,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0555-2923.data,Проблемы передачи информации,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0555-2923.data,Проблемы передачи информации,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0869-0499.data,Общественные науки и современность,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0869-0499.data,Общественные науки и современность,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0869-5415.data,Этнографическое обозрение,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0869-5415.data,Этнографическое обозрение,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0869-544X.data,Славяноведение,PAGES_READER_TOOLS,pages.reader_tools,false_positive,pass,fail,error,plugins.readingtoolsblockplugin|settings.readingTools,"{'plugin': 'enabled', 'settings': {}}",Инструменты читателя
+0869-544X.data,Славяноведение,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['hideAbout'],Проблемы: hideAbout
+0869-544X.data,Славяноведение,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0869-544X.data,Славяноведение,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0869-544X.data,Славяноведение,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0869-5733.data,Металлы,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0869-5733.data,Металлы,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0869-5733.data,Металлы,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0869-5733.data,Металлы,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0869-5873.data,Вестник Российской академии наук,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0869-5873.data,Вестник Российской академии наук,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0869-5903.data,Петрология,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],"['hideAbout', 'editorRestriction']","Проблемы: hideAbout, editorRestriction"
+0869-5903.data,Петрология,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0869-5903.data,Петрология,STEP1_EMAIL,step1.email,false_positive,pass,partial,error,settings.envelopeSender|contactEmail,nevairene@mail.ru,Исходящая почта журнала
+0869-592X.data,Стратиграфия. Геологическая корреляция,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],"['hideAbout', 'editorRestriction']","Проблемы: hideAbout, editorRestriction"
+0869-592X.data,Стратиграфия. Геологическая корреляция,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0869-592X.data,Стратиграфия. Геологическая корреляция,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0869-592X.data,Стратиграфия. Геологическая корреляция,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0869-6055.data,Записки Российского минералогического общества,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0869-6055.data,Записки Российского минералогического общества,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0869-6055.data,Записки Российского минералогического общества,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0869-6055.data,Записки Российского минералогического общества,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0869-6063.data,Российская археология,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['hideAbout'],Проблемы: hideAbout
+0869-6063.data,Российская археология,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0869-6063.data,Российская археология,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0869-6071.data,Известия Русского географического общества,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0869-6071.data,Известия Русского географического общества,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0869-6071.data,Известия Русского географического общества,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0869-6071.data,Известия Русского географического общества,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0869-7698.data,Вестник Дальневосточного отделения Российской академии наук,PAGES_READER_TOOLS,pages.reader_tools,false_positive,pass,fail,error,plugins.readingtoolsblockplugin|settings.readingTools,"{'plugin': 'enabled', 'settings': {}}",Инструменты читателя
+0869-7698.data,Вестник Дальневосточного отделения Российской академии наук,MODULES_EXTRA_OFF,modules.extra_off,false_negative,partial,pass,warning,plugins.*,ResolverPlugin,Отмечено включённых вне эталона: 1 (whitelist эвристический)
+0869-7698.data,Вестник Дальневосточного отделения Российской академии наук,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0869-7698.data,Вестник Дальневосточного отделения Российской академии наук,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0869-7809.data,Геоэкология. Инженерная геология. Гидрогеология. Геокриология,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0869-7809.data,Геоэкология. Инженерная геология. Гидрогеология. Геокриология,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0869-7809.data,Геоэкология. Инженерная геология. Гидрогеология. Геокриология,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0869-7809.data,Геоэкология. Инженерная геология. Гидрогеология. Геокриология,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0869-8031.data,Радиационная биология. Радиоэкология,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0869-8031.data,Радиационная биология. Радиоэкология,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+0869-8139.data,Российский физиологический журнал им. И.М. Сеченова,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+0869-8139.data,Российский физиологический журнал им. И.М. Сеченова,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+0869-8139.data,Российский физиологический журнал им. И.М. Сеченова,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+0869-8139.data,Российский физиологический журнал им. И.М. Сеченова,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+1024-7084.data,Известия Российской академии наук. Механика жидкости и газа,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+1024-7084.data,Известия Российской академии наук. Механика жидкости и газа,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+1024-7084.data,Известия Российской академии наук. Механика жидкости и газа,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+1024-7084.data,Известия Российской академии наук. Механика жидкости и газа,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+1026-3470.data,Известия Российской академии наук. Серия биологическая,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+1026-3470.data,Известия Российской академии наук. Серия биологическая,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+1026-3470.data,Известия Российской академии наук. Серия биологическая,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+1026-3519.data,Известия Российской академии наук. Механика твердого тела,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+1026-3519.data,Известия Российской академии наук. Механика твердого тела,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+1026-3519.data,Известия Российской академии наук. Механика твердого тела,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+1026-3519.data,Известия Российской академии наук. Механика твердого тела,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+1026-9452.data,Государство и право,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],"['hideAbout', 'editorRestriction']","Проблемы: hideAbout, editorRestriction"
+1026-9452.data,Государство и право,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+1026-9452.data,Государство и право,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+1026-9452.data,Государство и право,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+1027-8133.data,Нейрохимия,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+1027-8133.data,Нейрохимия,STEP1_MAILING,step1.mailing,false_negative,partial,pass,error,settings.mailingAddress,ru_len=0; en_len=49,Адрес неполный/пуст
+1027-8133.data,Нейрохимия,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+1028-0960.data,"Поверхность. Рентгеновские, синхротронные и нейтронные исследования",PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+1028-0960.data,"Поверхность. Рентгеновские, синхротронные и нейтронные исследования",MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+1028-0960.data,"Поверхность. Рентгеновские, синхротронные и нейтронные исследования",STEP1_MAILING,step1.mailing,false_negative,partial,pass,error,settings.mailingAddress,ru_len=48; en_len=0,Адрес неполный/пуст
+1028-0960.data,"Поверхность. Рентгеновские, синхротронные и нейтронные исследования",STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+1605-7880.data,Известия Российской академии наук. Серия литературы и языка,PAGES_READER_TOOLS,pages.reader_tools,false_positive,pass,fail,error,plugins.readingtoolsblockplugin|settings.readingTools,"{'plugin': 'enabled', 'settings': {}}",Инструменты читателя
+1605-7880.data,Известия Российской академии наук. Серия литературы и языка,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+1605-7880.data,Известия Российской академии наук. Серия литературы и языка,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+1605-7880.data,Известия Российской академии наук. Серия литературы и языка,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+1605-7880.data,Известия Российской академии наук. Серия литературы и языка,STEP3_COPYRIGHT,step3.copyright,severity_mismatch,partial,fail,critical,settings.copyrightNotice|copyrightHolderType|licenseURL,"deficits=['notice_en', 'license']","Не хватает: notice_en, license"
+1605-7880.data,Известия Российской академии наук. Серия литературы и языка,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+2076-6734.data,Лёд и Снег,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+2076-6734.data,Лёд и Снег,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+2076-6734.data,Лёд и Снег,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+2218-1172.data,Мембраны и мембранные технологии,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+2218-1172.data,Мембраны и мембранные технологии,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+2218-1172.data,Мембраны и мембранные технологии,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+2218-1172.data,Мембраны и мембранные технологии,STEP3_CHECKLIST,step3.checklist,severity_mismatch,partial,fail,error,settings.submissionChecklist,ru=1; en=0,Чек-лист отсутствует/неполный
+2218-1172.data,Мембраны и мембранные технологии,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+2308-1120.data,Высокомолекулярные соединения. Серия А,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+2308-1120.data,Высокомолекулярные соединения. Серия А,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+2308-1120.data,Высокомолекулярные соединения. Серия А,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+2308-1139.data,Высокомолекулярные соединения. Серия Б,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+2308-1139.data,Высокомолекулярные соединения. Серия Б,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+2308-1139.data,Высокомолекулярные соединения. Серия Б,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+2308-1147.data,Высокомолекулярные соединения. Серия С,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+2308-1147.data,Высокомолекулярные соединения. Серия С,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+2308-1147.data,Высокомолекулярные соединения. Серия С,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+2308-1147.data,Высокомолекулярные соединения. Серия С,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+2500-2082.data,Вестник российской сельскохозяйственной науки,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+2500-2082.data,Вестник российской сельскохозяйственной науки,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+2500-2082.data,Вестник российской сельскохозяйственной науки,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+2500-2627.data,Российская сельскохозяйственная наука,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+2500-2627.data,Российская сельскохозяйственная наука,STEP3_CHECKLIST,step3.checklist,severity_mismatch,partial,fail,error,settings.submissionChecklist,ru=1; en=0,Чек-лист отсутствует/неполный
+2500-2627.data,Российская сельскохозяйственная наука,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+2587-5566.data,Известия Российской академии наук. Серия географическая,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+2587-5566.data,Известия Российской академии наук. Серия географическая,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+2587-5566.data,Известия Российской академии наук. Серия географическая,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+2686-6730.data,"США & Канада: экономика, политика, культура",MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+2686-6730.data,"США & Канада: экономика, политика, культура",STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+2686-6730.data,"США & Канада: экономика, политика, культура",STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+2686-7389.data,Доклады Российской академии наук. Науки о жизни,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+2686-7389.data,Доклады Российской академии наук. Науки о жизни,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+2686-7389.data,Доклады Российской академии наук. Науки о жизни,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+2686-7389.data,Доклады Российской академии наук. Науки о жизни,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+2686-7397.data,Доклады Российской академии наук. Науки о Земле,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['editorRestriction'],Проблемы: editorRestriction
+2686-7397.data,Доклады Российской академии наук. Науки о Земле,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+2686-7397.data,Доклады Российской академии наук. Науки о Земле,STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+2686-7397.data,Доклады Российской академии наук. Науки о Земле,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+2686-7400.data,"Доклады Российской академии наук. Физика, технические науки",MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+2686-7400.data,"Доклады Российской академии наук. Физика, технические науки",STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+2686-7400.data,"Доклады Российской академии наук. Физика, технические науки",STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+2686-9535.data,"Доклады Российской академии наук. Химия, науки о материалах",MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+2686-9535.data,"Доклады Российской академии наук. Химия, науки о материалах",STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+2686-9535.data,"Доклады Российской академии наук. Химия, науки о материалах",STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+2686-9543.data,"Доклады Российской академии наук. Математика, информатика, процессы управления",MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+2686-9543.data,"Доклады Российской академии наук. Математика, информатика, процессы управления",STEP1_MAILING,step1.mailing,false_negative,fail,pass,error,settings.mailingAddress,ru_len=0; en_len=0,Адрес неполный/пуст
+2949-124X.data,Российская история,PAGES_SECTION_ARTICLES,pages.section_articles,severity_mismatch,partial,fail,error,sections[Articles],['hideAbout'],Проблемы: hideAbout
+2949-124X.data,Российская история,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+2949-124X.data,Российская история,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии
+2949-1789.data,Геоморфология и палеогеография,MODULES_EXTRA_OFF,modules.extra_off,false_positive,pass,partial,warning,plugins.*,none,Лишних generic-модулей сверх эвристики не найдено
+2949-1789.data,Геоморфология и палеогеография,STEP3_SUBMISSION_ACK,step3.submission_ack,false_negative,fail,pass,error,settings.copySubmissionAckPrimaryContact,False,Флаг не в ожидаемом состоянии

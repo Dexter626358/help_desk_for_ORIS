@@ -1,0 +1,198 @@
+[
+  {
+    "test_id": "REG_DOI_DISABLED_OPTIONAL",
+    "rule": "modules.doi",
+    "scenario": "DOI плагин выключен — не fail, опционально",
+    "input": {
+      "plugins": {
+        "DOIPubIdPlugin": {
+          "enabled": false
+        }
+      }
+    },
+    "expected_status": "not_applicable",
+    "expected_severity": "warning",
+    "expected_message_meaning": "если журнал присваивает DOI",
+    "example_journal": ""
+  },
+  {
+    "test_id": "REG_DOI_ENABLED_NO_PREFIX",
+    "rule": "modules.doi",
+    "scenario": "DOI включён без префикса",
+    "input": {
+      "plugins": {
+        "DOIPubIdPlugin": {
+          "enabled": true,
+          "settings": {
+            "doiPrefix": ""
+          }
+        }
+      }
+    },
+    "expected_status": "fail",
+    "expected_severity": "warning",
+    "expected_message_meaning": "doiPrefix пуст",
+    "example_journal": ""
+  },
+  {
+    "test_id": "REG_FOCUS_SCOPE_DESC",
+    "rule": "step2.focus",
+    "scenario": "focusScopeDesc заполнен, focusAndScope пуст",
+    "input": {
+      "settings": {
+        "focusScopeDesc": {
+          "ru_RU": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "en_US": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+        }
+      }
+    },
+    "expected_status": "pass",
+    "expected_severity": "critical",
+    "expected_message_meaning": "предметная область найдена",
+    "example_journal": "2686-7400.data"
+  },
+  {
+    "test_id": "REG_COPYRIGHT_LICENSE_ONLY_PARTIAL",
+    "rule": "step3.copyright",
+    "scenario": "notice RU/EN + holder есть, licenseURL пуст",
+    "input": {
+      "settings": {
+        "copyrightNotice": {
+          "ru_RU": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "en_US": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "copyrightHolderType": "other",
+        "licenseURL": ""
+      }
+    },
+    "expected_status": "partial",
+    "expected_severity": "critical",
+    "expected_message_meaning": "не хватает лицензии",
+    "example_journal": "0028-2421.data"
+  },
+  {
+    "test_id": "REG_EMPTY_STRING",
+    "rule": "step1.elibrary",
+    "scenario": "elibraryId пустая строка",
+    "input": {
+      "settings": {
+        "elibraryId": ""
+      }
+    },
+    "expected_status": "fail",
+    "expected_severity": "error",
+    "expected_message_meaning": "не заполнено",
+    "example_journal": ""
+  },
+  {
+    "test_id": "REG_NULL_KEY_ABSENT",
+    "rule": "step1.indexing_kw",
+    "scenario": "searchKeywords отсутствует",
+    "input": {
+      "settings": {}
+    },
+    "expected_status": "fail",
+    "expected_severity": "error",
+    "expected_message_meaning": "ключевые слова",
+    "example_journal": ""
+  },
+  {
+    "test_id": "REG_HTML_EMPTY",
+    "rule": "step2.review",
+    "scenario": "reviewPolicy = <p>&nbsp;</p>",
+    "input": {
+      "settings": {
+        "reviewPolicy": {
+          "ru_RU": "<p>&nbsp;</p>",
+          "en_US": "<p></p>"
+        }
+      }
+    },
+    "expected_status": "fail",
+    "expected_severity": "critical",
+    "expected_message_meaning": "пусто после очистки HTML",
+    "example_journal": ""
+  },
+  {
+    "test_id": "REG_PARTIAL_RU_ONLY",
+    "rule": "step3.guidelines",
+    "scenario": "authorGuidelines только RU",
+    "input": {
+      "settings": {
+        "authorGuidelines": {
+          "ru_RU": "Правила аааааааааааааааааааааааааааааааааааааааа",
+          "en_US": ""
+        }
+      }
+    },
+    "expected_status": "partial",
+    "expected_severity": "critical",
+    "expected_message_meaning": "только русский",
+    "example_journal": ""
+  },
+  {
+    "test_id": "REG_ACCESS_HINT",
+    "rule": "step4.access",
+    "scenario": "не все роли — подсказка, не fail",
+    "input": {
+      "settings": {
+        "disableUserReg": false,
+        "allowRegAuthor": true,
+        "allowRegReader": false,
+        "allowRegReviewer": true
+      }
+    },
+    "expected_status": "cannot_determine",
+    "expected_severity": "info",
+    "expected_message_meaning": "подсказка сверить роли",
+    "example_journal": ""
+  },
+  {
+    "test_id": "REG_EXTRA_OFF_MARK",
+    "rule": "modules.extra_off",
+    "scenario": "лишние модули отмечаются",
+    "input": {
+      "plugins": {
+        "SomeWeirdPlugin": {
+          "enabled": true,
+          "category": "generic"
+        }
+      }
+    },
+    "expected_status": "partial",
+    "expected_severity": "warning",
+    "expected_message_meaning": "отмечено вне эталона",
+    "example_journal": ""
+  },
+  {
+    "test_id": "REG_CHECKLIST_EMPTY_ARRAY",
+    "rule": "step3.checklist",
+    "scenario": "submissionChecklist null",
+    "input": {
+      "settings": {
+        "submissionChecklist": null
+      }
+    },
+    "expected_status": "fail",
+    "expected_severity": "error",
+    "expected_message_meaning": "список требований отсутствует",
+    "example_journal": ""
+  },
+  {
+    "test_id": "REG_SPACES_ONLY",
+    "rule": "step1.abbreviation",
+    "scenario": "abbreviation из пробелов",
+    "input": {
+      "settings": {
+        "abbreviation": {
+          "ru_RU": "   ",
+          "en_US": "\t"
+        }
+      }
+    },
+    "expected_status": "fail",
+    "expected_severity": "error",
+    "expected_message_meaning": "пусто",
+    "example_journal": ""
+  }
+]

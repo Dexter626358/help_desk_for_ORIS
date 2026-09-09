@@ -33,6 +33,7 @@ _DOC_MAP = "https://docs.rfbr.ru/doc/karta-instrukciya-po-nastrojke-HRdfuJ0SEJ"
 _DOC_SMTP = "https://docs.rfbr.ru/doc/pochta-cherez-protokol-smtp-nastrojka-t1I6xCCthE"
 _DOC_DOI = "https://docs.rfbr.ru/doc/doi-i-edn-kak-nastroit-moduli-publichnyh-identifikatorov-GtLjeoHspG"
 _DOC_USERS = "https://docs.rfbr.ru/doc/polzovateli-i-roli-upravlenie"
+_DOC_BAZA = "https://docs.rfbr.ru/doc/chek-list-baza-R1h7hW4AxG"
 
 _PATH_LANG = "Личный кабинет → Издатель → Управление страницами → Языки"
 _PATH_BOARD_PAGE = "Личный кабинет → Издатель → Редакция журнала"
@@ -103,9 +104,9 @@ _FIX_BY_ID: dict[str, FixGuide] = {
     "modules.doi": FixGuide(
         path=f"{_PATH_PLUGINS} → Публичные идентификаторы",
         steps=(
-            "Пункт актуален, если журнал присваивает DOI статьям.",
-            "Включите плагин DOI.",
-            "Укажите префикс DOI журнала.",
+            "Пункт опционален: актуален, только если журнал присваивает DOI статьям.",
+            "Если DOI не используется — можно оставить выключенным.",
+            "Если DOI используется: включите плагин DOI и укажите префикс DOI журнала.",
         ),
         doc_url=_DOC_DOI,
     ),
@@ -116,7 +117,11 @@ _FIX_BY_ID: dict[str, FixGuide] = {
     ),
     "modules.browse": FixGuide(
         path=f"{_PATH_PLUGINS} → Основные модули",
-        steps=("Включите плагин «Браузер».",),
+        steps=(
+            "Включите плагин «Браузер».",
+            "В настройках плагина включите просмотр по разделам (enableBrowseBySections).",
+        ),
+        doc_url=_DOC_BAZA,
     ),
     "modules.webfeed": FixGuide(
         path=f"{_PATH_SETUP} → Шаг 4. Управление → Объявления",
@@ -130,30 +135,37 @@ _FIX_BY_ID: dict[str, FixGuide] = {
     "modules.coins": FixGuide(
         path=f"{_PATH_PLUGINS} → Основные модули",
         steps=("Включите плагин COinS.",),
+        doc_url=_DOC_BAZA,
     ),
     "modules.custom_blocks": FixGuide(
         path=f"{_PATH_PLUGINS} → Основные модули",
         steps=("Включите «Управление блоками пользователя».",),
+        doc_url=_DOC_BAZA,
     ),
     "modules.driver": FixGuide(
         path=f"{_PATH_PLUGINS} → Основные модули",
         steps=("Включите плагин DRIVER.",),
+        doc_url=_DOC_BAZA,
     ),
     "modules.pdfjs": FixGuide(
         path=f"{_PATH_PLUGINS} → Основные модули",
         steps=("Включите PDF.JS.",),
+        doc_url=_DOC_BAZA,
     ),
     "modules.sehl": FixGuide(
         path=f"{_PATH_PLUGINS} → Основные модули",
         steps=("Включите плагин SEHL.",),
+        doc_url=_DOC_BAZA,
     ),
     "modules.static_pages": FixGuide(
         path=f"{_PATH_PLUGINS} → Основные модули",
         steps=("Включите плагин статических страниц.",),
+        doc_url=_DOC_BAZA,
     ),
     "modules.tinymce": FixGuide(
         path=f"{_PATH_PLUGINS} → Основные модули",
         steps=("Включите TinyMCE.",),
+        doc_url=_DOC_BAZA,
     ),
     "modules.fundref": FixGuide(
         path=f"{_PATH_PLUGINS} → Основные модули",
@@ -161,55 +173,71 @@ _FIX_BY_ID: dict[str, FixGuide] = {
             "Включите FundRef.",
             "Обновите базу организаций.",
         ),
+        doc_url=_DOC_BAZA,
     ),
     "modules.mets_gateway": FixGuide(
         path=f"{_PATH_PLUGINS} → Шлюзы",
         steps=("Выключите плагин шлюза METS.",),
+        doc_url=_DOC_BAZA,
     ),
     "modules.urn": FixGuide(
         path=f"{_PATH_PLUGINS} → Публичные идентификаторы",
         steps=("Выключите модуль URN.",),
+        doc_url=_DOC_DOI,
     ),
     "modules.url_pubid": FixGuide(
         path=f"{_PATH_PLUGINS} → Публичные идентификаторы",
         steps=("Выключите публичный идентификатор URL.",),
+        doc_url=_DOC_DOI,
     ),
     "modules.extra_off": FixGuide(
         path=f"{_PATH_PLUGINS} → Основные модули",
-        steps=("Выключите лишние модули, не входящие в эталон настройки БАЗА.",),
+        steps=(
+            "Отметьте включённые модули вне эталона БАЗА.",
+            "Выключите лишние модули, не входящие в эталон настройки.",
+        ),
+        doc_url=_DOC_BAZA,
     ),
     "modules.acron": FixGuide(
         path="Уровень администратора сайта → плагины",
         role="Администратор сайта",
         steps=("Убедитесь, что ACRON включён на уровне сайта (не журнала).",),
+        doc_url=_DOC_BAZA,
     ),
     "modules.recognition": FixGuide(
         path=f"{_PATH_PLUGINS} → Шлюзы / основные модули",
         steps=("Включите плагин распознавания по инструкции.",),
+        doc_url=_DOC_BAZA,
     ),
     "metrics.dimensions": FixGuide(
         path=_PATH_METRICS,
         steps=("При наличии DOI включите метрику Dimensions.",),
+        doc_url=_DOC_BAZA,
     ),
     "metrics.plumx": FixGuide(
         path=_PATH_METRICS,
         steps=("Если журнал индексируется в Scopus — включите PlumX.",),
+        doc_url=_DOC_BAZA,
     ),
     "metrics.citedby": FixGuide(
         path=_PATH_METRICS,
         steps=("При наличии DOI включите Cited-by (нужен кабинет Crossref).",),
+        doc_url=_DOC_BAZA,
     ),
     "metrics.alm": FixGuide(
         path=_PATH_METRICS,
         steps=("Включите плагин ALM.",),
+        doc_url=_DOC_BAZA,
     ),
     "metrics.altmetrics": FixGuide(
         path=_PATH_METRICS,
         steps=("Выключите метрику Altmetrics.",),
+        doc_url=_DOC_BAZA,
     ),
     "metrics.publons": FixGuide(
         path=_PATH_METRICS,
         steps=("Выключите метрику Publons.",),
+        doc_url=_DOC_BAZA,
     ),
     "step1.title": FixGuide(
         path=f"{_PATH_SETUP} → Шаг 1. Детали → Общая информация",
@@ -261,7 +289,9 @@ _FIX_BY_ID: dict[str, FixGuide] = {
     "step1.board": FixGuide(
         path=f"{_PATH_SETUP} → Шаг 1. Детали → Редакция",
         steps=(
-            "Заполните контакты редакции (ФИО, e-mail, телефон, адрес) на русском и английском.",
+            "Укажите фамилию (ФИО) ответственного редактора/издателя на русском и английском.",
+            "Укажите e-mail контактного лица.",
+            "При необходимости заполните титул, учреждение, телефон и почтовый адрес.",
             "Сохраните шаг.",
         ),
         doc_url=f"{_DOC_5_STEPS}#h-shag-1-detali",
@@ -294,9 +324,35 @@ _FIX_BY_ID: dict[str, FixGuide] = {
         ),
         doc_url=f"{_DOC_5_STEPS}#h-shag-1-detali",
     ),
+    "step1.sponsors": FixGuide(
+        path=f"{_PATH_SETUP} → Шаг 1. Детали → Спонсоры",
+        steps=(
+            "Поле необязательное: можно оставить пустым.",
+            "Если спонсоры есть — укажите их на русском и английском и сохраните шаг.",
+        ),
+        doc_url=f"{_DOC_5_STEPS}#h-shag-1-detali",
+    ),
+    "step1.funding": FixGuide(
+        path=f"{_PATH_SETUP} → Шаг 1. Детали → Финансовая поддержка",
+        steps=(
+            "Поле необязательное: можно оставить пустым.",
+            "Если есть сведения о финансовой поддержке — заполните и сохраните шаг.",
+        ),
+        doc_url=f"{_DOC_5_STEPS}#h-shag-1-detali",
+    ),
+    "step1.history": FixGuide(
+        path=f"{_PATH_SETUP} → Шаг 1. Детали → История журнала",
+        steps=(
+            "Минимум: укажите дату создания журнала (если история переименований отсутствует).",
+            "Подробные исторические сведения необязательны.",
+            "Сохраните шаг.",
+        ),
+        doc_url=f"{_DOC_5_STEPS}#h-shag-1-detali",
+    ),
     "step1.indexing_kw": FixGuide(
         path=f"{_PATH_SETUP} → Шаг 1. Детали → Индексация",
         steps=(
+            "Заполните краткое описание журнала на русском и английском.",
             "Добавьте ключевые слова на русском и английском, разделяя их запятыми.",
             "Сохраните шаг.",
         ),
@@ -315,6 +371,14 @@ _FIX_BY_ID: dict[str, FixGuide] = {
         steps=(
             "Заполните «Принципы рецензирования» на русском и английском.",
             "Для уровня БАЗА достаточно принципов и любой радиокнопки варианта сопровождения.",
+            "Сохраните шаг.",
+        ),
+        doc_url=f"{_DOC_5_STEPS}#h-shag-2-politika",
+    ),
+    "step2.privacy": FixGuide(
+        path=f"{_PATH_SETUP} → Шаг 2. Политика → Конфиденциальность",
+        steps=(
+            "Заполните заявление о конфиденциальности на русском и английском.",
             "Сохраните шаг.",
         ),
         doc_url=f"{_DOC_5_STEPS}#h-shag-2-politika",

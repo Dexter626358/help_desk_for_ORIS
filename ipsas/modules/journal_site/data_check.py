@@ -18,6 +18,82 @@ from ipsas.modules.journal_site.parser import norm_space, preview_value
 _ISSN_RE = re.compile(r"\d{4}-?\d{3}[\dXx]")
 _EMAIL_RE = re.compile(r"[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}", re.I)
 _MAP_RE = re.compile(r"(google\.com/maps|yandex\.(ru|com)/maps|maps\.google|iframe)", re.I)
+
+# Технические имена плагинов → понятные подписи для отчёта
+_PLUGIN_RU: dict[str, str] = {
+    "doipubidplugin": "DOI",
+    "ednpubidplugin": "EDN",
+    "urnpubidplugin": "URN",
+    "openurlpubidplugin": "URL-идентификатор",
+    "urlpubidplugin": "URL-идентификатор",
+    "publicurlplugin": "URL-идентификатор",
+    "browseplugin": "Браузер",
+    "coinsplugin": "COinS",
+    "customblockmanagerplugin": "Управление блоками пользователя",
+    "driverplugin": "DRIVER",
+    "pdfjsviewerplugin": "PDF.JS",
+    "sehlplugin": "SEHL",
+    "staticpagesplugin": "Статические страницы",
+    "tinymceplugin": "TinyMCE",
+    "webfeedplugin": "Новостная лента выпуска",
+    "fundrefplugin": "FundRef",
+    "acronplugin": "ACRON",
+    "metsgatewayplugin": "шлюз METS",
+    "resolverplugin": "Распознавание",
+    "referralplugin": "Распознавание",
+    "recommendbysimilarityplugin": "Распознавание",
+    "dimensionsplugin": "Dimensions",
+    "plumxplugin": "PlumX",
+    "crossrefcitedbyplugin": "Cited-by",
+    "almplugin": "ALM",
+    "altmetricsplugin": "Altmetrics",
+    "publonsplugin": "Publons",
+    "publonsbadgeplugin": "Publons",
+    "publonsreviewerconnectplugin": "Publons",
+}
+
+_ITEM_PLUGIN_RU: dict[str, str] = {
+    "modules.doi": "DOI",
+    "modules.edn": "EDN",
+    "modules.urn": "URN",
+    "modules.url_pubid": "URL-идентификатор",
+    "modules.browse": "Браузер",
+    "modules.coins": "COinS",
+    "modules.custom_blocks": "Управление блоками пользователя",
+    "modules.driver": "DRIVER",
+    "modules.pdfjs": "PDF.JS",
+    "modules.sehl": "SEHL",
+    "modules.static_pages": "Статические страницы",
+    "modules.tinymce": "TinyMCE",
+    "modules.webfeed": "Новостная лента выпуска",
+    "modules.fundref": "FundRef",
+    "modules.acron": "ACRON",
+    "modules.mets_gateway": "шлюз METS",
+    "modules.recognition": "Распознавание",
+    "metrics.dimensions": "Dimensions",
+    "metrics.plumx": "PlumX",
+    "metrics.citedby": "Cited-by",
+    "metrics.alm": "ALM",
+    "metrics.altmetrics": "Altmetrics",
+    "metrics.publons": "Publons",
+}
+
+
+def plugin_display_name(raw: str, *, item_id: str = "") -> str:
+    """Человекочитаемое имя модуля/метрики."""
+    if item_id and item_id in _ITEM_PLUGIN_RU:
+        return _ITEM_PLUGIN_RU[item_id]
+    key = (raw or "").strip().lower()
+    if key in _PLUGIN_RU:
+        return _PLUGIN_RU[key]
+    if not raw:
+        return ""
+    # EDNPubIdPlugin → EDN Pub Id (fallback)
+    name = re.sub(r"(?i)plugin$", "", raw).strip()
+    name = re.sub(r"([a-z])([A-Z])", r"\1 \2", name)
+    return name or raw
+
+
 _SCOPUS_RE = re.compile(r"scopus", re.I)
 
 
@@ -167,6 +243,7 @@ def evaluate_checklist_item(
         "dates_display": _eval_dates_display,
         "custom_about": _eval_custom_about,
         "board": _eval_board,
+        "primary_contact": _eval_primary_contact,
         "map_address": _eval_map_address,
         "manual": _eval_manual,
     }
@@ -358,7 +435,12 @@ def _eval_setting_bool(
         actual = "регистрация открыта; " + "; ".join(roles)
         if author and reader and reviewer:
             return "ok", "Роли регистрации разрешены.", actual
-        return "warn", "Проверьте роли регистрации (автор/читатель/рецензент).", actual
+        # Информационная подсказка, не обязательный провал
+        return (
+            "manual",
+            "Подсказка: сверьте роли регистрации (автор/читатель/рецензент).",
+            actual,
+        )
 
     if item.id == "step4.pagination":
         on = _truthy(export.get_raw_setting("enablePageNumber"))
@@ -406,7 +488,7 @@ def _eval_present_or_empty(
                 if text:
                     chunks.append(f"{key}/{lang}")
     if not chunks:
-        return "ok", "Не заполнено — допустимо по чек-листу.", "пусто"
+        return "ok", "Не заполнено — допустимо по чек-листу.", "не заполнено (допустимо)"
     return "ok", "Заполнено (проверьте корректность вручную при необходимости).", "; ".join(chunks)
 
 
@@ -416,42 +498,73 @@ def _eval_plugin(
     expect = item.expect_enabled
     info = _find_plugin(export, *item.plugin_keys)
     enabled = bool(info and info.enabled)
-    name = info.name if info else item.plugin_keys[0]
+    label = plugin_display_name(
+        (info.name if info else "") or (item.plugin_keys[0] if item.plugin_keys else ""),
+        item_id=item.id,
+    )
 
     # ACRON — сайт/админский плагин: в .data журнала часто settings=[] без enabled
     if item.id == "modules.acron":
         if info is not None:
             return (
                 "ok",
-                "Плагин ACRON есть в установке (управляется администратором сайта).",
-                name,
+                "Модуль ACRON есть в установке (управляется администратором сайта).",
+                "ACRON: установлен",
             )
         return (
             "warn",
             "ACRON не найден в экспорте — проверьте на уровне администратора сайта.",
-            "",
+            "ACRON: не найден в экспорте",
         )
 
     if item.id == "modules.doi":
         if not enabled:
-            return "fail", "DOI-плагин выключен или отсутствует.", name
+            return (
+                "na",
+                "Опционально: если журнал присваивает DOI — включите модуль и укажите префикс.",
+                "DOI: выключен",
+            )
         prefix = str((info.settings if info else {}).get("doiPrefix") or "").strip()
         if not prefix:
-            return "fail", "DOI включён, но doiPrefix пуст.", name
-        return "ok", f"DOI включён, prefix={prefix}.", f"{name}; {prefix}"
+            return "fail", "DOI включён, но префикс DOI не указан.", "DOI: без префикса"
+        return "ok", f"DOI включён, префикс: {prefix}.", f"DOI: включён (префикс {prefix})"
 
     if item.id == "modules.url_pubid" and info is None:
-        return "ok", "Плагин URL pubIds отсутствует — считаем выключенным.", "нет в экспорте"
+        return (
+            "ok",
+            "Модуль URL-идентификаторов отсутствует — считаем выключенным.",
+            "URL-идентификатор: отсутствует (считаем выключенным)",
+        )
 
     if expect is True:
         if enabled:
-            return "ok", f"Плагин «{name}» включён.", name
-        return "fail", f"Ожидается включённым ({'/'.join(item.plugin_keys)}).", name
+            return "ok", f"Модуль «{label}» включён.", f"{label}: включён"
+        if info is not None:
+            return (
+                "fail",
+                f"Модуль «{label}» должен быть включён, сейчас выключен.",
+                f"{label}: найден, выключен",
+            )
+        return (
+            "fail",
+            f"Модуль «{label}» должен быть включён, в экспорте не найден.",
+            f"{label}: не найден",
+        )
     if expect is False:
         if enabled:
-            return "fail", f"Должен быть выключен, но включён ({name}).", name
-        return "ok", "Выключен или отсутствует — ок.", name
-    return "manual", item.note_hint or "Проверьте вручную.", name
+            return (
+                "fail",
+                f"Модуль «{label}» должен быть выключен, сейчас включён.",
+                f"{label}: включён",
+            )
+        if info is None:
+            return (
+                "ok",
+                f"Модуль «{label}» отсутствует — считаем выключенным.",
+                f"{label}: отсутствует (выключен)",
+            )
+        return "ok", f"Модуль «{label}» выключен.", f"{label}: выключен"
+    return "manual", item.note_hint or "Проверьте вручную.", label
 
 
 def _eval_plugin_conditional(
@@ -460,27 +573,46 @@ def _eval_plugin_conditional(
     cond = item.condition or ""
     cond_true = bool(ctx.get(cond))
     enabled = _plugin_enabled(export, *item.plugin_keys)
-    name = item.plugin_keys[0]
+    label = plugin_display_name(
+        item.plugin_keys[0] if item.plugin_keys else "",
+        item_id=item.id,
+    )
 
     if cond == "has_doi":
         if not cond_true:
             if enabled:
-                return "warn", "DOI не настроен, но метрика включена — обычно лишнее.", name
-            return "na", "DOI нет — пункт не применяется.", name
+                return (
+                    "warn",
+                    f"DOI не настроен, но метрика «{label}» включена — обычно лишнее.",
+                    f"{label}: включена без DOI",
+                )
+            return "na", "DOI нет — пункт не применяется.", f"{label}: не требуется"
         if enabled:
-            return "ok", "DOI есть, плагин включён.", name
-        return "fail", "При наличии DOI плагин должен быть включён.", name
+            return "ok", f"DOI есть, метрика «{label}» включена.", f"{label}: включена"
+        return (
+            "fail",
+            f"При наличии DOI метрика «{label}» должна быть включена.",
+            f"{label}: выключена",
+        )
 
     if cond == "in_scopus":
         if not cond_true:
             if enabled:
-                return "ok", "PlumX включён (Scopus в настройках не подтверждён автоматически).", name
-            return "manual", "Включите PlumX, если журнал в Scopus (в .data признак не найден).", name
+                return (
+                    "ok",
+                    "PlumX включён (Scopus в настройках не подтверждён автоматически).",
+                    f"{label}: включена",
+                )
+            return (
+                "manual",
+                "Включите PlumX, если журнал в Scopus (в .data признак не найден).",
+                f"{label}: не проверена автоматически",
+            )
         if enabled:
-            return "ok", "Найден Scopus, PlumX включён.", name
-        return "fail", "Журнал в Scopus — включите PlumX.", name
+            return "ok", "Найден Scopus, PlumX включён.", f"{label}: включена"
+        return "fail", "Журнал в Scopus — включите PlumX.", f"{label}: выключена"
 
-    return "manual", "Условие не распознано.", name
+    return "manual", "Условие не распознано.", label
 
 
 def _eval_sections_articles(
@@ -624,6 +756,14 @@ def _eval_copyright_license(
         f"ссылка на лицензию={'есть' if license_url else 'нет'}"
     )
     if deficits:
+        # Только лицензия при заполненном тексте и правообладателе — частичное замечание
+        if deficits == ["copyright.license"] and notice_ru and notice_en and holder_type:
+            return (
+                "warn",
+                "Не хватает: лицензия.",
+                actual,
+                deficits,
+            )
         return "fail", "Не хватает: " + ", ".join(problems) + ".", actual, deficits
     return "ok", "Условия использования заполнены.", actual, []
 
@@ -692,17 +832,43 @@ def _eval_browse_plugin(
     info = _find_plugin(export, "browseplugin")
     if not info or not info.enabled:
         return "fail", "Плагин «Браузер» выключен или отсутствует.", "browseplugin"
-    # В типовом .data есть только enabled; browseBy в экспорт не попадает.
-    browse_by = info.settings.get("browseBy") or info.settings.get("browseBlocks")
-    if browse_by is not None and browse_by != "":
-        if browse_by in {"sections", "section", "2", 2} or str(browse_by).lower() == "sections":
-            return "ok", "Браузер включён, просмотр по разделам.", str(browse_by)
+
+    settings = info.settings or {}
+    # Актуальные ключи OJS/.data
+    by_sections = _truthy(settings.get("enableBrowseBySections"))
+    # Совместимость со старыми экспортами
+    browse_by = settings.get("browseBy") or settings.get("browseBlocks")
+    legacy_sections = browse_by in {"sections", "section", "2", 2} or (
+        str(browse_by).lower() == "sections" if browse_by not in (None, "") else False
+    )
+
+    if by_sections or legacy_sections:
+        actual = (
+            "просмотр по разделам: да"
+            if "enableBrowseBySections" in settings
+            else f"режим просмотра: {browse_by}"
+        )
+        return "ok", "Браузер включён, просмотр по разделам.", actual
+
+    if browse_by not in (None, ""):
         return (
             "warn",
-            f"Браузер включён; режим просмотра: {browse_by}.",
-            str(browse_by),
+            f"Браузер включён; режим просмотра: {browse_by}. Нужен просмотр по разделам.",
+            f"режим просмотра: {browse_by}",
         )
-    return "ok", "Плагин «Браузер» включён.", "enabled"
+
+    # Плагин есть, но просмотр по разделам выключен / флаг отсутствует
+    if "enableBrowseBySections" in settings:
+        return (
+            "fail",
+            "Браузер включён, но просмотр по разделам выключен.",
+            "просмотр по разделам: нет",
+        )
+    return (
+        "warn",
+        "Браузер включён; в экспорте нет настройки просмотра по разделам — проверьте вручную.",
+        "Браузер: включён",
+    )
 
 
 def _eval_webfeed_plugin(
@@ -710,7 +876,7 @@ def _eval_webfeed_plugin(
 ) -> tuple[str, str, str]:
     info = _find_plugin(export, "webfeedplugin")
     if not info or not info.enabled:
-        return "fail", "Новостная лента выпуска выключена.", "webfeedplugin"
+        return "fail", "Новостная лента выпуска выключена.", "Новостная лента: выключена"
     page = str(info.settings.get("displayPage") or "").lower()
     page_labels = {
         "issue": "страницы выпуска",
@@ -743,23 +909,27 @@ def _eval_extra_generic(
         # метрики / pubIds не сюда
         if info.category in {"metrics", "pubIds", "importexport", "blocks", "gateways"}:
             continue
-        extras.append(name)
+        extras.append(plugin_display_name(name))
     if not extras:
         return "ok", "Лишних включённых основных модулей не найдено.", ""
-    return "warn", "Включены модули вне эталона: " + ", ".join(sorted(extras)[:12]) + ".", ", ".join(extras[:8])
+    return (
+        "warn",
+        "Включены модули вне эталона: " + ", ".join(sorted(extras)[:12]) + ".",
+        ", ".join(extras[:8]),
+    )
 
 
 def _eval_dates_display(
     export: JournalDataExport, item: ChecklistItem, ctx: dict[str, bool]
 ) -> tuple[str, str, str]:
-    keys = (
-        "displayIssuePublishDate",
-        "displaySubmissionPublishDate",
-        "displaySubmissionPublishOnlineDate",
-        "displaySubmissionSubmitDate",
-        "displaySubmissionAcceptDate",
-    )
-    on = [k for k in keys if _truthy(export.get_raw_setting(k))]
+    labels = {
+        "displayIssuePublishDate": "дата публикации выпуска",
+        "displaySubmissionPublishDate": "дата публикации статьи",
+        "displaySubmissionPublishOnlineDate": "дата Online First",
+        "displaySubmissionSubmitDate": "дата поступления статьи",
+        "displaySubmissionAcceptDate": "дата одобрения статьи",
+    }
+    on = [labels[k] for k in labels if _truthy(export.get_raw_setting(k))]
     actual = ", ".join(on) if on else "ничего не выбрано"
     if on:
         return "ok", f"Выбраны даты: {len(on)}.", actual
@@ -789,7 +959,38 @@ def _eval_custom_about(
     body = norm_space(" ".join(texts))
     if len(body) >= 40:
         return "ok", "Предметная область / цели найдены.", preview_value(body, 80)
-    return "fail", "Заполните предметную область и цели (focusAndScope или custom about).", ""
+    return "fail", "Заполните предметную область и цели (focusAndScope / focusScopeDesc или custom about).", ""
+
+
+def _eval_primary_contact(
+    export: JournalDataExport, item: ChecklistItem, ctx: dict[str, bool]
+) -> tuple:
+    """Контактное лицо шага 1.2: ФИО (RU/EN) и e-mail."""
+    name_ru = export.get_setting_text("contactName", "ru")
+    name_en = export.get_setting_text("contactName", "en")
+    email = str(export.get_raw_setting("contactEmail") or "").strip()
+    deficits: list[str] = []
+    if len(name_ru) < 2:
+        deficits.append("contact.name_ru")
+    if len(name_en) < 2:
+        deficits.append("contact.name_en")
+    if not email or not _EMAIL_RE.search(email):
+        deficits.append("contact.email")
+    actual = (
+        f"ФИО: {preview_value(name_ru, 30) or '—'} / "
+        f"{preview_value(name_en, 30) or '—'}; "
+        f"email={'да' if email and _EMAIL_RE.search(email) else 'нет'}"
+    )
+    if not deficits:
+        return "ok", "Контактное лицо редакции заполнено.", actual, []
+    if len(deficits) < 3 and (name_ru or name_en or email):
+        return (
+            "warn",
+            "Контакт редакции заполнен частично.",
+            actual,
+            deficits,
+        )
+    return "fail", "Заполните контактное лицо редакции (ФИО и e-mail).", actual, deficits
 
 
 def _eval_board(

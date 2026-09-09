@@ -167,12 +167,14 @@ DEFAULT_SETUP_CHECKLIST: tuple[ChecklistItem, ...] = (
         "plugin",
         plugin_keys=("DOIPubIdPlugin",),
         expect_enabled=True,
+        severity="recommended",
+        note_hint="Опционально: включать только если журнал присваивает DOI статьям.",
         doc_url="https://docs.rfbr.ru/doc/doi-i-edn-kak-nastroit-moduli-publichnyh-identifikatorov-GtLjeoHspG",
     ),
     ChecklistItem(
         "modules.edn",
         "modules_pubids",
-        "EDN: включен",
+        "Модуль EDN: включён",
         "plugin",
         plugin_keys=("EDNPubIdPlugin",),
         expect_enabled=True,
@@ -180,7 +182,7 @@ DEFAULT_SETUP_CHECKLIST: tuple[ChecklistItem, ...] = (
     ChecklistItem(
         "modules.urn",
         "modules_pubids",
-        "URN: выключен",
+        "Модуль URN: выключен",
         "plugin",
         plugin_keys=("URNPubIdPlugin",),
         expect_enabled=False,
@@ -188,19 +190,20 @@ DEFAULT_SETUP_CHECKLIST: tuple[ChecklistItem, ...] = (
     ChecklistItem(
         "modules.url_pubid",
         "modules_pubids",
-        "URL (pubIds): выключен",
+        "URL-идентификатор статей: выключен",
         "plugin",
         plugin_keys=("OpenUrlPubIdPlugin", "UrlPubIdPlugin", "PublicURLPlugin"),
         expect_enabled=False,
-        note_hint="Если плагин отсутствует в экспорте — считаем выключенным.",
+        note_hint="Если модуль отсутствует в экспорте — считаем выключенным.",
     ),
     # --- Основные модули ---
     ChecklistItem(
         "modules.browse",
         "modules_generic",
-        "Плагин «Браузер»: включен",
+        "Плагин «Браузер»: включен, просмотр по разделам",
         "browse_plugin",
         plugin_keys=("browseplugin",),
+        note_hint="Ожидается enableBrowseBySections=true.",
     ),
     ChecklistItem(
         "modules.coins",
@@ -364,9 +367,10 @@ DEFAULT_SETUP_CHECKLIST: tuple[ChecklistItem, ...] = (
     ChecklistItem(
         "step1.board",
         "step1",
-        "1.2 Редакция: отображается по образцу",
-        "board",
-        setting_keys=("boardCustomText",),
+        "1.2 Редакция: контактное лицо (ФИО и e-mail)",
+        "primary_contact",
+        setting_keys=("contactName", "contactEmail"),
+        doc_url="https://docs.rfbr.ru/doc/nastrojka-sajta-zhurnala-na-platforme-xwmhtcejap#h-shag-1-detali",
     ),
     ChecklistItem(
         "step1.support",
@@ -396,6 +400,7 @@ DEFAULT_SETUP_CHECKLIST: tuple[ChecklistItem, ...] = (
         "setting_present_or_empty_ok",
         setting_keys=("sponsors", "contributorNote"),
         severity="info",
+        doc_url="https://docs.rfbr.ru/doc/nastrojka-sajta-zhurnala-na-platforme-xwmhtcejap#h-shag-1-detali",
     ),
     ChecklistItem(
         "step1.funding",
@@ -404,13 +409,14 @@ DEFAULT_SETUP_CHECKLIST: tuple[ChecklistItem, ...] = (
         "setting_present_or_empty_ok",
         setting_keys=("contributors", "contributorNote"),
         severity="info",
+        doc_url="https://docs.rfbr.ru/doc/nastrojka-sajta-zhurnala-na-platforme-xwmhtcejap#h-shag-1-detali",
     ),
     ChecklistItem(
         "step1.indexing_kw",
         "step1",
-        "1.8 Индексация / ключевые слова (через запятую)",
+        "1.8 Индексация: описание и ключевые слова (через запятую)",
         "setting_text",
-        setting_keys=("searchKeywords",),
+        setting_keys=("searchDescription", "searchKeywords"),
         min_chars=3,
     ),
     ChecklistItem(
@@ -420,6 +426,7 @@ DEFAULT_SETUP_CHECKLIST: tuple[ChecklistItem, ...] = (
         "setting_present_or_empty_ok",
         setting_keys=("history",),
         severity="info",
+        doc_url="https://docs.rfbr.ru/doc/nastrojka-sajta-zhurnala-na-platforme-xwmhtcejap#h-shag-1-detali",
     ),
     # --- Шаг 2 ---
     ChecklistItem(
@@ -427,8 +434,8 @@ DEFAULT_SETUP_CHECKLIST: tuple[ChecklistItem, ...] = (
         "step2",
         "2.1 Предметная область и цели журнала",
         "custom_about",
-        setting_keys=("focusAndScope",),
-        note_hint="Ищем focusAndScope или customAbout (тематика / aims / focus).",
+        setting_keys=("focusAndScope", "focusScopeDesc"),
+        note_hint="Ищем focusAndScope / focusScopeDesc или customAbout (тематика / aims / focus).",
     ),
     ChecklistItem(
         "step2.review",
@@ -437,6 +444,15 @@ DEFAULT_SETUP_CHECKLIST: tuple[ChecklistItem, ...] = (
         "setting_text",
         setting_keys=("reviewPolicy",),
         min_chars=40,
+    ),
+    ChecklistItem(
+        "step2.privacy",
+        "step2",
+        "2.3 Конфиденциальность",
+        "setting_text",
+        setting_keys=("privacyStatement",),
+        min_chars=40,
+        doc_url="https://docs.rfbr.ru/doc/nastrojka-sajta-zhurnala-na-platforme-xwmhtcejap#h-shag-2-politika",
     ),
     # --- Шаг 3 ---
     ChecklistItem(
@@ -475,7 +491,8 @@ DEFAULT_SETUP_CHECKLIST: tuple[ChecklistItem, ...] = (
         "4.1 Доступ и роли регистрации",
         "setting_bool",
         setting_keys=("allowRegAuthor", "allowRegReader", "allowRegReviewer", "disableUserReg"),
-        note_hint="Ожидается: регистрация авторов/читателей/рецензентов не отключена глобально.",
+        severity="info",
+        note_hint="Подсказка: сверьте роли регистрации (автор/читатель/рецензент) глазами.",
     ),
     ChecklistItem(
         "step4.library",

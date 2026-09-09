@@ -131,6 +131,9 @@ secrets.json
 # Временная директория для обработки файлов
 temp/
 
+# Экспорты настроек журналов (локальные .data)
+ras_settings/
+
 # Обработанные файлы
 *_processed.xml
 *_processed.XML

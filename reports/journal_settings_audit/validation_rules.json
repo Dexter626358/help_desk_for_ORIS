@@ -1,0 +1,1715 @@
+{
+  "version": "1.0-agreed",
+  "agreed_policies": {
+    "doi": "optional / na if disabled; message if journal assigns DOI",
+    "copyright_license_only": "partial",
+    "step4_access": "info hint / manual, not mandatory fail",
+    "modules_extra_off": "must mark (do not ignore)",
+    "weights": {
+      "critical": 5,
+      "error": 3,
+      "warning": 1,
+      "info": 0,
+      "partial": 0.5
+    },
+    "cannot_determine": "no auto-fail"
+  },
+  "rules": [
+    {
+      "rule_id": "PAGES_LANG_RU",
+      "checklist_id": "pages.lang.ru",
+      "name": "Язык журнала: русский (интерфейс, отправка, формы)",
+      "json_paths": [
+        "settings.supportedLocales",
+        "settings.supportedSubmissionLocales",
+        "settings.supportedFormLocales"
+      ],
+      "pass_condition": "Локаль lang есть в supportedLocales, supportedSubmissionLocales, supportedFormLocales",
+      "severity": "critical",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: Язык журнала: русский (интерфейс, отправка, формы)",
+      "kind": "locale_flags",
+      "setting_keys": [
+        "supportedLocales",
+        "supportedSubmissionLocales",
+        "supportedFormLocales"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "PAGES_LANG_EN",
+      "checklist_id": "pages.lang.en",
+      "name": "Язык журнала: английский (интерфейс, отправка, формы)",
+      "json_paths": [
+        "settings.supportedLocales",
+        "settings.supportedSubmissionLocales",
+        "settings.supportedFormLocales"
+      ],
+      "pass_condition": "Локаль lang есть в supportedLocales, supportedSubmissionLocales, supportedFormLocales",
+      "severity": "critical",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: Язык журнала: английский (интерфейс, отправка, формы)",
+      "kind": "locale_flags",
+      "setting_keys": [
+        "supportedLocales",
+        "supportedSubmissionLocales",
+        "supportedFormLocales"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "PAGES_READER_TOOLS",
+      "checklist_id": "pages.reader_tools",
+      "name": "Инструменты читателя: включены и настроены",
+      "json_paths": [
+        "kind:reader_tools"
+      ],
+      "pass_condition": "Выполнено по kind=reader_tools",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: Инструменты читателя: включены и настроены",
+      "kind": "reader_tools",
+      "setting_keys": [],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "PAGES_EDITORIAL_BOARD",
+      "checklist_id": "pages.editorial_board",
+      "name": "Редакция журнала: корректно отображается (RU/EN)",
+      "json_paths": [
+        "settings.boardCustomText",
+        "settings.boardEnabled"
+      ],
+      "pass_condition": "boardCustomText RU и EN ≥ 40 символов текста",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: Редакция журнала: корректно отображается (RU/EN)",
+      "kind": "board",
+      "setting_keys": [
+        "boardCustomText",
+        "boardEnabled"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "PAGES_SECTION_ARTICLES",
+      "checklist_id": "pages.section_articles",
+      "name": "Раздел «Статьи»: название/сокращение RU+EN; скрыт в «О журнале»; только редакторы",
+      "json_paths": [
+        "sections[]"
+      ],
+      "pass_condition": "Раздел Статьи: title/abbrev RU+EN, hideAbout, editorRestriction",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: Раздел «Статьи»: название/сокращение RU+EN; скрыт в «О журнале»; только редакторы",
+      "kind": "sections_articles",
+      "setting_keys": [],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "PAGES_SECTIONS_OTHER",
+      "checklist_id": "pages.sections_other",
+      "name": "Созданы и настроены прочие разделы журнала",
+      "json_paths": [
+        "sections[]"
+      ],
+      "pass_condition": "Выполнено по kind=sections_other",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: Созданы и настроены прочие разделы журнала",
+      "kind": "sections_other",
+      "setting_keys": [],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "MODULES_METS_GATEWAY",
+      "checklist_id": "modules.mets_gateway",
+      "name": "Плагин шлюза METS: выключен",
+      "json_paths": [
+        "plugins.METSGatewayPlugin"
+      ],
+      "pass_condition": "Плагин выключен/отсутствует: ('METSGatewayPlugin',)",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: Плагин шлюза METS: выключен",
+      "kind": "plugin",
+      "setting_keys": [],
+      "plugin_keys": [
+        "METSGatewayPlugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": false,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "MODULES_RECOGNITION",
+      "checklist_id": "modules.recognition",
+      "name": "Плагин распознавания: включен",
+      "json_paths": [
+        "plugins.ResolverPlugin",
+        "plugins.referralplugin",
+        "plugins.RecommendBySimilarityPlugin"
+      ],
+      "pass_condition": "Плагин включён: ('ResolverPlugin', 'referralplugin', 'RecommendBySimilarityPlugin')",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: Плагин распознавания: включен",
+      "kind": "plugin",
+      "setting_keys": [],
+      "plugin_keys": [
+        "ResolverPlugin",
+        "referralplugin",
+        "RecommendBySimilarityPlugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": true,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "MODULES_DOI",
+      "checklist_id": "modules.doi",
+      "name": "DOI: включен, настроен (doiPrefix), если журнал присваивает DOI",
+      "json_paths": [
+        "plugins.DOIPubIdPlugin"
+      ],
+      "pass_condition": "Плагин включён: ('DOIPubIdPlugin',)",
+      "severity": "warning",
+      "checklist_severity": "recommended",
+      "applies_to_all_journals": false,
+      "exceptions": "Опционально: если журнал присваивает DOI — включить и указать префикс; иначе na",
+      "editorial_message": "Если журнал присваивает DOI — включить DOI и указать префикс",
+      "kind": "plugin",
+      "setting_keys": [],
+      "plugin_keys": [
+        "DOIPubIdPlugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": true,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "MODULES_EDN",
+      "checklist_id": "modules.edn",
+      "name": "EDN: включен",
+      "json_paths": [
+        "plugins.EDNPubIdPlugin"
+      ],
+      "pass_condition": "Плагин включён: ('EDNPubIdPlugin',)",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: EDN: включен",
+      "kind": "plugin",
+      "setting_keys": [],
+      "plugin_keys": [
+        "EDNPubIdPlugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": true,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "MODULES_URN",
+      "checklist_id": "modules.urn",
+      "name": "URN: выключен",
+      "json_paths": [
+        "plugins.URNPubIdPlugin"
+      ],
+      "pass_condition": "Плагин выключен/отсутствует: ('URNPubIdPlugin',)",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: URN: выключен",
+      "kind": "plugin",
+      "setting_keys": [],
+      "plugin_keys": [
+        "URNPubIdPlugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": false,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "MODULES_URL_PUBID",
+      "checklist_id": "modules.url_pubid",
+      "name": "URL (pubIds): выключен",
+      "json_paths": [
+        "plugins.OpenUrlPubIdPlugin",
+        "plugins.UrlPubIdPlugin",
+        "plugins.PublicURLPlugin"
+      ],
+      "pass_condition": "Плагин выключен/отсутствует: ('OpenUrlPubIdPlugin', 'UrlPubIdPlugin', 'PublicURLPlugin')",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: URL (pubIds): выключен",
+      "kind": "plugin",
+      "setting_keys": [],
+      "plugin_keys": [
+        "OpenUrlPubIdPlugin",
+        "UrlPubIdPlugin",
+        "PublicURLPlugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": false,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "MODULES_BROWSE",
+      "checklist_id": "modules.browse",
+      "name": "Плагин «Браузер»: включен",
+      "json_paths": [
+        "plugins.browseplugin"
+      ],
+      "pass_condition": "Выполнено по kind=browse_plugin",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: Плагин «Браузер»: включен",
+      "kind": "browse_plugin",
+      "setting_keys": [],
+      "plugin_keys": [
+        "browseplugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "MODULES_COINS",
+      "checklist_id": "modules.coins",
+      "name": "Плагин «COinS»: включен",
+      "json_paths": [
+        "plugins.coinsplugin"
+      ],
+      "pass_condition": "Плагин включён: ('coinsplugin',)",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: Плагин «COinS»: включен",
+      "kind": "plugin",
+      "setting_keys": [],
+      "plugin_keys": [
+        "coinsplugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": true,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "MODULES_CUSTOM_BLOCKS",
+      "checklist_id": "modules.custom_blocks",
+      "name": "Управление блоками пользователя: включен",
+      "json_paths": [
+        "plugins.customblockmanagerplugin"
+      ],
+      "pass_condition": "Плагин включён: ('customblockmanagerplugin',)",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: Управление блоками пользователя: включен",
+      "kind": "plugin",
+      "setting_keys": [],
+      "plugin_keys": [
+        "customblockmanagerplugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": true,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "MODULES_DRIVER",
+      "checklist_id": "modules.driver",
+      "name": "DRIVER: включен",
+      "json_paths": [
+        "plugins.driverplugin"
+      ],
+      "pass_condition": "Плагин включён: ('driverplugin',)",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: DRIVER: включен",
+      "kind": "plugin",
+      "setting_keys": [],
+      "plugin_keys": [
+        "driverplugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": true,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "MODULES_PDFJS",
+      "checklist_id": "modules.pdfjs",
+      "name": "PDF-просмотрщик PDF.JS: включен",
+      "json_paths": [
+        "plugins.pdfjsviewerplugin"
+      ],
+      "pass_condition": "Плагин включён: ('pdfjsviewerplugin',)",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: PDF-просмотрщик PDF.JS: включен",
+      "kind": "plugin",
+      "setting_keys": [],
+      "plugin_keys": [
+        "pdfjsviewerplugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": true,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "MODULES_SEHL",
+      "checklist_id": "modules.sehl",
+      "name": "SEHL: включен",
+      "json_paths": [
+        "plugins.sehlplugin"
+      ],
+      "pass_condition": "Плагин включён: ('sehlplugin',)",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: SEHL: включен",
+      "kind": "plugin",
+      "setting_keys": [],
+      "plugin_keys": [
+        "sehlplugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": true,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "MODULES_STATIC_PAGES",
+      "checklist_id": "modules.static_pages",
+      "name": "Статические страницы: включен",
+      "json_paths": [
+        "plugins.staticpagesplugin"
+      ],
+      "pass_condition": "Плагин включён: ('staticpagesplugin',)",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: Статические страницы: включен",
+      "kind": "plugin",
+      "setting_keys": [],
+      "plugin_keys": [
+        "staticpagesplugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": true,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "MODULES_TINYMCE",
+      "checklist_id": "modules.tinymce",
+      "name": "TinyMCE: включен",
+      "json_paths": [
+        "plugins.tinymceplugin"
+      ],
+      "pass_condition": "Плагин включён: ('tinymceplugin',)",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: TinyMCE: включен",
+      "kind": "plugin",
+      "setting_keys": [],
+      "plugin_keys": [
+        "tinymceplugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": true,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "MODULES_WEBFEED",
+      "checklist_id": "modules.webfeed",
+      "name": "Новостная лента выпуска: включен (страницы выпуска / текущий выпуск)",
+      "json_paths": [
+        "plugins.webfeedplugin"
+      ],
+      "pass_condition": "Выполнено по kind=webfeed_plugin",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: Новостная лента выпуска: включен (страницы выпуска / текущий выпуск)",
+      "kind": "webfeed_plugin",
+      "setting_keys": [],
+      "plugin_keys": [
+        "webfeedplugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "MODULES_FUNDREF",
+      "checklist_id": "modules.fundref",
+      "name": "FundRef: включен, база организаций обновлена",
+      "json_paths": [
+        "plugins.fundrefplugin"
+      ],
+      "pass_condition": "Плагин включён: ('fundrefplugin',)",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "Обновление базы организаций по .data проверить нельзя → отдельный cannot_determine не штрафует enabled",
+      "editorial_message": "Исправить: FundRef: включен, база организаций обновлена",
+      "kind": "plugin",
+      "setting_keys": [],
+      "plugin_keys": [
+        "fundrefplugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": true,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "MODULES_ACRON",
+      "checklist_id": "modules.acron",
+      "name": "ACRON: включен (администратор)",
+      "json_paths": [
+        "plugins.acronPlugin",
+        "plugins.acronplugin"
+      ],
+      "pass_condition": "Плагин включён: ('acronPlugin', 'acronplugin')",
+      "severity": "warning",
+      "checklist_severity": "recommended",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: ACRON: включен (администратор)",
+      "kind": "plugin",
+      "setting_keys": [],
+      "plugin_keys": [
+        "acronPlugin",
+        "acronplugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": true,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "MODULES_EXTRA_OFF",
+      "checklist_id": "modules.extra_off",
+      "name": "Остальные основные модули: выключены",
+      "json_paths": [
+        "kind:extra_generic_plugins"
+      ],
+      "pass_condition": "Выполнено по kind=extra_generic_plugins",
+      "severity": "warning",
+      "checklist_severity": "recommended",
+      "applies_to_all_journals": true,
+      "exceptions": "Отмечать лишние модули (не игнорировать)",
+      "editorial_message": "Исправить: Остальные основные модули: выключены",
+      "kind": "extra_generic_plugins",
+      "setting_keys": [],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "METRICS_DIMENSIONS",
+      "checklist_id": "metrics.dimensions",
+      "name": "Dimensions: включен, если у журнала есть DOI",
+      "json_paths": [
+        "plugins.dimensionsplugin"
+      ],
+      "pass_condition": "При выполнении условия has_doi: плагин включён",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": false,
+      "exceptions": "Только если DOI включён и указан doiPrefix",
+      "editorial_message": "Исправить: Dimensions: включен, если у журнала есть DOI",
+      "kind": "plugin_conditional",
+      "setting_keys": [],
+      "plugin_keys": [
+        "dimensionsplugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": true,
+      "condition": "has_doi",
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "METRICS_PLUMX",
+      "checklist_id": "metrics.plumx",
+      "name": "PlumX: включен, если журнал в Scopus",
+      "json_paths": [
+        "plugins.plumxplugin"
+      ],
+      "pass_condition": "При выполнении условия in_scopus: плагин включён",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": false,
+      "exceptions": "Только если журнал в Scopus; признак в .data часто отсутствует → cannot_determine",
+      "editorial_message": "Исправить: PlumX: включен, если журнал в Scopus",
+      "kind": "plugin_conditional",
+      "setting_keys": [],
+      "plugin_keys": [
+        "plumxplugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": true,
+      "condition": "in_scopus",
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "METRICS_CITEDBY",
+      "checklist_id": "metrics.citedby",
+      "name": "Cited-by: включен, если у журнала есть DOI",
+      "json_paths": [
+        "plugins.crossrefcitedbyplugin"
+      ],
+      "pass_condition": "При выполнении условия has_doi: плагин включён",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": false,
+      "exceptions": "Только если DOI включён и указан doiPrefix",
+      "editorial_message": "Исправить: Cited-by: включен, если у журнала есть DOI",
+      "kind": "plugin_conditional",
+      "setting_keys": [],
+      "plugin_keys": [
+        "crossrefcitedbyplugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": true,
+      "condition": "has_doi",
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "METRICS_ALM",
+      "checklist_id": "metrics.alm",
+      "name": "ALM: включен",
+      "json_paths": [
+        "plugins.almplugin"
+      ],
+      "pass_condition": "Плагин включён: ('almplugin',)",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: ALM: включен",
+      "kind": "plugin",
+      "setting_keys": [],
+      "plugin_keys": [
+        "almplugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": true,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "METRICS_ALTMETRICS",
+      "checklist_id": "metrics.altmetrics",
+      "name": "Altmetrics: выключен",
+      "json_paths": [
+        "plugins.altmetricsplugin"
+      ],
+      "pass_condition": "Плагин выключен/отсутствует: ('altmetricsplugin',)",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: Altmetrics: выключен",
+      "kind": "plugin",
+      "setting_keys": [],
+      "plugin_keys": [
+        "altmetricsplugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": false,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "METRICS_PUBLONS",
+      "checklist_id": "metrics.publons",
+      "name": "Publons: выключен",
+      "json_paths": [
+        "plugins.PublonsPlugin",
+        "plugins.publonsbadgeplugin",
+        "plugins.PublonsReviewerConnectPlugin"
+      ],
+      "pass_condition": "Плагин выключен/отсутствует: ('PublonsPlugin', 'publonsbadgeplugin', 'PublonsReviewerConnectPlugin')",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: Publons: выключен",
+      "kind": "plugin",
+      "setting_keys": [],
+      "plugin_keys": [
+        "PublonsPlugin",
+        "publonsbadgeplugin",
+        "PublonsReviewerConnectPlugin"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": false,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP1_TITLE",
+      "checklist_id": "step1.title",
+      "name": "1.1 Название (RU/EN)",
+      "json_paths": [
+        "settings.title"
+      ],
+      "pass_condition": "Непустой текст (после очистки HTML) по ключам ('title',) для локалей ('ru', 'en')",
+      "severity": "critical",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 1.1 Название (RU/EN)",
+      "kind": "setting_text",
+      "setting_keys": [
+        "title"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP1_INITIALS",
+      "checklist_id": "step1.initials",
+      "name": "1.1 Инициалы (RU/EN)",
+      "json_paths": [
+        "settings.initials"
+      ],
+      "pass_condition": "Непустой текст (после очистки HTML) по ключам ('initials',) для локалей ('ru', 'en')",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 1.1 Инициалы (RU/EN)",
+      "kind": "setting_text",
+      "setting_keys": [
+        "initials"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP1_ABBREVIATION",
+      "checklist_id": "step1.abbreviation",
+      "name": "1.1 Сокращённое название (RU/EN)",
+      "json_paths": [
+        "settings.abbreviation"
+      ],
+      "pass_condition": "Непустой текст (после очистки HTML) по ключам ('abbreviation',) для локалей ('ru', 'en')",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 1.1 Сокращённое название (RU/EN)",
+      "kind": "setting_text",
+      "setting_keys": [
+        "abbreviation"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP1_ISSN",
+      "checklist_id": "step1.issn",
+      "name": "1.1 ISSN (печатный и/или онлайн)",
+      "json_paths": [
+        "settings.printIssn",
+        "settings.onlineIssn"
+      ],
+      "pass_condition": "Непустой текст (после очистки HTML) по ключам ('printIssn', 'onlineIssn') для локалей scalar",
+      "severity": "critical",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 1.1 ISSN (печатный и/или онлайн)",
+      "kind": "setting_text",
+      "setting_keys": [
+        "printIssn",
+        "onlineIssn"
+      ],
+      "plugin_keys": [],
+      "locales": [],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP1_ELIBRARY",
+      "checklist_id": "step1.elibrary",
+      "name": "1.1 ID eLibrary",
+      "json_paths": [
+        "settings.elibraryId"
+      ],
+      "pass_condition": "Непустой текст (после очистки HTML) по ключам ('elibraryId',) для локалей scalar",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 1.1 ID eLibrary",
+      "kind": "setting_text",
+      "setting_keys": [
+        "elibraryId"
+      ],
+      "plugin_keys": [],
+      "locales": [],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP1_MAILING",
+      "checklist_id": "step1.mailing",
+      "name": "1.1 Почтовый адрес и карта (RU/EN)",
+      "json_paths": [
+        "settings.mailingAddress"
+      ],
+      "pass_condition": "mailingAddress RU+EN непустой",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 1.1 Почтовый адрес и карта (RU/EN)",
+      "kind": "map_address",
+      "setting_keys": [
+        "mailingAddress"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP1_BOARD",
+      "checklist_id": "step1.board",
+      "name": "1.2 Редакция: отображается по образцу",
+      "json_paths": [
+        "settings.boardCustomText"
+      ],
+      "pass_condition": "boardCustomText RU и EN ≥ 40 символов текста",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 1.2 Редакция: отображается по образцу",
+      "kind": "board",
+      "setting_keys": [
+        "boardCustomText"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP1_SUPPORT",
+      "checklist_id": "step1.support",
+      "name": "1.3 Техническая поддержка: имя и e-mail",
+      "json_paths": [
+        "settings.supportName",
+        "settings.supportEmail"
+      ],
+      "pass_condition": "Непустой текст (после очистки HTML) по ключам ('supportName', 'supportEmail') для локалей ('ru', 'en')",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 1.3 Техническая поддержка: имя и e-mail",
+      "kind": "setting_text",
+      "setting_keys": [
+        "supportName",
+        "supportEmail"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP1_EMAIL",
+      "checklist_id": "step1.email",
+      "name": "1.4 Исходящая почта: заполнена или глобальные настройки сайта",
+      "json_paths": [
+        "kind:email_outgoing"
+      ],
+      "pass_condition": "Выполнено по kind=email_outgoing",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 1.4 Исходящая почта: заполнена или глобальные настройки сайта",
+      "kind": "email_outgoing",
+      "setting_keys": [],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP1_PUBLISHER",
+      "checklist_id": "step1.publisher",
+      "name": "1.5 Издатель",
+      "json_paths": [
+        "settings.publisherInstitution",
+        "settings.publisherNote"
+      ],
+      "pass_condition": "Непустой текст (после очистки HTML) по ключам ('publisherInstitution', 'publisherNote') для локалей ('ru', 'en')",
+      "severity": "critical",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 1.5 Издатель",
+      "kind": "setting_text",
+      "setting_keys": [
+        "publisherInstitution",
+        "publisherNote"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP1_SPONSORS",
+      "checklist_id": "step1.sponsors",
+      "name": "1.6 Спонсоры: не заполнено или заполнено корректно",
+      "json_paths": [
+        "settings.sponsors",
+        "settings.contributorNote"
+      ],
+      "pass_condition": "Выполнено по kind=setting_present_or_empty_ok",
+      "severity": "info",
+      "checklist_severity": "info",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 1.6 Спонсоры: не заполнено или заполнено корректно",
+      "kind": "setting_present_or_empty_ok",
+      "setting_keys": [
+        "sponsors",
+        "contributorNote"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP1_FUNDING",
+      "checklist_id": "step1.funding",
+      "name": "1.7 Финансовая поддержка: не заполнено или заполнено корректно",
+      "json_paths": [
+        "settings.contributors",
+        "settings.contributorNote"
+      ],
+      "pass_condition": "Выполнено по kind=setting_present_or_empty_ok",
+      "severity": "info",
+      "checklist_severity": "info",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 1.7 Финансовая поддержка: не заполнено или заполнено корректно",
+      "kind": "setting_present_or_empty_ok",
+      "setting_keys": [
+        "contributors",
+        "contributorNote"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP1_INDEXING_KW",
+      "checklist_id": "step1.indexing_kw",
+      "name": "1.8 Индексация / ключевые слова (через запятую)",
+      "json_paths": [
+        "settings.searchKeywords"
+      ],
+      "pass_condition": "Непустой текст (после очистки HTML) по ключам ('searchKeywords',) для локалей ('ru', 'en')",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 1.8 Индексация / ключевые слова (через запятую)",
+      "kind": "setting_text",
+      "setting_keys": [
+        "searchKeywords"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 3,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP1_HISTORY",
+      "checklist_id": "step1.history",
+      "name": "1.9 История журнала: заполнена или пусто",
+      "json_paths": [
+        "settings.history"
+      ],
+      "pass_condition": "Выполнено по kind=setting_present_or_empty_ok",
+      "severity": "info",
+      "checklist_severity": "info",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 1.9 История журнала: заполнена или пусто",
+      "kind": "setting_present_or_empty_ok",
+      "setting_keys": [
+        "history"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP2_FOCUS",
+      "checklist_id": "step2.focus",
+      "name": "2.1 Предметная область и цели журнала",
+      "json_paths": [
+        "settings.focusAndScope",
+        "settings.focusScopeDesc"
+      ],
+      "pass_condition": "focusAndScope или focusScopeDesc или customAbout с тематикой ≥ 40 символов",
+      "severity": "critical",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 2.1 Предметная область и цели журнала",
+      "kind": "custom_about",
+      "setting_keys": [
+        "focusAndScope",
+        "focusScopeDesc"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP2_REVIEW",
+      "checklist_id": "step2.review",
+      "name": "2.2 Принципы рецензирования",
+      "json_paths": [
+        "settings.reviewPolicy"
+      ],
+      "pass_condition": "Непустой текст (после очистки HTML) по ключам ('reviewPolicy',) для локалей ('ru', 'en')",
+      "severity": "critical",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 2.2 Принципы рецензирования",
+      "kind": "setting_text",
+      "setting_keys": [
+        "reviewPolicy"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 40,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP3_GUIDELINES",
+      "checklist_id": "step3.guidelines",
+      "name": "3.2 Правила для авторов",
+      "json_paths": [
+        "settings.authorGuidelines"
+      ],
+      "pass_condition": "Непустой текст (после очистки HTML) по ключам ('authorGuidelines',) для локалей ('ru', 'en')",
+      "severity": "critical",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 3.2 Правила для авторов",
+      "kind": "setting_text",
+      "setting_keys": [
+        "authorGuidelines"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 40,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP3_CHECKLIST",
+      "checklist_id": "step3.checklist",
+      "name": "3.2 Список требований к статьям (пункты)",
+      "json_paths": [
+        "kind:submission_checklist"
+      ],
+      "pass_condition": "submissionChecklist с пунктами на RU и EN",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 3.2 Список требований к статьям (пункты)",
+      "kind": "submission_checklist",
+      "setting_keys": [],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP3_COPYRIGHT",
+      "checklist_id": "step3.copyright",
+      "name": "3.3 Условия использования: правообладатель и лицензия",
+      "json_paths": [
+        "settings.copyrightNotice",
+        "settings.copyrightHolderType",
+        "settings.licenseURL"
+      ],
+      "pass_condition": "copyrightNotice RU+EN, holder, licenseURL/лицензия; отсутствие только licenseURL при заполненном тексте → partial",
+      "severity": "critical",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 3.3 Условия использования: правообладатель и лицензия",
+      "kind": "copyright_license",
+      "setting_keys": [
+        "copyrightNotice",
+        "copyrightHolderType",
+        "licenseURL"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP3_SUBMISSION_ACK",
+      "checklist_id": "step3.submission_ack",
+      "name": "3.7 Уведомление о подаче рукописи",
+      "json_paths": [
+        "settings.copySubmissionAckPrimaryContact",
+        "settings.copySubmissionAckSpecified"
+      ],
+      "pass_condition": "Выполнено по kind=setting_bool",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 3.7 Уведомление о подаче рукописи",
+      "kind": "setting_bool",
+      "setting_keys": [
+        "copySubmissionAckPrimaryContact",
+        "copySubmissionAckSpecified"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP4_ACCESS",
+      "checklist_id": "step4.access",
+      "name": "4.1 Доступ и роли регистрации",
+      "json_paths": [
+        "settings.allowRegAuthor",
+        "settings.allowRegReader",
+        "settings.allowRegReviewer",
+        "settings.disableUserReg"
+      ],
+      "pass_condition": "Выполнено по kind=setting_bool",
+      "severity": "info",
+      "checklist_severity": "info",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Подсказка: сверьте роли регистрации вручную",
+      "kind": "setting_bool",
+      "setting_keys": [
+        "allowRegAuthor",
+        "allowRegReader",
+        "allowRegReviewer",
+        "disableUserReg"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP4_LIBRARY",
+      "checklist_id": "step4.library",
+      "name": "4.1 Режим библиотеки: если включён — указан URL",
+      "json_paths": [
+        "kind:library_mode"
+      ],
+      "pass_condition": "Выполнено по kind=library_mode",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 4.1 Режим библиотеки: если включён — указан URL",
+      "kind": "library_mode",
+      "setting_keys": [],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP4_ISSUE_ID",
+      "checklist_id": "step4.issue_id",
+      "name": "4.2 Формат идентификации выпусков",
+      "json_paths": [
+        "kind:issue_identification"
+      ],
+      "pass_condition": "Выполнено по kind=issue_identification",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 4.2 Формат идентификации выпусков",
+      "kind": "issue_identification",
+      "setting_keys": [],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP4_PAGINATION",
+      "checklist_id": "step4.pagination",
+      "name": "4.3 Пагинация: включена",
+      "json_paths": [
+        "settings.enablePageNumber"
+      ],
+      "pass_condition": "Выполнено по kind=setting_bool",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 4.3 Пагинация: включена",
+      "kind": "setting_bool",
+      "setting_keys": [
+        "enablePageNumber"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP5_HOME_HEADER",
+      "checklist_id": "step5.home_header",
+      "name": "5.1 Верхний колонтитул главной: название",
+      "json_paths": [
+        "settings.homeHeaderTitle"
+      ],
+      "pass_condition": "Непустой текст (после очистки HTML) по ключам ('homeHeaderTitle',) для локалей ('ru', 'en')",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 5.1 Верхний колонтитул главной: название",
+      "kind": "setting_text",
+      "setting_keys": [
+        "homeHeaderTitle"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP5_THUMBNAIL",
+      "checklist_id": "step5.thumbnail",
+      "name": "5.1 Миниатюра загружена",
+      "json_paths": [
+        "settings.journalThumbnail"
+      ],
+      "pass_condition": "Непустой текст (после очистки HTML) по ключам ('journalThumbnail',) для локалей ('ru', 'en')",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 5.1 Миниатюра загружена",
+      "kind": "setting_text",
+      "setting_keys": [
+        "journalThumbnail"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP5_DESCRIPTION",
+      "checklist_id": "step5.description",
+      "name": "5.2 Описание журнала на главной",
+      "json_paths": [
+        "settings.description"
+      ],
+      "pass_condition": "Непустой текст (после очистки HTML) по ключам ('description',) для локалей ('ru', 'en')",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 5.2 Описание журнала на главной",
+      "kind": "setting_text",
+      "setting_keys": [
+        "description"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 40,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP5_COVER",
+      "checklist_id": "step5.cover",
+      "name": "5.2 Обложка загружена",
+      "json_paths": [
+        "settings.homepageImage"
+      ],
+      "pass_condition": "Непустой текст (после очистки HTML) по ключам ('homepageImage',) для локалей ('ru', 'en')",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 5.2 Обложка загружена",
+      "kind": "setting_text",
+      "setting_keys": [
+        "homepageImage"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP5_CURRENT_ISSUE",
+      "checklist_id": "step5.current_issue",
+      "name": "5.2 Текущий выпуск отображается",
+      "json_paths": [
+        "settings.displayCurrentIssue"
+      ],
+      "pass_condition": "Выполнено по kind=setting_bool",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 5.2 Текущий выпуск отображается",
+      "kind": "setting_bool",
+      "setting_keys": [
+        "displayCurrentIssue"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP5_ADDITIONAL",
+      "checklist_id": "step5.additional",
+      "name": "5.2 Дополнительное содержание",
+      "json_paths": [
+        "settings.additionalHomeContent"
+      ],
+      "pass_condition": "Непустой текст (после очистки HTML) по ключам ('additionalHomeContent',) для локалей ('ru', 'en')",
+      "severity": "warning",
+      "checklist_severity": "recommended",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 5.2 Дополнительное содержание",
+      "kind": "setting_text",
+      "setting_keys": [
+        "additionalHomeContent"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 10,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP5_PAGE_HEADER",
+      "checklist_id": "step5.page_header",
+      "name": "5.3 Колонтитул всех страниц: название",
+      "json_paths": [
+        "settings.pageHeaderTitle"
+      ],
+      "pass_condition": "Непустой текст (после очистки HTML) по ключам ('pageHeaderTitle',) для локалей ('ru', 'en')",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 5.3 Колонтитул всех страниц: название",
+      "kind": "setting_text",
+      "setting_keys": [
+        "pageHeaderTitle"
+      ],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    },
+    {
+      "rule_id": "STEP5_DATES",
+      "checklist_id": "step5.dates",
+      "name": "5.9 Даты: выбраны к отображению",
+      "json_paths": [
+        "kind:dates_display"
+      ],
+      "pass_condition": "Хотя бы один display*Date включён",
+      "severity": "error",
+      "checklist_severity": "required",
+      "applies_to_all_journals": true,
+      "exceptions": "",
+      "editorial_message": "Исправить: 5.9 Даты: выбраны к отображению",
+      "kind": "dates_display",
+      "setting_keys": [],
+      "plugin_keys": [],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "expect_enabled": null,
+      "condition": null,
+      "min_chars": 1,
+      "computation": "independent_eval.eval_item"
+    }
+  ]
+}
