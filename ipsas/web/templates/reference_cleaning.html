@@ -21,6 +21,7 @@
         action="{{ url_for('reference_cleaning.process_reference_cleaning') }}"
         enctype="multipart/form-data"
         data-loading-form>
+    {{ csrf_field() }}
     {{ file_upload(name='xml_file', input_id='xml_file', accept='.xml', label='XML-файл') }}
     <div class="btn-row">
       <button type="submit" class="btn btn-primary" data-submit-btn data-loading-text="Очистка…" disabled>

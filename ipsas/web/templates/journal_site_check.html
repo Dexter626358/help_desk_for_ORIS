@@ -23,6 +23,7 @@
         enctype="multipart/form-data"
         novalidate
         data-loading-form>
+    {{ csrf_field() }}
     {{ file_upload(
       name='data_file',
       input_id='data_file',

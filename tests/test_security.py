@@ -133,10 +133,16 @@ def test_standalone_html_escapes_xss():
 
 
 def test_health_endpoints():
+    from ipsas.config.settings import reset_settings
     from ipsas.web.app import create_app
 
-    app = create_app()
+    reset_settings()
+    app = create_app(testing=True)
     client = app.test_client()
+    resp = client.get("/health")
+    assert resp.status_code == 200
+    assert resp.get_json() == {"status": "ok", "service": "ipsas"}
     assert client.get("/health/live").status_code == 200
     ready = client.get("/health/ready")
     assert ready.status_code in (200, 503)
+    assert "temp_dir" not in (ready.get_json() or {})

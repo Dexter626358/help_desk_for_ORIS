@@ -131,8 +131,16 @@ secrets.json
 # Временная директория для обработки файлов
 temp/
 
+# Runtime data (загрузки/кэш на сервере)
+data/
+
 # Экспорты настроек журналов (локальные .data)
 ras_settings/
+
+# Локальные env
+.env
+.env.*
+!.env.example
 
 # Обработанные файлы
 *_processed.xml
@@ -141,3 +149,4 @@ ras_settings/
 # Загруженные пользователями XML файлы (кроме схем)
 *.xml
 !schemas/**/*.xml
+.data

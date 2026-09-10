@@ -9,8 +9,8 @@ main_bp = Blueprint("main", __name__, template_folder="templates")
 
 @main_bp.route("/health")
 def health():
-    """Проверка готовности для Railway и балансировщика."""
-    return jsonify(status="ok"), 200
+    """Проверка готовности для балансировщика / оркестратора."""
+    return jsonify(status="ok", service="ipsas"), 200
 
 
 @main_bp.route("/")

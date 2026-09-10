@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import xml.etree.ElementTree as ET
+from pathlib import Path
+
 from lxml import etree
 
 
@@ -24,3 +27,18 @@ def create_secure_parser(
         load_dtd=False,
         huge_tree=huge_tree,
     )
+
+
+def parse_xml_file_elementtree(
+    path: str | Path,
+    *,
+    huge_tree: bool = True,
+) -> ET.ElementTree:
+    """Разобрать файл через безопасный lxml и вернуть ``xml.etree.ElementTree``."""
+    parser = create_secure_parser(huge_tree=huge_tree)
+    try:
+        root = etree.parse(str(path), parser=parser).getroot()
+    except etree.XMLSyntaxError as e:
+        raise ET.ParseError(str(e)) from e
+    # Round-trip без DTD/entities — совместимость с существующим ET-кодом
+    return ET.ElementTree(ET.fromstring(etree.tostring(root, encoding="unicode")))

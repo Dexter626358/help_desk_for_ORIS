@@ -95,11 +95,11 @@ def process_journal_site_check():
             data_filename=data_filename,
         )
     except ValueError as e:
-        flash(str(e), "error")
+        flash("Не удалось выполнить проверку. Подробности в журнале сервера.", "error")
         return redirect(url_for("journal_site_check.journal_site_check_page"))
     except Exception as e:
         logger.error("Ошибка проверки настроек журнала: %s", e, exc_info=True)
-        flash(f"Ошибка проверки настроек: {e}", "error")
+        flash("Ошибка проверки настроек журнала.", "error")
         return redirect(url_for("journal_site_check.journal_site_check_page"))
 
     elapsed = time.perf_counter() - t0

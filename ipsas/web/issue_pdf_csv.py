@@ -90,7 +90,7 @@ def process_issue_pdf_csv():
         )
     except Exception as exc:
         logger.error("Ошибка формирования CSV выпуска: %s", exc, exc_info=True)
-        flash(f"Ошибка формирования CSV: {exc}", "error")
+        flash("Ошибка формирования CSV.", "error")
         return redirect(url_for("issue_pdf_csv.issue_pdf_csv_page"))
     finally:
         try:

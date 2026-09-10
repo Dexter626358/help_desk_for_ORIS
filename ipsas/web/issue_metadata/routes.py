@@ -177,7 +177,7 @@ def process_issue_metadata():
         )
     except Exception as exc:
         logger.error("Ошибка парсинга выпуска: %s", exc, exc_info=True)
-        flash(f"Ошибка при парсинге: {exc}", "error")
+        flash("Ошибка при разборе выпуска. Проверьте ссылку и повторите попытку.", "error")
         release_inflight(user_key=user_key, issue_url=issue_url)
         return redirect(url_for("issue_metadata.issue_metadata_page"))
 
@@ -246,7 +246,7 @@ def issue_metadata_task_result(task_id: str):
     if status == "error":
         err = task.get("error") or "Неизвестная ошибка"
         task_pop(task_id)
-        flash(f"Ошибка при парсинге: {err}", "error")
+        flash("Ошибка при разборе выпуска.", "error")
         return redirect(url_for("issue_metadata.issue_metadata_page"))
 
     result = task.get("result")

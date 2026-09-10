@@ -9,6 +9,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from ipsas.common.xml_secure import parse_xml_file_elementtree
 from ipsas.modules.journal_xml.text_utils import (
     extract_first_last_words,
     sort_articles_by_pages,
@@ -53,7 +54,7 @@ def get_issue_info(xml_file: Path) -> Dict[str, Any]:
         Dict: Информация о выпуске
     """
     try:
-        tree = ET.parse(xml_file)
+        tree = parse_xml_file_elementtree(xml_file)
         root = tree.getroot()
         
         issue_info = {}
@@ -150,7 +151,7 @@ def get_articles_info(
     try:
         xml_path = Path(xml_file)
         if root is None:
-            tree = ET.parse(xml_path)
+            tree = parse_xml_file_elementtree(xml_path)
             root = tree.getroot()
 
         def _norm_lang(raw: str | None) -> str:

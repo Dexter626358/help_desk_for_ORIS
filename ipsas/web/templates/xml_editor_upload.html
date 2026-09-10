@@ -27,6 +27,7 @@
         enctype="multipart/form-data"
         id="upload-form"
         data-loading-form>
+    {{ csrf_field() }}
     <div class="upload-dropzone" id="dropzone">
       <p class="mb-2" style="font-weight:600;margin:0 0 0.5rem;">Перетащите XML сюда или выберите файл</p>
       <p class="muted" style="margin:0 0 1rem;">Только <code>.xml</code>, до {{ max_mb }} МБ. Временные файлы удаляются после закрытия сессии или через 24 часа.</p>

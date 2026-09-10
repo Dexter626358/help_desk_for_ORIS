@@ -42,8 +42,14 @@ class HttpClient:
 
     @classmethod
     def from_env(cls, *, max_bytes: int = 0) -> "HttpClient":
-        timeout_s = int(os.getenv("ISSUE_PARSER_HTTP_TIMEOUT", "30"))
-        retries = int(os.getenv("ISSUE_PARSER_HTTP_RETRIES", "3"))
+        timeout_s = int(
+            os.getenv("REQUEST_TIMEOUT")
+            or os.getenv("ISSUE_PARSER_HTTP_TIMEOUT", "30")
+        )
+        retries = int(
+            os.getenv("REQUEST_MAX_RETRIES")
+            or os.getenv("ISSUE_PARSER_HTTP_RETRIES", "3")
+        )
         backoff_s = float(os.getenv("ISSUE_PARSER_HTTP_BACKOFF", "0.8"))
         issue_timeout_s = int(os.getenv("ISSUE_PARSER_ISSUE_TIMEOUT", str(max(timeout_s, 60))))
         issue_retries = int(os.getenv("ISSUE_PARSER_ISSUE_RETRIES", str(max(retries, 4))))
@@ -114,7 +120,7 @@ class HttpClient:
         retries: Optional[int] = None,
     ) -> bytes:
         """Скачать URL в память (bytes) с ретраями и лимитом размера."""
-        from ipsas.common.ssrf import UnsafeUrlError, assert_safe_fetch_url
+        from ipsas.common.ssrf import UnsafeUrlError, assert_safe_fetch_url, urlopen_safe
 
         try:
             assert_safe_fetch_url(url)
@@ -143,7 +149,7 @@ class HttpClient:
                 url,
             )
             try:
-                with urllib.request.urlopen(req, timeout=effective_timeout) as response:
+                with urlopen_safe(req, timeout=effective_timeout) as response:
                     logger.info(
                         "HTTP fetch ok in %.2fs: %s",
                         time.monotonic() - t0,
@@ -154,6 +160,8 @@ class HttpClient:
                         limit_bytes=int(self.max_bytes or 0),
                         read_timeout_s=float(effective_timeout),
                     )
+            except UnsafeUrlError as e:
+                raise ValueError(str(e)) from e
             except (TimeoutError, socket.timeout) as e:
                 last_exc = e
                 logger.warning(
@@ -192,7 +200,7 @@ class HttpClient:
         retries: Optional[int] = None,
     ) -> Tuple[bytes, Optional[str]]:
         """Скачать URL и вернуть (bytes, Content-Type)."""
-        from ipsas.common.ssrf import UnsafeUrlError, assert_safe_fetch_url
+        from ipsas.common.ssrf import UnsafeUrlError, assert_safe_fetch_url, urlopen_safe
 
         try:
             assert_safe_fetch_url(url)
@@ -221,7 +229,7 @@ class HttpClient:
                 url,
             )
             try:
-                with urllib.request.urlopen(req, timeout=effective_timeout) as response:
+                with urlopen_safe(req, timeout=effective_timeout) as response:
                     content_type = response.headers.get("Content-Type")
                     body = HttpClient.read_response_limited(
                         response,
@@ -236,6 +244,8 @@ class HttpClient:
                         len(body),
                     )
                     return body, content_type
+            except UnsafeUrlError as e:
+                raise ValueError(str(e)) from e
             except (TimeoutError, socket.timeout) as e:
                 last_exc = e
                 logger.warning(

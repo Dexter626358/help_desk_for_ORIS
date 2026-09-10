@@ -64,7 +64,7 @@ def process_references():
         )
     except Exception as e:
         logger.error("Ошибка при обработке XML: %s", e)
-        flash(f"Ошибка при обработке файла: {e}", "error")
+        flash("Ошибка при обработке файла.", "error")
         return redirect_cleanup(temp_path)
 
 

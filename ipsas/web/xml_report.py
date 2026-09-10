@@ -62,7 +62,7 @@ def download_report(filename: str):
         html_bytes = report_temp_path.read_bytes()
     except Exception as e:
         logger.error("Ошибка ленивой генерации HTML: %s", e)
-        flash(f"Не удалось сформировать HTML-отчёт: {e}", "error")
+        flash("Не удалось сформировать HTML-отчёт.", "error")
         return redirect(url_for("xml_validation.xml_validator_page"))
     finally:
         _unlink_quiet(report_temp_path)

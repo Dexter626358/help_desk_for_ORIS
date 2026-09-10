@@ -2,7 +2,7 @@ from ipsas.web.app import create_app
 
 
 def test_xml_report_redirects_to_validator():
-    app = create_app()
+    app = create_app(testing=True)
     client = app.test_client()
     response = client.get("/services/xml-report", follow_redirects=False)
     assert response.status_code == 302
@@ -10,7 +10,7 @@ def test_xml_report_redirects_to_validator():
 
 
 def test_xml_validator_page_combined():
-    app = create_app()
+    app = create_app(testing=True)
     client = app.test_client()
     response = client.get("/services/xml-validator")
     assert response.status_code == 200

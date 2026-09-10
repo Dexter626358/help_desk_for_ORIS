@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from ipsas.common.xml_secure import parse_xml_file_elementtree
 from ipsas.modules.journal_xml.parser import get_articles_info
 from ipsas.modules.journal_xml.text_utils import (
     extract_first_last_words,
@@ -298,7 +299,7 @@ def analyze_journal_xml(xml_path: Path) -> dict[str, Any]:
         raise FileNotFoundError(f"XML файл не найден: {xml_path}")
 
     try:
-        tree = ET.parse(xml_path)
+        tree = parse_xml_file_elementtree(xml_path)
         root = tree.getroot()
     except ET.ParseError as e:
         raise ValueError(f"Некорректный XML: {e}") from e

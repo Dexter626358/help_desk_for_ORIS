@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import uuid
 
 from flask import Flask, flash, g, jsonify, redirect, request, url_for
@@ -11,23 +12,44 @@ from ipsas.config.settings import get_settings
 from ipsas.utils.logger import setup_logger
 
 
-def create_app() -> Flask:
+def create_app(*, testing: bool = False) -> Flask:
     """Создание и настройка Flask приложения."""
     app = Flask(
         __name__,
         static_folder="static",
         template_folder="templates",
     )
+    if testing:
+        app.config["TESTING"] = True
+        os.environ.setdefault("IPSAS_ENV", "development")
+
     settings = get_settings()
 
     app.config["SECRET_KEY"] = settings.secret_key
     app.config["MAX_CONTENT_LENGTH"] = settings.max_content_length
+    app.config["SESSION_COOKIE_SECURE"] = settings.session_cookie_secure
+    app.config["SESSION_COOKIE_HTTPONLY"] = settings.session_cookie_httponly
+    app.config["SESSION_COOKIE_SAMESITE"] = settings.session_cookie_samesite
+    app.config["WTF_CSRF_ENABLED"] = not (
+        testing
+        or app.config.get("TESTING")
+        or os.getenv("IPSAS_DISABLE_CSRF", "").strip() in {"1", "true", "yes"}
+    )
+    app.config["WTF_CSRF_TIME_LIMIT"] = None
 
     logger = setup_logger(
         log_file=settings.log_file,
         log_level=settings.log_level,
     )
     app.logger = logger
+
+    try:
+        from flask_wtf.csrf import CSRFProtect
+
+        csrf = CSRFProtect(app)
+        app.extensions["csrf"] = csrf
+    except ImportError:
+        logger.warning("Flask-WTF not installed; CSRF protection disabled")
 
     from ipsas.web.routes import main_bp
     from ipsas.web.xml_validation import xml_validation_bp
@@ -71,8 +93,11 @@ def create_app() -> Flask:
         # Лёгкие API статуса не считаем «тяжёлой» операцией
         if path.rstrip("/").endswith("/status") or "/download/" in path:
             return None
-        client = request.headers.get("X-Forwarded-For", request.remote_addr or "unknown")
-        client_key = client.split(",")[0].strip()
+        if settings.trust_proxy_headers:
+            client = request.headers.get("X-Forwarded-For", request.remote_addr or "unknown")
+            client_key = client.split(",")[0].strip()
+        else:
+            client_key = request.remote_addr or "unknown"
         decision = guard.try_acquire(client_key)
         if not decision.allowed:
             logger.warning(
@@ -97,7 +122,7 @@ def create_app() -> Flask:
 
     @app.get("/health/live")
     def health_live():
-        return jsonify({"status": "ok"}), 200
+        return jsonify({"status": "ok", "service": "ipsas"}), 200
 
     @app.get("/health/ready")
     def health_ready():
@@ -106,33 +131,52 @@ def create_app() -> Flask:
         return jsonify(
             {
                 "status": "ok" if ready else "not_ready",
-                "temp_dir": str(settings.temp_dir),
-                "schemas_dir": str(settings.schemas_dir),
-                "environment": settings.environment,
+                "service": "ipsas",
+                "temp_ok": settings.temp_dir.exists(),
+                "schemas_ok": settings.schemas_dir.exists(),
             }
         ), code
 
     @app.errorhandler(InvalidUploadError)
     def handle_invalid_upload(error: InvalidUploadError):
-        flash(str(error), "error")
+        flash("Некорректный файл для загрузки.", "error")
         return redirect(request.referrer or url_for("main.dashboard"), code=400)
 
     @app.errorhandler(UnsafeRemoteUrlError)
     def handle_unsafe_url(error: UnsafeRemoteUrlError):
-        flash(str(error), "error")
+        flash("Указанный URL отклонён политикой безопасности.", "error")
         return redirect(request.referrer or url_for("main.dashboard"), code=400)
 
     @app.errorhandler(IpsasError)
     def handle_ipsas_error(error: IpsasError):
         rid = getattr(g, "request_id", "-")
         logger.error("request_id=%s ipsas_error=%s", rid, error)
-        flash(str(error), "error")
+        flash("Ошибка обработки запроса. Повторите попытку или обратитесь к администратору.", "error")
         return redirect(request.referrer or url_for("main.dashboard"), code=400)
 
     @app.errorhandler(413)
     def handle_too_large(_error):
         flash("Файл слишком большой для загрузки.", "error")
         return redirect(request.referrer or url_for("main.dashboard"), code=413)
+
+    @app.errorhandler(400)
+    def handle_bad_request(error):
+        # CSRF failures arrive as 400 from Flask-WTF
+        description = getattr(error, "description", "") or ""
+        if "CSRF" in str(description) or "csrf" in str(description).lower():
+            flash("Сессия формы устарела. Обновите страницу и повторите действие.", "error")
+            return redirect(request.referrer or url_for("main.dashboard"), code=400)
+        return error
+
+    @app.errorhandler(403)
+    def handle_forbidden(_error):
+        flash("Доступ запрещён.", "error")
+        return redirect(url_for("main.dashboard"), code=403)
+
+    @app.errorhandler(404)
+    def handle_not_found(_error):
+        flash("Страница не найдена.", "error")
+        return redirect(url_for("main.dashboard"), code=404)
 
     @app.errorhandler(Exception)
     def handle_unexpected(error: Exception):
@@ -150,6 +194,19 @@ def create_app() -> Flask:
         from markupsafe import Markup
         from ipsas.modules.journal_xml.report.standalone import load_standalone_css
 
+        def csrf_field() -> Markup:
+            if not app.config.get("WTF_CSRF_ENABLED"):
+                return Markup("")
+            try:
+                from flask_wtf.csrf import generate_csrf
+
+                token = generate_csrf()
+            except Exception:
+                return Markup("")
+            return Markup(
+                f'<input type="hidden" name="csrf_token" value="{token}">'
+            )
+
         return {
             "max_file_size": settings.max_file_size,
             "app_version": "0.1.0",
@@ -157,6 +214,7 @@ def create_app() -> Flask:
             "app_name": "IPSAS",
             "request_id": getattr(g, "request_id", None),
             "standalone_css": Markup(load_standalone_css()),
+            "csrf_field": csrf_field,
         }
 
     return app

@@ -206,7 +206,7 @@ def upload():
     try:
         tree = parse_xml_bytes(data)
     except ValueError as exc:
-        flash(str(exc), "danger")
+        flash("Ошибка редактора XML. Подробности записаны в журнал сервера.", "danger")
         return redirect(url_for("xml_editor.index"))
 
     structural = validate_tree_has_articles(tree)
@@ -238,7 +238,7 @@ def editor(session_id: str, article_id: str = "0"):
     try:
         _require_session(session_id)
     except (PermissionError, FileNotFoundError, ValueError) as exc:
-        flash(str(exc), "danger")
+        flash("Ошибка редактора XML. Подробности записаны в журнал сервера.", "danger")
         return redirect(url_for("xml_editor.index"))
 
     if not is_safe_article_id(article_id):
@@ -280,7 +280,7 @@ def save_article(session_id: str, article_id: str):
     try:
         _require_session(session_id)
     except (PermissionError, FileNotFoundError, ValueError) as exc:
-        flash(str(exc), "danger")
+        flash("Ошибка редактора XML. Подробности записаны в журнал сервера.", "danger")
         return redirect(url_for("xml_editor.index"))
     if not is_safe_article_id(article_id):
         flash("Некорректный идентификатор статьи", "danger")
@@ -309,7 +309,7 @@ def authors_add(session_id: str, article_id: str):
     try:
         _require_session(session_id)
     except (PermissionError, FileNotFoundError, ValueError) as exc:
-        flash(str(exc), "danger")
+        flash("Ошибка редактора XML. Подробности записаны в журнал сервера.", "danger")
         return redirect(url_for("xml_editor.index"))
     if not is_safe_article_id(article_id):
         flash("Некорректный идентификатор статьи", "danger")
@@ -331,7 +331,7 @@ def authors_delete(session_id: str, article_id: str, author_id: str):
     try:
         _require_session(session_id)
     except (PermissionError, FileNotFoundError, ValueError) as exc:
-        flash(str(exc), "danger")
+        flash("Ошибка редактора XML. Подробности записаны в журнал сервера.", "danger")
         return redirect(url_for("xml_editor.index"))
     if not is_safe_article_id(article_id) or not is_safe_article_id(author_id):
         flash("Некорректный идентификатор", "danger")
@@ -360,7 +360,7 @@ def authors_move(session_id: str, article_id: str, author_id: str):
     try:
         _require_session(session_id)
     except (PermissionError, FileNotFoundError, ValueError) as exc:
-        flash(str(exc), "danger")
+        flash("Ошибка редактора XML. Подробности записаны в журнал сервера.", "danger")
         return redirect(url_for("xml_editor.index"))
     direction = request.form.get("direction", "")
     if direction not in {"up", "down"}:
@@ -387,7 +387,7 @@ def restore_article(session_id: str, article_id: str):
     try:
         _require_session(session_id)
     except (PermissionError, FileNotFoundError, ValueError) as exc:
-        flash(str(exc), "danger")
+        flash("Ошибка редактора XML. Подробности записаны в журнал сервера.", "danger")
         return redirect(url_for("xml_editor.index"))
     if not is_safe_article_id(article_id):
         flash("Некорректный идентификатор статьи", "danger")
@@ -410,7 +410,7 @@ def restore_all(session_id: str):
     try:
         _require_session(session_id)
     except (PermissionError, FileNotFoundError, ValueError) as exc:
-        flash(str(exc), "danger")
+        flash("Ошибка редактора XML. Подробности записаны в журнал сервера.", "danger")
         return redirect(url_for("xml_editor.index"))
     restore_all_from_original(edited_path(session_id), original_path(session_id))
     flash("Весь файл возвращён к исходному состоянию", "success")
@@ -422,7 +422,7 @@ def download_original(session_id: str):
     try:
         _require_session(session_id)
     except (PermissionError, FileNotFoundError, ValueError) as exc:
-        flash(str(exc), "danger")
+        flash("Ошибка редактора XML. Подробности записаны в журнал сервера.", "danger")
         return redirect(url_for("xml_editor.index"))
     meta = _load_meta(session_id)
     name = meta.get("original_filename") or "original.xml"
@@ -439,7 +439,7 @@ def download_edited(session_id: str):
     try:
         _require_session(session_id)
     except (PermissionError, FileNotFoundError, ValueError) as exc:
-        flash(str(exc), "danger")
+        flash("Ошибка редактора XML. Подробности записаны в журнал сервера.", "danger")
         return redirect(url_for("xml_editor.index"))
     meta = _load_meta(session_id)
     name = meta.get("original_filename") or "edited.xml"
@@ -457,7 +457,7 @@ def validate_session(session_id: str):
     try:
         _require_session(session_id)
     except (PermissionError, FileNotFoundError, ValueError) as exc:
-        flash(str(exc), "danger")
+        flash("Ошибка редактора XML. Подробности записаны в журнал сервера.", "danger")
         return redirect(url_for("xml_editor.index"))
     tree = _load_edited(session_id)
     all_issues = validate_all_articles(tree)

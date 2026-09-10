@@ -243,7 +243,9 @@ def resolve_doi_via_doi_org(
         method="GET",
     )
     try:
-        with urllib.request.urlopen(req, timeout=timeout_s) as resp:
+        from ipsas.common.ssrf import urlopen_safe
+
+        with urlopen_safe(req, timeout=timeout_s) as resp:
             out["final_url"] = resp.geturl()
             ctype = (resp.headers.get("Content-Type") or "").lower()
             body = resp.read(2_000_000)

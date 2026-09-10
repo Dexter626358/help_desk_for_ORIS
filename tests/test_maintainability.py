@@ -86,7 +86,7 @@ def test_rate_limit_blocks_service_post(monkeypatch):
     reset_settings()
     from ipsas.web.app import create_app
 
-    app = create_app()
+    app = create_app(testing=True)
     client = app.test_client()
     r1 = client.post("/services/xml-validator/validate", data={})
     assert r1.status_code in (302, 400, 429)

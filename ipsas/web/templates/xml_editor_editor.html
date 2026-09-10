@@ -50,16 +50,20 @@
           <h2 class="h5 mb-0">Статья {{ article_id|int + 1 }}</h2>
           <div class="d-flex flex-wrap gap-2">
             <form method="post" action="{{ url_for('xml_editor.validate_session', session_id=session_id) }}">
+    {{ csrf_field() }}
               <input type="hidden" name="article_id" value="{{ article_id }}">
               <button class="btn btn-outline-primary btn-sm" type="submit">Проверить XML</button>
             </form>
             <form method="post" action="{{ url_for('xml_editor.restore_article', session_id=session_id, article_id=article_id) }}">
+    {{ csrf_field() }}
               <button class="btn btn-outline-warning btn-sm" type="submit">Отменить изменения в этой статье</button>
             </form>
             <form method="post" action="{{ url_for('xml_editor.restore_all', session_id=session_id) }}" data-confirm="Вернуть весь файл к исходному состоянию? Все правки будут потеряны.">
+    {{ csrf_field() }}
               <button class="btn btn-outline-danger btn-sm" type="submit">Вернуть весь файл</button>
             </form>
             <form method="post" action="{{ url_for('xml_editor.close_session', session_id=session_id) }}" data-confirm="Закрыть сессию и удалить временные файлы?">
+    {{ csrf_field() }}
               <button class="btn btn-outline-secondary btn-sm" type="submit">Закрыть сессию</button>
             </form>
           </div>
@@ -68,6 +72,7 @@
         {% include "partials/xml_editor/validation.html" %}
 
         <form method="post" action="{{ url_for('xml_editor.save_article', session_id=session_id, article_id=article_id) }}" id="article-form">
+    {{ csrf_field() }}
           <input type="hidden" name="active_tab" id="active_tab" value="{{ active_tab }}">
 
           <ul class="nav nav-tabs" id="articleTabs" role="tablist">

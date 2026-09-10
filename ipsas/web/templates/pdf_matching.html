@@ -22,6 +22,7 @@
         action="{{ url_for('pdf_matching.process_pdf_matching') }}"
         enctype="multipart/form-data"
         data-loading-form>
+    {{ csrf_field() }}
     {{ file_upload(
       name='zip_file',
       input_id='zip_file',

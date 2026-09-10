@@ -49,6 +49,7 @@
     </div>
 
     <form method="POST" action="{{ url_for('pdf_matching.manual_assign_and_download', filename=output_xml_filename) }}">
+    {{ csrf_field() }}
       <div class="table-container">
         <table data-match-table>
           <thead>

@@ -183,6 +183,7 @@
 {% if result.success %}
 <div class="csv-check-wrap">
   <form id="manual-assign-form" method="POST" action="{{ url_for('issue_pdf_csv.manual_assign_issue_pdf_csv', filename=output_csv_filename) }}">
+    {{ csrf_field() }}
     <input type="hidden" name="row_count" value="{{ result.rows|length }}">
 
     <div class="csv-header">

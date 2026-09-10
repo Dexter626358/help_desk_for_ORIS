@@ -32,7 +32,7 @@ def test_issue_metadata_blueprint_importable():
     from ipsas.web.app import create_app
     from ipsas.web.issue_metadata import issue_metadata_bp
 
-    app = create_app()
+    app = create_app(testing=True)
     assert "issue_metadata" in app.blueprints
     assert issue_metadata_bp.name == "issue_metadata"
     client = app.test_client()
@@ -76,7 +76,7 @@ def test_issue_metadata_status_returns_progress_step(monkeypatch):
     from ipsas.web.app import create_app
     from ipsas.web.issue_metadata import routes as im_routes
 
-    app = create_app()
+    app = create_app(testing=True)
     task_id = "progressstatus1"
 
     def fake_get(tid: str):

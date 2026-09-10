@@ -5,7 +5,8 @@ from __future__ import annotations
 import ipaddress
 import os
 import socket
-from urllib.parse import urlparse
+import urllib.request
+from urllib.parse import urljoin, urlparse
 
 
 class UnsafeUrlError(ValueError):
@@ -27,6 +28,7 @@ def _is_blocked_ip(ip: ipaddress.IPv4Address | ipaddress.IPv6Address) -> bool:
         or ip.is_multicast
         or ip.is_reserved
         or ip.is_unspecified
+        or (ip.version == 4 and ip in ipaddress.ip_network("169.254.0.0/16"))
     )
 
 
@@ -36,12 +38,6 @@ def assert_safe_fetch_url(
     allow_private: bool = False,
     resolve_dns: bool = True,
 ) -> str:
-    """
-    Проверить URL перед исходящим запросом.
-
-    Разрешены только http/https. Блокируются localhost и private IP.
-    Если задан ``ISSUE_FETCH_ALLOWED_HOSTS`` — hostname должен быть в списке.
-    """
     if not url or not str(url).strip():
         raise UnsafeUrlError("Пустой URL")
     parsed = urlparse(str(url).strip())
@@ -51,8 +47,8 @@ def assert_safe_fetch_url(
     host = (parsed.hostname or "").strip().lower()
     if not host:
         raise UnsafeUrlError("URL без hostname")
-    if host in {"localhost", "127.0.0.1", "::1", "0.0.0.0"}:
-        raise UnsafeUrlError("Обращение к localhost запрещено")
+    if host in {"localhost", "127.0.0.1", "::1", "0.0.0.0", "metadata.google.internal"}:
+        raise UnsafeUrlError("Обращение к localhost/metadata запрещено")
 
     allowlist = _allowed_hosts()
     if allowlist and host not in allowlist:
@@ -92,9 +88,38 @@ def assert_safe_fetch_url(
 
 
 def is_safe_fetch_url(url: str, *, resolve_dns: bool = False) -> bool:
-    """Быстрая проверка для форм (без DNS по умолчанию)."""
     try:
         assert_safe_fetch_url(url, resolve_dns=resolve_dns)
         return True
     except UnsafeUrlError:
         return False
+
+
+class SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
+    max_hops: int = 5
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):  # type: ignore[no-untyped-def]
+        if newurl is None:
+            return None
+        absolute = urljoin(req.full_url, newurl)
+        assert_safe_fetch_url(absolute, resolve_dns=True)
+        hops = int(getattr(req, "ssrf_redirect_hops", 0)) + 1
+        if hops > self.max_hops:
+            raise UnsafeUrlError(f"Слишком много HTTP-редиректов (>{self.max_hops})")
+        new_req = super().redirect_request(req, fp, code, msg, headers, absolute)
+        if new_req is not None:
+            new_req.ssrf_redirect_hops = hops  # type: ignore[attr-defined]
+        return new_req
+
+
+def build_safe_opener(
+    *handlers: urllib.request.BaseHandler,
+) -> urllib.request.OpenerDirector:
+    return urllib.request.build_opener(SafeRedirectHandler(), *handlers)
+
+
+def urlopen_safe(req: urllib.request.Request | str, *, timeout: float | None = None):
+    opener = build_safe_opener()
+    if timeout is None:
+        return opener.open(req)
+    return opener.open(req, timeout=timeout)

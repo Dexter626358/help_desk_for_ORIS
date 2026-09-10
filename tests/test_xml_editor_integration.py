@@ -19,7 +19,7 @@ def client(tmp_path, monkeypatch):
     settings = settings_mod.get_settings()
     monkeypatch.setattr(settings, "temp_dir", tmp_path / "temp")
     (tmp_path / "temp").mkdir(parents=True, exist_ok=True)
-    app = create_app()
+    app = create_app(testing=True)
     app.config["TESTING"] = True
     return app.test_client()
 

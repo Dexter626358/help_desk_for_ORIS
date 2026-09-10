@@ -21,6 +21,7 @@
         action="{{ url_for('issue_pdf_csv.process_issue_pdf_csv') }}"
         enctype="multipart/form-data"
         data-loading-form>
+    {{ csrf_field() }}
     <div class="form-group">
       <label for="issue_url">Ссылка на выпуск *</label>
       <input

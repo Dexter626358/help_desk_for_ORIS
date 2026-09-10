@@ -64,12 +64,12 @@ def process_reference_cleaning():
         )
     except etree.XMLSyntaxError as e:
         logger.error("Ошибка синтаксиса XML: %s", e)
-        flash(f"Ошибка синтаксиса XML: {e}", "error")
+        flash("Некорректный XML (синтаксис).", "error")
         _unlink_quiet(input_path)
         return redirect(url_for(_PAGE))
     except Exception as e:
         logger.error("Ошибка при очистке references: %s", e, exc_info=True)
-        flash(f"Ошибка при обработке файла: {e}", "error")
+        flash("Ошибка при обработке файла.", "error")
         _unlink_quiet(input_path)
         _unlink_quiet(output_path)
         return redirect(url_for(_PAGE))

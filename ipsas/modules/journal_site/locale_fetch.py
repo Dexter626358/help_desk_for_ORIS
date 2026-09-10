@@ -144,9 +144,11 @@ class LocaleSession:
             try:
                 assert_safe_fetch_url(setlocale_url)
                 jar = http.cookiejar.CookieJar()
+                from ipsas.common.ssrf import SafeRedirectHandler
+
                 opener = urllib.request.build_opener(
                     urllib.request.HTTPCookieProcessor(jar),
-                    urllib.request.HTTPRedirectHandler(),
+                    SafeRedirectHandler(),
                 )
                 opener.addheaders = list(self._headers.items())
                 try:

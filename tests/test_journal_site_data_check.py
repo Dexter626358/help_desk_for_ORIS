@@ -621,7 +621,7 @@ def test_execute_rejects_url_only() -> None:
 
 
 def test_upload_route_accepts_data_file(sample_bytes: bytes) -> None:
-    app = create_app()
+    app = create_app(testing=True)
     client = app.test_client()
     resp = client.post(
         "/services/journal-site-check/process",
@@ -640,7 +640,7 @@ def test_upload_route_accepts_data_file(sample_bytes: bytes) -> None:
 
 
 def test_upload_rejects_url_only() -> None:
-    app = create_app()
+    app = create_app(testing=True)
     client = app.test_client()
     resp = client.post(
         "/services/journal-site-check/process",
@@ -654,7 +654,7 @@ def test_upload_rejects_url_only() -> None:
 
 
 def test_upload_rejects_bad_extension() -> None:
-    app = create_app()
+    app = create_app(testing=True)
     client = app.test_client()
     resp = client.post(
         "/services/journal-site-check/process",

@@ -37,7 +37,7 @@ def main():
     # Запуск веб-сервера
     host = "0.0.0.0"
     port = int(os.getenv("PORT", 5000))
-    debug = settings.log_level == "DEBUG"
+    debug = settings.flask_debug
     url = f"http://127.0.0.1:{port}"
 
     def check_server_ready(max_attempts=50):

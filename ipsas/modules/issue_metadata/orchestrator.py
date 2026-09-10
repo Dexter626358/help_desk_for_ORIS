@@ -502,10 +502,17 @@ class IssueMetadataParser:
 
     def download(self, url: str, dest_path: Path) -> DownloadResult:
         """Скачать файл по URL с ограничением по размеру (если задано)."""
+        from ipsas.common.ssrf import UnsafeUrlError, assert_safe_fetch_url, urlopen_safe
+
+        try:
+            assert_safe_fetch_url(url)
+        except UnsafeUrlError as e:
+            raise ValueError(str(e)) from e
+
         req = self.http.make_request(url)
 
         try:
-            with urllib.request.urlopen(req, timeout=self.http.timeout_s) as response:
+            with urlopen_safe(req, timeout=self.http.timeout_s) as response:
                 content_type = response.headers.get("Content-Type")
                 total = 0
                 dest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -521,6 +528,8 @@ class IssueMetadataParser:
                         f.write(chunk)
 
                 return DownloadResult(path=dest_path, size_bytes=total, content_type=content_type)
+        except UnsafeUrlError as e:
+            raise ValueError(str(e)) from e
         except urllib.error.HTTPError as e:
             raise ValueError(f"HTTP ошибка при загрузке: {e.code}") from e
         except urllib.error.URLError as e:
@@ -626,9 +635,13 @@ class IssueMetadataParser:
         if not setlocale_url:
             return self._fetch_html(url)
         cookie_jar = http.cookiejar.CookieJar()
+        from ipsas.common.ssrf import SafeRedirectHandler, assert_safe_fetch_url
+
+        assert_safe_fetch_url(setlocale_url)
+        assert_safe_fetch_url(url)
         opener = urllib.request.build_opener(
             urllib.request.HTTPCookieProcessor(cookie_jar),
-            urllib.request.HTTPRedirectHandler()
+            SafeRedirectHandler(),
         )
         opener.addheaders = list(DEFAULT_HEADERS.items())
         try:

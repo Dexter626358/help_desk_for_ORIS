@@ -21,6 +21,7 @@
         action="{{ url_for('issue_metadata.process_issue_metadata') }}"
         novalidate
         data-loading-form>
+    {{ csrf_field() }}
     <div class="form-group">
       <label for="issue_url">Ссылка на выпуск *</label>
       <input

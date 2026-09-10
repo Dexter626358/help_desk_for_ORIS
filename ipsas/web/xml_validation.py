@@ -128,7 +128,7 @@ def validate_xml():
                 check_metadata=check_metadata,
             )
         except FileNotFoundError as e:
-            flash(str(e), "error")
+            flash("Некорректный загруженный файл.", "error")
             _unlink_quiet(temp_path)
             return redirect(url_for("xml_validation.xml_validator_page"))
 
@@ -204,7 +204,7 @@ def validate_xml():
 
     except Exception as e:
         logger.error("Ошибка при валидации XML: %s", e, exc_info=True)
-        flash(f"Ошибка при обработке файла: {str(e)}", "error")
+        flash("Ошибка при обработке XML-файла.", "error")
         _unlink_quiet(temp_path)
         return redirect(url_for("xml_validation.xml_validator_page"))
 

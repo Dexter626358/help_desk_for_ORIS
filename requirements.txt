@@ -1,14 +1,10 @@
-# Основные зависимости для IPSAS
+# Production dependencies for IPSAS (Python 3.11+)
+# Pin minor ranges for reproducible deploys; bump deliberately.
 
-# Веб-фреймворк
-Flask>=3.0.0
-Werkzeug>=3.0.0
-
-# Валидация XML по XSD
-lxml>=5.0.0
-
-# Обработка PDF
-PyPDF2>=3.0.0
-
-# Production сервер
-gunicorn>=21.2.0
+Flask>=3.0.0,<3.2
+Werkzeug>=3.0.0,<3.2
+Flask-WTF>=1.2.0,<2
+WTForms>=3.0.0,<4
+lxml>=5.0.0,<6
+PyPDF2>=3.0.0,<4
+gunicorn>=21.2.0,<24

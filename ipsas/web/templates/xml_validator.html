@@ -21,6 +21,7 @@
         action="{{ url_for('xml_validation.validate_xml') }}"
         enctype="multipart/form-data"
         data-loading-form>
+    {{ csrf_field() }}
     {{ file_upload(
       name='xml_file',
       input_id='xml_file',

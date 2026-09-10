@@ -1,0 +1,38 @@
+[Unit]
+Description=IPSAS Flask application (Gunicorn)
+After=network.target
+
+[Service]
+Type=simple
+User=ipsas
+Group=ipsas
+WorkingDirectory=/opt/ipsas
+EnvironmentFile=-/etc/ipsas/ipsas.env
+Environment=IPSAS_ENV=production
+Environment=FLASK_ENV=production
+Environment=TEMP_DIR=/var/lib/ipsas/temp
+Environment=DATA_DIR=/var/lib/ipsas/data
+Environment=LOGS_DIR=/var/log/ipsas
+Environment=LOG_TO_FILE=false
+# Один worker: in-memory rate limit (RequestGuard)
+ExecStart=/opt/ipsas/.venv/bin/gunicorn wsgi:app \
+  --bind 127.0.0.1:8000 \
+  --workers 1 \
+  --threads 4 \
+  --timeout 120 \
+  --graceful-timeout 30 \
+  --access-logfile - \
+  --error-logfile -
+Restart=on-failure
+RestartSec=5
+KillSignal=SIGTERM
+TimeoutStopSec=40
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/ipsas /var/log/ipsas
+
+[Install]
+WantedBy=multi-user.target

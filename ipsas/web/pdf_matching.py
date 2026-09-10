@@ -91,7 +91,7 @@ def process_pdf_matching():
         
     except ValueError as e:
         logger.error(f"Ошибка валидации при обработке ZIP: {e}")
-        flash(f"Ошибка при обработке архива: {str(e)}", "error")
+        flash("Ошибка при обработке архива.", "error")
         
         # Очистка временных файлов
         try:
@@ -107,7 +107,7 @@ def process_pdf_matching():
         
     except Exception as e:
         logger.error(f"Ошибка при обработке ZIP архива: {e}", exc_info=True)
-        flash(f"Ошибка при обработке архива: {str(e)}", "error")
+        flash("Ошибка при обработке архива.", "error")
         
         # Очистка временных файлов
         try:
