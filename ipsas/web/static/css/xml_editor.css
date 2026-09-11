@@ -8,15 +8,15 @@ body {
   color: #1f2933;
 }
 
+/* Оболочка: без второй рамки — заметная цель это вложенный .dropzone */
 .upload-dropzone {
-  border: 2px dashed var(--xe-border);
-  border-radius: 0.75rem;
-  background: #fff;
-  padding: 1.5rem;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  max-width: var(--form-max, 960px);
+  border: none;
+  background: transparent;
+  padding: 0;
 }
 
-.upload-dropzone.dragover {
+.upload-dropzone.dragover .dropzone {
   border-color: #0d6efd;
   background: #f0f6ff;
 }
