@@ -146,7 +146,9 @@ ras_settings/
 *_processed.xml
 *_processed.XML
 
-# Загруженные пользователями XML файлы (кроме схем)
+# Загруженные пользователями XML файлы (кроме схем и тестовых фикстур)
 *.xml
 !schemas/**/*.xml
+!ipsas/resources/schemas/**/*.xml
+!tests/fixtures/**/*.xml
 .data

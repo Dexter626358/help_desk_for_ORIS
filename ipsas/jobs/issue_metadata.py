@@ -91,3 +91,34 @@ def task_pop(task_id: str) -> None:
         path.unlink(missing_ok=True)
     except OSError as e:
         logger.warning("Не удалось удалить task %s: %s", task_id, e)
+
+
+def interrupt_stale_running_tasks(*, reason: str = "interrupted: server restart") -> int:
+    """Пометить оставшиеся running-задачи как error после рестарта процесса."""
+    marked = 0
+    for path in _tasks_dir().glob("*.json"):
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if not isinstance(data, dict):
+            continue
+        if data.get("status") != "running":
+            continue
+        task_id = "".join(ch for ch in path.stem if ch.isalnum())
+        if not task_id:
+            continue
+        try:
+            task_set(
+                task_id,
+                status="error",
+                error=reason,
+                finished_at=time.time(),
+                progress=data.get("progress") or "fetch",
+            )
+            marked += 1
+        except Exception as exc:
+            logger.warning("Не удалось прервать задачу %s: %s", task_id, exc)
+    if marked:
+        logger.warning("Помечено interrupted running-задач: %s", marked)
+    return marked

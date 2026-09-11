@@ -707,8 +707,19 @@ class IssueMetadataParser:
                 logger.warning("В архиве найдено несколько XML файлов, используется первый: %s", xml_member.filename)
             if self.max_download_size and xml_member.file_size > self.max_download_size:
                 raise ValueError("Превышен допустимый размер XML файла в архиве")
+            max_size = int(self.max_download_size or 0) or (100 * 1024 * 1024)
+            chunks: list[bytes] = []
+            total = 0
             with zf.open(xml_member, "r") as xml_file:
-                return xml_file.read(), xml_member.filename
+                while True:
+                    chunk = xml_file.read(64 * 1024)
+                    if not chunk:
+                        break
+                    total += len(chunk)
+                    if total > max_size:
+                        raise ValueError("Превышен допустимый размер XML файла в архиве")
+                    chunks.append(chunk)
+            return b"".join(chunks), xml_member.filename
 
     def _parse_issue_page(self, root: html.HtmlElement, issue_url: str) -> Dict[str, object]:
         return issue_parsers.parse_issue_page(root, issue_url)

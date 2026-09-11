@@ -30,10 +30,19 @@ def create_app(*, testing: bool = False) -> Flask:
     app.config["SESSION_COOKIE_SECURE"] = settings.session_cookie_secure
     app.config["SESSION_COOKIE_HTTPONLY"] = settings.session_cookie_httponly
     app.config["SESSION_COOKIE_SAMESITE"] = settings.session_cookie_samesite
+
+    csrf_disabled_env = os.getenv("IPSAS_DISABLE_CSRF", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+    }
+    if settings.is_production and csrf_disabled_env and not testing:
+        raise RuntimeError("IPSAS_DISABLE_CSRF is not allowed in production")
+
     app.config["WTF_CSRF_ENABLED"] = not (
         testing
         or app.config.get("TESTING")
-        or os.getenv("IPSAS_DISABLE_CSRF", "").strip() in {"1", "true", "yes"}
+        or csrf_disabled_env
     )
     app.config["WTF_CSRF_TIME_LIMIT"] = None
 
@@ -49,6 +58,8 @@ def create_app(*, testing: bool = False) -> Flask:
         csrf = CSRFProtect(app)
         app.extensions["csrf"] = csrf
     except ImportError:
+        if settings.is_production and not testing:
+            raise RuntimeError("Flask-WTF is required in production for CSRF protection")
         logger.warning("Flask-WTF not installed; CSRF protection disabled")
 
     from ipsas.web.routes import main_bp
@@ -80,6 +91,11 @@ def create_app(*, testing: bool = False) -> Flask:
         rate_limit=settings.rate_limit_per_minute,
     )
     app.extensions["request_guard"] = guard
+
+    if not testing:
+        from ipsas.jobs.issue_metadata import interrupt_stale_running_tasks
+
+        interrupt_stale_running_tasks()
 
     @app.before_request
     def _guard_service_posts():
@@ -120,20 +136,40 @@ def create_app(*, testing: bool = False) -> Flask:
             guard.release()
             g._guard_held = False
 
+    @app.after_request
+    def _security_headers(response):
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "same-origin")
+        response.headers.setdefault(
+            "Permissions-Policy", "geolocation=(), microphone=(), camera=()"
+        )
+        return response
+
     @app.get("/health/live")
     def health_live():
         return jsonify({"status": "ok", "service": "ipsas"}), 200
 
     @app.get("/health/ready")
     def health_ready():
-        ready = settings.temp_dir.exists() and settings.schemas_dir.exists()
+        temp_ok = False
+        try:
+            settings.temp_dir.mkdir(parents=True, exist_ok=True)
+            probe = settings.temp_dir / f".ready-{uuid.uuid4().hex}"
+            probe.write_text("ok", encoding="utf-8")
+            probe.unlink(missing_ok=True)
+            temp_ok = True
+        except OSError:
+            temp_ok = False
+        xsd_ok = (settings.schemas_dir / "journal3.xsd").is_file()
+        ready = temp_ok and xsd_ok
         code = 200 if ready else 503
         return jsonify(
             {
                 "status": "ok" if ready else "not_ready",
                 "service": "ipsas",
-                "temp_ok": settings.temp_dir.exists(),
-                "schemas_ok": settings.schemas_dir.exists(),
+                "temp_ok": temp_ok,
+                "schemas_ok": xsd_ok,
             }
         ), code
 

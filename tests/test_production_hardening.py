@@ -47,11 +47,34 @@ def test_create_app_and_health_shape(client):
 
 def test_production_requires_secret_key(monkeypatch):
     monkeypatch.setenv("IPSAS_ENV", "production")
+    monkeypatch.setenv("ISSUE_FETCH_ALLOWED_HOSTS", "journals.example.org")
     monkeypatch.delenv("SECRET_KEY", raising=False)
     reset_settings()
     with pytest.raises(RuntimeError, match="SECRET_KEY"):
         get_settings()
     reset_settings()
+
+
+def test_production_requires_allowed_hosts(monkeypatch):
+    monkeypatch.setenv("IPSAS_ENV", "production")
+    monkeypatch.setenv("SECRET_KEY", "prod-secret-key-for-tests-32chars")
+    monkeypatch.setenv("ISSUE_FETCH_ALLOWED_HOSTS", "")
+    reset_settings()
+    with pytest.raises(RuntimeError, match="ISSUE_FETCH_ALLOWED_HOSTS"):
+        get_settings()
+    reset_settings()
+
+
+def test_production_forbids_disable_csrf(monkeypatch):
+    monkeypatch.setenv("IPSAS_ENV", "production")
+    monkeypatch.setenv("SECRET_KEY", "prod-secret-key-for-tests-32chars")
+    monkeypatch.setenv("ISSUE_FETCH_ALLOWED_HOSTS", "journals.example.org")
+    monkeypatch.setenv("IPSAS_DISABLE_CSRF", "1")
+    reset_settings()
+    with pytest.raises(RuntimeError, match="IPSAS_DISABLE_CSRF"):
+        create_app(testing=False)
+    reset_settings()
+    monkeypatch.delenv("IPSAS_DISABLE_CSRF", raising=False)
 
 
 def test_csrf_blocks_post_without_token(monkeypatch):
@@ -124,3 +147,8 @@ def test_health_ready_no_path_leak(client):
     dumped = str(body)
     assert "C:\\" not in dumped
     assert "/Users/" not in dumped
+    assert "temp_ok" in body
+    assert "schemas_ok" in body
+    assert body["schemas_ok"] is True
+    assert body["temp_ok"] is True
+    assert body["status"] == "ok"

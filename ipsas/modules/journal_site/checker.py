@@ -427,7 +427,9 @@ class JournalSiteChecker:
         built: dict[str, tuple[PageBundle, str, str]] = {}
 
         # RU и EN собираем параллельно (у каждой локали своя LocaleSession)
-        with ThreadPoolExecutor(max_workers=len(self._languages) or 1) as pool:
+        with ThreadPoolExecutor(
+            max_workers=min(_MAX_FETCH_WORKERS, len(self._languages) or 1)
+        ) as pool:
             futs = {
                 pool.submit(self._build_bundle, base, lang): lang for lang in self._languages
             }

@@ -110,13 +110,25 @@ def extract_zip_safely(
             target = safe_member_path(extract_to, arc)
             if _is_symlink_member(member):
                 raise UnsafeZipError(f"Символические ссылки запрещены: {member.filename}")
-            data = zf.read(member)
-            if len(data) > limits.max_single_file_bytes:
-                raise UnsafeZipError(f"Файл превышает лимит после чтения: {arc}")
-            total_written += len(data)
-            if total_written > limits.max_uncompressed_bytes:
-                raise UnsafeZipError("Превышен лимит суммарной распаковки")
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(data)
+            written_bytes = 0
+            try:
+                with zf.open(member, "r") as src, target.open("wb") as dst:
+                    while True:
+                        chunk = src.read(64 * 1024)
+                        if not chunk:
+                            break
+                        written_bytes += len(chunk)
+                        if written_bytes > limits.max_single_file_bytes:
+                            raise UnsafeZipError(
+                                f"Файл превышает лимит после чтения: {arc}"
+                            )
+                        total_written += len(chunk)
+                        if total_written > limits.max_uncompressed_bytes:
+                            raise UnsafeZipError("Превышен лимит суммарной распаковки")
+                        dst.write(chunk)
+            except UnsafeZipError:
+                target.unlink(missing_ok=True)
+                raise
             written.append((target, arc.replace("\\", "/")))
     return written

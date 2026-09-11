@@ -26,11 +26,11 @@ from ipsas.utils.logger import get_logger
 logger = get_logger(__name__)
 
 try:
-    from PyPDF2 import PdfReader
+    from pypdf import PdfReader
     PDF_SUPPORT = True
 except ImportError:
     PDF_SUPPORT = False
-    logger.warning("PyPDF2 не установлен. Извлечение метаданных из PDF будет недоступно.")
+    logger.warning("pypdf не установлен. Извлечение метаданных из PDF будет недоступно.")
 
 
 class PDFMatcher:

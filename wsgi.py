@@ -1,8 +1,8 @@
 """WSGI entrypoint for Gunicorn / production.
 
-Example: ``gunicorn wsgi:app``
+Example: ``gunicorn ipsas.web.wsgi:app`` (или ``gunicorn wsgi:app`` из корня репо).
 """
 
-from ipsas.web.app import create_app
+from ipsas.web.wsgi import app
 
-app = create_app()
+__all__ = ["app"]

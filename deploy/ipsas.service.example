@@ -14,15 +14,10 @@ Environment=TEMP_DIR=/var/lib/ipsas/temp
 Environment=DATA_DIR=/var/lib/ipsas/data
 Environment=LOGS_DIR=/var/log/ipsas
 Environment=LOG_TO_FILE=false
+Environment=PORT=8000
+Environment=GUNICORN_BIND=127.0.0.1:8000
 # Один worker: in-memory rate limit (RequestGuard)
-ExecStart=/opt/ipsas/.venv/bin/gunicorn wsgi:app \
-  --bind 127.0.0.1:8000 \
-  --workers 1 \
-  --threads 4 \
-  --timeout 120 \
-  --graceful-timeout 30 \
-  --access-logfile - \
-  --error-logfile -
+ExecStart=/opt/ipsas/.venv/bin/gunicorn -c /opt/ipsas/gunicorn.conf.py ipsas.web.wsgi:app
 Restart=on-failure
 RestartSec=5
 KillSignal=SIGTERM

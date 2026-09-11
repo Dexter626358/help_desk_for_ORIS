@@ -39,9 +39,11 @@
 | `LOGS_DIR` | нет | Файловые логи |
 | `MAX_CONTENT_LENGTH` | нет | Лимит тела запроса (байт) |
 | `REQUEST_TIMEOUT` | нет | Таймаут исходящих HTTP (с) |
-| `ISSUE_FETCH_ALLOWED_HOSTS` | рекомендуется | Allowlist хостов через запятую |
-| `SESSION_COOKIE_SECURE` | да за HTTPS | Secure-cookie |
+| `ISSUE_FETCH_ALLOWED_HOSTS` | **да** | Allowlist хостов через запятую |
+| `SESSION_COOKIE_SECURE` | да за HTTPS | Secure-cookie (по умолчанию true в prod) |
 | `TRUST_PROXY_HEADERS` | только за доверенным proxy | Доверять `X-Forwarded-For` |
+| `MAX_CONCURRENT_JOBS` | нет (`4`) | Лимит POST + workers фонового пула |
+| `MAX_JOB_QUEUE` | нет (`8`) | Очередь фоновых задач парсера |
 | `GUNICORN_WORKERS` | держите `1` | Не увеличивать без выноса rate-limit |
 | `PORT` | нет | Порт bind |
 
@@ -55,7 +57,7 @@ GET /health
 {"status": "ok", "service": "ipsas"}
 ```
 
-Также: `/health/live`, `/health/ready` (без путей каталогов).
+`/health/ready` дополнительно проверяет запись в `TEMP_DIR` и наличие `journal3.xsd`.
 
 ## Запуск без Docker (systemd)
 
@@ -72,7 +74,7 @@ sudo systemctl enable --now ipsas
 Команда:
 
 ```bash
-gunicorn wsgi:app --bind 127.0.0.1:8000 --workers 1 --threads 4 --timeout 120 --graceful-timeout 30
+gunicorn -c gunicorn.conf.py ipsas.web.wsgi:app
 ```
 
 Nginx: [`deploy/nginx.example.conf`](deploy/nginx.example.conf).

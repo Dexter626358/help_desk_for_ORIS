@@ -13,8 +13,8 @@ dependencies = [
   "Werkzeug>=3.0.0,<3.2",
   "Flask-WTF>=1.2.0,<2",
   "WTForms>=3.0.0,<4",
-  "lxml>=5.0.0,<6",
-  "PyPDF2>=3.0.0,<4",
+  "lxml>=6.1,<7",
+  "pypdf>=3.9,<7",
   "gunicorn>=21.2.0,<24",
 ]
 
@@ -27,10 +27,17 @@ dev = [
 
 [project.scripts]
 ipsas = "ipsas.cli:main"
-ipsas-web = "run:main"
+ipsas-web = "ipsas.web.devserver:main"
 
 [tool.setuptools.packages.find]
 include = ["ipsas*"]
+
+[tool.setuptools.package-data]
+ipsas = [
+  "web/templates/**/*",
+  "web/static/**/*",
+  "resources/schemas/**/*",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

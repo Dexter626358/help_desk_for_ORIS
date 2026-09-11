@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<journal>
+  <titleid>99999</titleid>
+  <issn>1234-5678</issn>
+  <eissn>8765-4321</eissn>
+  <journalInfo lang="RUS"><title>Пример научного журнала</title></journalInfo>
+  <journalInfo lang="ENG"><title>Sample Scientific Journal</title></journalInfo>
+  <issue>
+    <volume>12</volume>
+    <number>3</number>
+    <dateUni>2025</dateUni>
+    <pages>1-40</pages>
+    <articles>
+      <article customAttr="keep-me" xmlns:x="http://example.com/x">
+        <pages>1-10</pages>
+        <artType>RAR</artType>
+        <lang>RUS</lang>
+        <doi>10.1234/sample.2025.1</doi>
+        <codes>
+          <udk>004.8</udk>
+        </codes>
+        <section>Информатика</section>
+        <artTitles>
+          <artTitle lang="RUS">Моделирование систем управления</artTitle>
+          <artTitle lang="ENG">Modeling of control systems</artTitle>
+        </artTitles>
+        <authors>
+          <author>
+            <individInfo lang="RUS">
+              <surname>Иванов</surname>
+              <initials>И.И.</initials>
+              <firstName>Иван</firstName>
+              <middleName>Иванович</middleName>
+              <orgName>Московский университет</orgName>
+              <address>Москва</address>
+              <email>ivanov@example.com</email>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Ivanov</surname>
+              <initials>I.I.</initials>
+              <firstName>Ivan</firstName>
+              <middleName>Ivanovich</middleName>
+              <orgName>Moscow University</orgName>
+              <address>Moscow</address>
+              <email>ivanov@example.com</email>
+            </individInfo>
+            <authorCodes>
+              <orcid>0000-0001-2345-6789</orcid>
+            </authorCodes>
+          </author>
+          <author>
+            <individInfo lang="RUS">
+              <surname>Петров</surname>
+              <initials>П.П.</initials>
+              <orgName>Институт прикладной математики</orgName>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Petrov</surname>
+              <initials>P.P.</initials>
+              <orgName>Institute of Applied Mathematics</orgName>
+            </individInfo>
+          </author>
+        </authors>
+        <abstracts>
+          <abstract lang="RUS">В работе рассмотрены модели линейных систем управления и методы их анализа.</abstract>
+          <abstract lang="ENG">The paper considers models of linear control systems and methods of their analysis.</abstract>
+        </abstracts>
+        <keywords>
+          <kwdGroup lang="RUS">
+            <keyword>управление</keyword>
+            <keyword>моделирование</keyword>
+            <keyword>системы</keyword>
+          </kwdGroup>
+          <kwdGroup lang="ENG">
+            <keyword>control</keyword>
+            <keyword>modeling</keyword>
+            <keyword>systems</keyword>
+          </kwdGroup>
+        </keywords>
+        <references>
+          <reference>
+            <refInfo lang="RUS">
+              <text>Белов И.Р. Анализ систем // Управление большими системами. 2021. Вып. 91. С. 38–77.</text>
+            </refInfo>
+          </reference>
+          <reference>
+            <refInfo lang="ENG">
+              <text>Smith J. Control theory basics. Nature. 2020. Vol. 1. Pp. 1–5.</text>
+            </refInfo>
+          </reference>
+        </references>
+        <x:extra>неизвестный служебный блок</x:extra>
+      </article>
+      <article>
+        <pages>11-20</pages>
+        <artType>RAR</artType>
+        <artTitles>
+          <artTitle lang="RUS">Вторая статья выпуска</artTitle>
+          <artTitle lang="ENG">Second article of the issue</artTitle>
+        </artTitles>
+        <authors>
+          <author>
+            <individInfo lang="RUS">
+              <surname>Сидоров</surname>
+              <initials>С.С.</initials>
+              <orgName>НИИ</orgName>
+            </individInfo>
+            <individInfo lang="ENG">
+              <surname>Sidorov</surname>
+              <initials>S.S.</initials>
+              <orgName>Research Institute</orgName>
+            </individInfo>
+          </author>
+        </authors>
+        <abstracts>
+          <abstract lang="RUS">Краткое описание второй статьи.</abstract>
+          <abstract lang="ENG">Brief description of the second article.</abstract>
+        </abstracts>
+        <keywords>
+          <kwdGroup lang="RUS"><keyword>пример</keyword></kwdGroup>
+          <kwdGroup lang="ENG"><keyword>example</keyword></kwdGroup>
+        </keywords>
+        <references>
+          <reference>
+            <refInfo lang="UNK">
+              <text>Universal reference without language split.</text>
+            </refInfo>
+          </reference>
+        </references>
+      </article>
+    </articles>
+  </issue>
+</journal>

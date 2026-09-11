@@ -9,7 +9,7 @@ import pytest
 
 from ipsas.web.app import create_app
 
-SAMPLE = Path(__file__).resolve().parents[1] / "samples" / "journal_sample.xml"
+SAMPLE = Path(__file__).resolve().parent / "fixtures" / "journal_sample.xml"
 
 
 @pytest.fixture()

@@ -21,6 +21,18 @@ def _env_float(name: str, default: float) -> float:
     return float(raw)
 
 
+def _resolve_schemas_dir(base_dir: Path) -> Path:
+    """Каталог XSD: SCHEMAS_DIR → schemas/ в корне репо → ipsas/resources/schemas."""
+    env = os.getenv("SCHEMAS_DIR")
+    if env and env.strip():
+        return Path(env).expanduser().resolve()
+    root = (base_dir / "schemas").resolve()
+    if (root / "journal3.xsd").is_file():
+        return root
+    packaged = Path(__file__).resolve().parent.parent / "resources" / "schemas"
+    return packaged.resolve()
+
+
 class Settings:
     """Класс для управления настройками приложения."""
 
@@ -44,9 +56,7 @@ class Settings:
         self.temp_dir: Path = Path(
             os.getenv("TEMP_DIR") or (self.base_dir / "temp")
         ).expanduser().resolve()
-        self.schemas_dir: Path = Path(
-            os.getenv("SCHEMAS_DIR") or (self.base_dir / "schemas")
-        ).expanduser().resolve()
+        self.schemas_dir: Path = _resolve_schemas_dir(self.base_dir)
         self.templates_dir: Path = self.base_dir / "ipsas" / "web" / "templates"
 
         self._create_directories()
@@ -91,17 +101,23 @@ class Settings:
             editorial_default,
         ).strip()
 
-        # SSRF / исходящие запросы к OJS (пусто = любые публичные хосты после SSRF-проверок)
+        # SSRF / исходящие запросы к OJS
         self.issue_fetch_allowed_hosts: str = os.getenv(
             "ISSUE_FETCH_ALLOWED_HOSTS", ""
         ).strip()
+        if self.is_production and not self.issue_fetch_allowed_hosts:
+            raise RuntimeError(
+                "ISSUE_FETCH_ALLOWED_HOSTS is required in production "
+                "(comma-separated allowlist, e.g. journals.rcsi.science)"
+            )
 
         self.temp_file_ttl_seconds: int = int(
             os.getenv("TEMP_FILE_TTL_SECONDS", str(6 * 60 * 60))
         )
 
-        # Нагрузка на публичные POST /services/*
+        # Нагрузка на публичные POST /services/* и фоновый пул парсера
         self.max_concurrent_jobs: int = int(os.getenv("MAX_CONCURRENT_JOBS", "4"))
+        self.max_job_queue: int = int(os.getenv("MAX_JOB_QUEUE", "8"))
         self.rate_limit_per_minute: int = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
 
         # Cookie / session (для HTTPS за reverse-proxy в production)

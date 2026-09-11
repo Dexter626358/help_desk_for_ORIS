@@ -10,12 +10,24 @@ from typing import Any
 from ipsas.config.settings import get_settings
 
 _HISTORY_LIMIT = 30
+_MAX_HISTORY_LINES = 500
+_MAX_HISTORY_BYTES = 512 * 1024
 
 
 def _history_path() -> Path:
     path = get_settings().temp_dir / "operation_history.jsonl"
     path.parent.mkdir(parents=True, exist_ok=True)
     return path
+
+
+def _compact_history(path: Path) -> None:
+    lines = path.read_text(encoding="utf-8").splitlines()
+    if len(lines) <= _HISTORY_LIMIT:
+        return
+    keep = lines[-_HISTORY_LIMIT:]
+    tmp = path.with_suffix(".jsonl.tmp")
+    tmp.write_text("\n".join(keep) + ("\n" if keep else ""), encoding="utf-8")
+    tmp.replace(path)
 
 
 def record_operation(
@@ -36,8 +48,17 @@ def record_operation(
         "url": url,
     }
     try:
-        with _history_path().open("a", encoding="utf-8") as f:
+        path = _history_path()
+        with path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        size = path.stat().st_size
+        if size > _MAX_HISTORY_BYTES:
+            _compact_history(path)
+        elif size > 64 * 1024:
+            # Редкая проверка числа строк при росте файла
+            line_count = path.read_text(encoding="utf-8").count("\n")
+            if line_count > _MAX_HISTORY_LINES:
+                _compact_history(path)
     except OSError:
         return
 

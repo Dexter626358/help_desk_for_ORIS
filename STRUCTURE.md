@@ -185,4 +185,4 @@ pytest
 | `data/` | Зарезервировано; на Railway без volume не постоянно |
 | `SECRET_KEY` | Обязателен при `IPSAS_ENV=production` |
 | Лимиты | `MAX_CONTENT_LENGTH`, `MAX_CONCURRENT_JOBS`, `RATE_LIMIT_PER_MINUTE` |
-| SSRF | `ISSUE_FETCH_ALLOWED_HOSTS` (опциональный allowlist) |
+| SSRF | `ISSUE_FETCH_ALLOWED_HOSTS` (**обязателен** в production) |

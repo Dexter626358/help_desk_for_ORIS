@@ -2,60 +2,65 @@
 
 Внутренний веб-сервис на Flask для обработки журнальных материалов: XML, библиографии, метаданных выпусков, PDF и CSV.
 
-**Поддерживаемая версия Python: 3.11** (см. 
-untime.txt; в pyproject.toml указано >=3.10).
+**Поддерживаемая версия Python: 3.11** (см. `runtime.txt`; в pyproject.toml указано >=3.10).
 
 ## Назначение
 
-- Валидация XML по XSD (schemas/journal3.xsd)
+- Валидация XML по XSD (`schemas/journal3.xsd` / пакетные ресурсы)
 - Анализ XML журнала (метаданные RUS/ENG)
 - Обработка списков литературы
-- Парсер выпуска по URL (OJS/HTML, только чтение)
+- Парсер выпуска по URL (OJS/HTML, только чтение, только POST)
 - Сопоставление PDF / CSV
-- Проверка настроек сайта журнала по .data
+- Проверка настроек сайта журнала по `.data`
 - Встроенный XML-редактор (сессии во временном каталоге)
 
 Без базы данных и без встроенной авторизации. История задач после перезапуска не сохраняется.
 
 ## Архитектура
 
-Клиент → (Nginx) → Gunicorn (1 worker) → Flask create_app → модули / TEMP_DIR / исходящий HTTPS с SSRF-защитой.
+Клиент → (Nginx) → Gunicorn (1 worker) → Flask `create_app` → модули / `TEMP_DIR` / исходящий HTTPS с SSRF-защитой.
 
 Точки входа:
 
-- WSGI: [wsgi.py](wsgi.py) — pp = create_app()
-- Локально: [
-un.py](run.py) (dev-сервер Flask; **не** для production)
+- WSGI: `ipsas.web.wsgi:app` (корневой [wsgi.py](wsgi.py) — совместимость)
+- Локально: `ipsas-web` / [run.py](run.py) (dev-сервер Flask; **не** для production)
 
 ## Локальный запуск
 
-`ash
+```bash
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements-dev.txt
 copy .env.example .env
 python run.py
-`
+```
 
 ## Production
 
 Подробно: **[DEPLOYMENT.md](DEPLOYMENT.md)**.
 
-`ash
+```bash
 export IPSAS_ENV=production
 export SECRET_KEY="…"
-gunicorn wsgi:app --bind 0.0.0.0:8000 --workers 1 --threads 4 --timeout 120 --graceful-timeout 30
-`
+export ISSUE_FETCH_ALLOWED_HOSTS="journals.rcsi.science"
+gunicorn -c gunicorn.conf.py ipsas.web.wsgi:app
+```
 
-**Один worker** обязателен: лимит запросов хранится в памяти процесса.
+**Один worker** обязателен: лимит запросов и фоновый пул хранятся в памяти процесса.
 
 ## Docker
 
-`ash
+```bash
 docker build -t ipsas:latest .
-docker run --rm -p 8000:8000 -e SECRET_KEY=… -e IPSAS_ENV=production ipsas:latest
+docker run --rm -p 8000:8000 \
+  -e SECRET_KEY=… \
+  -e IPSAS_ENV=production \
+  -e ISSUE_FETCH_ALLOWED_HOSTS=journals.example.org \
+  ipsas:latest
 curl -s http://127.0.0.1:8000/health
-`
+```
+
+Railway: сборка через Dockerfile (`railway.json`).
 
 ## Переменные окружения
 
@@ -63,18 +68,21 @@ curl -s http://127.0.0.1:8000/health
 
 ## Health
 
-GET /health → {"status":"ok","service":"ipsas"}
+`GET /health` → `{"status":"ok","service":"ipsas"}`
+
+`/health/ready` проверяет запись в temp и наличие `journal3.xsd`.
 
 ## Тесты
 
-`ash
+```bash
 pytest
 ruff check ipsas tests
 pip-audit -r requirements.txt
-`
+```
 
 ## Важно
 
 - Запись данных на Платформу из IPSAS не выполняется.
-- CSRF включён для POST-форм.
-- FLASK_DEBUG не связан с LOG_LEVEL; в production debug запрещён.
+- CSRF включён для POST-форм; `IPSAS_DISABLE_CSRF` в production запрещён.
+- `FLASK_DEBUG` не связан с `LOG_LEVEL`; в production debug запрещён.
+- Каталог `xml-editor/` — legacy; в production используется `ipsas.modules.xml_editor`.

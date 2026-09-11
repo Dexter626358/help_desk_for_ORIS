@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import threading
 import time
 import uuid
 from datetime import datetime
@@ -22,6 +21,7 @@ from flask import (
 
 from ipsas.common.validation import Validator
 from ipsas.config.settings import get_settings
+from ipsas.jobs.executor import JobQueueFullError, submit_background
 from ipsas.jobs.issue_metadata import (
     cleanup_expired_tasks,
     task_get,
@@ -70,13 +70,9 @@ def issue_metadata_page():
     return render_template("issue_metadata_parser.html")
 
 
-@issue_metadata_bp.route("/issue-metadata-parser/process", methods=["GET", "POST"])
+@issue_metadata_bp.route("/issue-metadata-parser/process", methods=["POST"])
 def process_issue_metadata():
-    issue_url = ""
-    if request.method == "POST":
-        issue_url = request.form.get("issue_url", "").strip()
-    else:
-        issue_url = request.args.get("issue_url", "").strip()
+    issue_url = request.form.get("issue_url", "").strip()
     logger.info("Issue metadata request: method=%s issue_url=%s", request.method, issue_url)
     if not issue_url:
         flash("Ссылка на выпуск не указана", "error")
@@ -90,7 +86,12 @@ def process_issue_metadata():
     except ValueError:
         inflight_ttl_s = 15 * 60
 
-    force_unlock = (request.args.get("force_unlock") or "").strip().lower() in {
+    force_raw = (
+        request.form.get("force_unlock")
+        or request.args.get("force_unlock")
+        or ""
+    )
+    force_unlock = force_raw.strip().lower() in {
         "1",
         "true",
         "yes",
@@ -159,18 +160,20 @@ def process_issue_metadata():
             progress_step=1,
         )
 
-        threading.Thread(
-            target=run_parse_task,
-            kwargs={
-                "task_id": task_id,
-                "issue_url": issue_url,
-                "user_key": user_key,
-                "task_set": task_set,
-                "release_inflight": release_inflight,
-            },
-            daemon=True,
-            name=f"issue-parser-{task_id[:8]}",
-        ).start()
+        try:
+            submit_background(
+                run_parse_task,
+                task_id=task_id,
+                issue_url=issue_url,
+                user_key=user_key,
+                task_set=task_set,
+                release_inflight=release_inflight,
+            )
+        except JobQueueFullError as exc:
+            task_pop(task_id)
+            release_inflight(user_key=user_key, issue_url=issue_url)
+            flash(str(exc), "error")
+            return redirect(url_for("issue_metadata.issue_metadata_page"))
 
         return render_template(
             "issue_metadata_waiting.html", task_id=task_id, issue_url=issue_url

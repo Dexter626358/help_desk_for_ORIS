@@ -30,16 +30,17 @@
 ```
 SECRET_KEY=<случайная длинная строка>
 IPSAS_ENV=production
+ISSUE_FETCH_ALLOWED_HOSTS=journals.rcsi.science
 ```
 
-Без `SECRET_KEY` приложение в production **не стартует**.
+Без `SECRET_KEY` или `ISSUE_FETCH_ALLOWED_HOSTS` приложение в production **не стартует**.
 
 **Рекомендуется:**
 ```
 LOG_LEVEL=INFO
 LOG_TO_FILE=0
 FLASK_DEBUG=0
-SESSION_COOKIE_SECURE=1
+# SESSION_COOKIE_SECURE по умолчанию true в production
 ```
 
 **Опционально:**
@@ -50,8 +51,8 @@ TEMP_FILE_TTL_SECONDS=21600
 REQUEST_TIMEOUT=30
 ISSUE_PARSER_INFLIGHT_TTL_S=900
 ISSUE_PARSER_TASK_TTL_S=7200
-ISSUE_FETCH_ALLOWED_HOSTS=journals.rcsi.science
 MAX_CONCURRENT_JOBS=4
+MAX_JOB_QUEUE=8
 RATE_LIMIT_PER_MINUTE=30
 PORT=<Railway задаёт сам>
 ```
@@ -68,16 +69,16 @@ PostgreSQL / `DATABASE_URI` **не нужны**.
 
 ### 4. Запуск
 
-Start command (уже в `Procfile` / `railway.json`):
+Railway собирает **Dockerfile** (см. `railway.json`). Команда внутри образа:
 
 ```text
-gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 --graceful-timeout 30
+gunicorn -c gunicorn.conf.py ipsas.web.wsgi:app
 ```
 
-- Приложение слушает `$PORT` (обычно 8080 на Railway)
-- **Один worker обязателен:** rate limit / concurrency (`RequestGuard`) хранятся в памяти процесса
-- Фоновые задачи парсера выпуска — в файлах (`temp/issue_metadata_tasks/`); после redeploy незавершённые задачи пропадают
-- Временные XML/HTML очищаются по TTL (`TEMP_FILE_TTL_SECONDS`, по умолчанию 6 часов)
+- Приложение слушает `$PORT`
+- **Один worker обязателен:** rate limit / concurrency (`RequestGuard`) и фоновый пул — in-memory
+- Парсер выпуска: только **POST**; фоновые задачи — через ограниченный `ThreadPoolExecutor`
+- После redeploy незавершённые running-задачи помечаются как interrupted
 - Не задавайте вручную устаревшую команду `gunicorn run:app … --workers 2`
 
 ### 5. Проверка
