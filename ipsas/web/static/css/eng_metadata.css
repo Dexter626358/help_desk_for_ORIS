@@ -1,0 +1,486 @@
+/* Сверка ENG: дизайн как в review UI (карточки полей + sticky PDF) */
+
+.eng-title-block {
+  margin: 0 0 0.85rem;
+}
+
+.eng-kicker {
+  margin: 0 0 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.eng-article-heading {
+  margin: 0 0 0.45rem;
+  font-size: 1.25rem;
+  line-height: 1.3;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.eng-meta-line {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  align-items: center;
+}
+
+.eng-article-url {
+  margin: 0.45rem 0 0;
+  word-break: break-all;
+  font-size: 0.92rem;
+}
+
+.eng-article-url a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.eng-flash {
+  margin-bottom: 0.85rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #b7e0d1;
+  background: #e3f5ef;
+  color: #0b5f4b;
+}
+
+.eng-badge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 650;
+  background: #eee;
+  color: #666;
+}
+
+.eng-badge-review,
+.eng-badge-ok {
+  background: #d7efe7;
+  color: #0b5f4b;
+}
+
+.eng-badge-fill {
+  background: #e4eefc;
+  color: #1d4f91;
+}
+
+.eng-badge-replace {
+  background: #f1e8f8;
+  color: #7a3e9d;
+}
+
+.eng-chip {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  background: #eef2f7;
+  border-radius: 999px;
+  padding: 0.12rem 0.5rem;
+}
+
+/* Полная ширина рабочей области */
+.page:has(.eng-review-layout) {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding-left: 0.65rem;
+  padding-right: 0.65rem;
+  padding-bottom: 5rem;
+}
+
+.eng-review-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 1.05fr) minmax(360px, 0.95fr);
+  gap: 1rem;
+  align-items: start;
+  width: 100%;
+}
+
+.eng-pdf-pane {
+  position: sticky;
+  top: 0.75rem;
+  height: calc(100vh - 5.5rem);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+}
+
+.eng-pdf-head {
+  padding: 0.55rem 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-muted);
+}
+
+.eng-pdf-frame {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  background: #525659;
+  min-height: 0;
+}
+
+.eng-empty {
+  padding: 1.25rem;
+  color: var(--text-muted);
+}
+
+.eng-form-pane {
+  min-width: 0;
+}
+
+.eng-toolbar {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 0 0 0.9rem;
+  padding: 0.65rem 0.85rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.eng-toolbar-check {
+  font-weight: 650;
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  cursor: pointer;
+}
+
+.eng-toolbar-check input {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: #0b5f4b;
+}
+
+.eng-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.eng-field-card,
+.eng-refs-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0.85rem 1rem 1rem;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+  transition: opacity 0.15s ease, border-color 0.15s ease;
+}
+
+.eng-field-card.is-unchecked,
+.eng-refs-panel.is-unchecked {
+  opacity: 0.55;
+  border-style: dashed;
+}
+
+.eng-field-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 0.7rem;
+}
+
+.eng-field-select {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.eng-field-select input {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: #0b5f4b;
+  flex-shrink: 0;
+}
+
+.eng-field-title {
+  font-size: 1.02rem;
+  font-weight: 650;
+}
+
+.eng-field-meta {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.eng-en-now {
+  font-size: 0.82rem;
+  margin: 0 0 0.4rem;
+  line-height: 1.35;
+}
+
+.eng-ru-comment {
+  margin-top: 0.55rem;
+  border-left: 3px solid #d2c6b4;
+  padding: 0.35rem 0 0.2rem 0.7rem;
+}
+
+.eng-ru-comment-label {
+  font-size: 0.72rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 0.2rem;
+}
+
+.eng-ru-comment-body {
+  font-size: 0.88rem;
+  color: #4a453c;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.eng-pane-label {
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+.eng-pane-edit,
+.eng-pane-input,
+.eng-json-area {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #b7d0c7;
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+  background: #fff;
+  font: inherit;
+  line-height: 1.5;
+  color: var(--text-primary);
+  box-shadow: inset 0 0 0 1px rgba(11, 95, 75, 0.08);
+}
+
+.eng-pane-edit {
+  display: block;
+  resize: none;
+  overflow: hidden;
+  min-height: 2.6rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  field-sizing: content;
+}
+
+.eng-pane-input:focus,
+.eng-pane-edit:focus,
+.eng-json-area:focus {
+  outline: 2px solid color-mix(in srgb, #0b5f4b 35%, white);
+  border-color: #0b5f4b;
+}
+
+.eng-author-grid,
+.eng-dates-grid {
+  display: grid;
+  gap: 0.65rem 0.75rem;
+}
+
+.eng-author-grid {
+  grid-template-columns: 1fr 1fr;
+}
+
+.eng-dates-grid {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.eng-mini-full {
+  grid-column: 1 / -1;
+}
+
+.eng-refs-panel {
+  margin: 0;
+}
+
+.eng-refs-pairs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.eng-ref-pair {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.7rem 0.8rem 0.85rem;
+  background: #fff;
+}
+
+.eng-ref-pair-title {
+  font-weight: 650;
+  margin-bottom: 0.45rem;
+  font-size: 0.95rem;
+}
+
+.eng-ref-edit {
+  min-height: 4.5rem;
+}
+
+.eng-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 15;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.85rem 0 0.35rem;
+  margin-top: 1rem;
+  background: linear-gradient(transparent, var(--app-background) 28%);
+}
+
+.eng-btn {
+  appearance: none;
+  border: 1px solid var(--border-strong);
+  background: #fff;
+  color: var(--text-primary);
+  padding: 0.55rem 0.95rem;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.eng-btn:hover {
+  border-color: #9aa8bc;
+}
+
+.eng-btn-primary {
+  background: #0b5f4b;
+  color: #fff;
+  border-color: #0b5f4b;
+}
+
+.eng-btn-primary:hover {
+  filter: brightness(1.05);
+  color: #fff;
+}
+
+/* Список статей — горизонтальная лента */
+.eng-article-strip {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 0.85rem;
+  margin-top: 1.1rem;
+  padding: 0.15rem 0.15rem 0.85rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.eng-article-card {
+  flex: 0 0 min(280px, 78vw);
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  box-sizing: border-box;
+  min-height: 180px;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-muted);
+  box-shadow: var(--card-shadow);
+}
+
+.eng-article-card.is-ok {
+  border-color: var(--color-success-border);
+}
+
+.eng-article-card.is-bad {
+  border-color: var(--color-danger-border);
+}
+
+.eng-article-card-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.eng-article-id {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.eng-article-title {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  font-weight: 600;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.eng-article-stem {
+  margin: 0;
+  font-size: 0.75rem;
+  word-break: break-all;
+}
+
+.eng-article-errs {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.8rem;
+}
+
+.eng-article-card-foot {
+  margin-top: auto;
+  padding-top: 0.35rem;
+}
+
+@media (max-width: 1100px) {
+  .eng-review-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .eng-pdf-pane {
+    position: static;
+    height: 55vh;
+  }
+
+  .eng-dates-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .eng-author-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .eng-actions {
+    flex-direction: column;
+  }
+
+  .eng-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -394,7 +394,7 @@ a:hover { color: var(--primary-hover); }
 .page-lead {
   margin: 0 0 1rem;
   color: var(--color-text-secondary);
-  max-width: 62ch;
+  max-width: min(56rem, 100%);
   line-height: 1.55;
 }
 
@@ -545,10 +545,13 @@ a:hover { color: var(--primary-hover); }
   font-size: 0.875rem;
 }
 
-/* Формы с загрузкой файлов — уже, чтобы dropzone не растягивалась на всю ширину */
-form:has(.dropzone),
-.card:has(.dropzone),
-.card:has(.upload-dropzone) {
+/* Зона загрузки уже; карточка и текст описания — на всю ширину контента */
+form:has(.dropzone) {
+  max-width: var(--form-max);
+}
+
+.card:has(.upload-dropzone) form:has(.dropzone),
+.upload-dropzone {
   max-width: var(--form-max);
 }
 

@@ -95,6 +95,18 @@
       </div>
     </a>
 
+    <a class="action-card" href="{{ url_for('eng_metadata.upload_page') }}">
+      <div class="action-card-head">
+        <span class="action-card-ico" aria-hidden="true">{{ icon('globe', 20) }}</span>
+      </div>
+      <h3>Обновление англоязычных метаданных</h3>
+      <p class="action-card-desc">Сверка английских метаданных статей с PDF и подготовка к обновлению</p>
+      <div class="action-card-foot">
+        <p class="action-card-io">Архив выпуска → проверка и правка → подготовка данных</p>
+        <span class="action-card-cta">Открыть →</span>
+      </div>
+    </a>
+
     <a class="action-card" href="{{ url_for('journal_site_check.journal_site_check_page') }}">
       <div class="action-card-head">
         <span class="action-card-ico" aria-hidden="true">{{ icon('radar', 20) }}</span>
@@ -160,6 +172,13 @@
         <p>Автоисправление частых дефектов journal XML</p>
       </div>
       <a class="btn btn-secondary" href="{{ url_for('main.xml_typo_fixes_page') }}">Подробнее</a>
+    </div>
+    <div class="tool-row">
+      <div>
+        <h3>Обновление англоязычных метаданных</h3>
+        <p>Сверка английских метаданных с PDF и подготовка к обновлению на платформе</p>
+      </div>
+      <a class="btn btn-secondary" href="{{ url_for('eng_metadata.upload_page') }}">Открыть</a>
     </div>
     <div class="tool-row">
       <div>

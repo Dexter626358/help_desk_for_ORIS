@@ -73,6 +73,7 @@ def create_app(*, testing: bool = False) -> Flask:
     from ipsas.web.issue_pdf_csv import issue_pdf_csv_bp
     from ipsas.web.journal_site_check import journal_site_check_bp
     from ipsas.web.xml_editor import xml_editor_bp
+    from ipsas.web.eng_metadata import eng_metadata_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(xml_validation_bp, url_prefix="/services")
@@ -85,6 +86,7 @@ def create_app(*, testing: bool = False) -> Flask:
     app.register_blueprint(issue_pdf_csv_bp, url_prefix="/services")
     app.register_blueprint(journal_site_check_bp, url_prefix="/services")
     app.register_blueprint(xml_editor_bp, url_prefix="/services/xml-editor")
+    app.register_blueprint(eng_metadata_bp, url_prefix="/services")
 
     guard = RequestGuard(
         max_concurrent=settings.max_concurrent_jobs,

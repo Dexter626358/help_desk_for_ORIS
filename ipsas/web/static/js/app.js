@@ -26,6 +26,11 @@
       }
     } catch (e) {}
 
+    // Страницы сверки: сразу свернуть меню, не меняя сохранённую настройку пользователя
+    if (shell.getAttribute("data-collapse-sidebar") === "1") {
+      shell.classList.add("is-collapsed");
+    }
+
     if (toggle) {
       function syncToggleUi() {
         var collapsed = shell.classList.contains("is-collapsed");

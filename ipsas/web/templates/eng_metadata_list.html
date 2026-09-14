@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs %}
+
+{% block title %}Статьи ENG-метаданных — IPSAS{% endblock %}
+{% block topbar %}Обновление ENG-метаданных{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/eng_metadata.css') }}" />
+{% endblock %}
+
+{% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Обновление ENG-метаданных', 'url': url_for('eng_metadata.upload_page')},
+  {'label': 'Список статей'}
+]) }}
+
+<div class="card">
+  <h1 class="page-title">Статьи в архиве</h1>
+  <p class="page-lead">
+    Источник: <span class="mono">{{ manifest.source_name }}</span>
+    · готово: {{ manifest.ok_count }} из {{ manifest.total }}
+  </p>
+  <p class="muted">
+    <a href="{{ url_for('eng_metadata.upload_page') }}">Загрузить другой архив</a>
+  </p>
+
+  {% if manifest.articles %}
+  <div class="eng-article-strip" role="list">
+    {% for a in manifest.articles %}
+    <article class="eng-article-card {% if a.ok %}is-ok{% else %}is-bad{% endif %}" role="listitem">
+      <div class="eng-article-card-top">
+        <span class="eng-article-id mono">{{ a.article_id or '—' }}</span>
+        {% if a.ok %}
+          <span class="badge badge-success">OK</span>
+        {% else %}
+          <span class="badge badge-danger">Ошибки</span>
+        {% endif %}
+        {% if a.approved %}
+          <span class="badge badge-info">готово</span>
+        {% endif %}
+      </div>
+      <h3 class="eng-article-title">{{ a.title_eng or 'Без названия' }}</h3>
+      <p class="eng-article-stem mono muted">{{ a.stem }}</p>
+      {% set errs = (a.pair_issues or []) + (a.validation_errors or []) %}
+      {% if errs %}
+      <ul class="eng-article-errs muted">
+        {% for e in errs[:3] %}
+        <li>{{ e }}</li>
+        {% endfor %}
+        {% if errs|length > 3 %}
+        <li>…ещё {{ errs|length - 3 }}</li>
+        {% endif %}
+      </ul>
+      {% endif %}
+      <div class="eng-article-card-foot">
+        {% if a.article_id %}
+        <a class="btn btn-primary btn-sm"
+           href="{{ url_for('eng_metadata.review_article', session_id=session_id, article_id=a.article_id) }}">
+          Открыть
+        </a>
+        {% else %}
+        <span class="muted">Нельзя открыть</span>
+        {% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="muted" style="margin-top:1rem;">В архиве нет статей.</p>
+  {% endif %}
+</div>
+{% endblock %}

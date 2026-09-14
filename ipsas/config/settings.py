@@ -129,6 +129,24 @@ class Settings:
             os.getenv("SESSION_COOKIE_SAMESITE", "Lax").strip() or "Lax"
         )
 
+        # ENG-метаданные → запись в OJS (по умолчанию выкл.)
+        self.platform_apply_enabled: bool = _env_bool("PLATFORM_APPLY_ENABLED", False)
+        self.platform_base_url: str = (
+            os.getenv("PLATFORM_BASE_URL", "https://journals.rcsi.science").strip()
+            or "https://journals.rcsi.science"
+        )
+        self.platform_username: str = (
+            os.getenv("PLATFORM_USERNAME") or os.getenv("RCSI_USERNAME") or ""
+        ).strip()
+        self.platform_password: str = (
+            os.getenv("PLATFORM_PASSWORD") or os.getenv("RCSI_PASSWORD") or ""
+        ).strip()
+        cookie_default = self.temp_dir / "rcsi_cookies.txt"
+        self.platform_cookie_file: Path = Path(
+            os.getenv("PLATFORM_COOKIE_FILE") or cookie_default
+        ).expanduser().resolve()
+        self.platform_request_delay: float = _env_float("PLATFORM_REQUEST_DELAY", 0.35)
+
         # Доверять X-Forwarded-For только если явно включено (за корректным proxy)
         self.trust_proxy_headers: bool = _env_bool("TRUST_PROXY_HEADERS", False)
 

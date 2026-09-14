@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs %}
+
+{% block title %}Статья {{ article_id }} — сверка ENG{% endblock %}
+{% block topbar %}Сверка ENG-метаданных{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/eng_metadata.css') }}" />
+{% endblock %}
+
+{% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Обновление ENG-метаданных', 'url': url_for('eng_metadata.upload_page')},
+  {'label': 'Список', 'url': url_for('eng_metadata.session_list', session_id=session_id)},
+  {'label': 'Статья ' ~ article_id}
+]) }}
+
+{% set article_url = entry.article_url or form.article_url or '' %}
+<div class="eng-title-block">
+  <p class="eng-kicker">Статья <span class="mono">{{ article_id }}</span></p>
+  <h1 class="eng-article-heading">{{ entry.title_eng or form.title_eng or 'Без названия' }}</h1>
+  <p class="muted eng-meta-line">
+    <span class="eng-badge eng-badge-review">К сверке</span>
+    {% if entry.approved %}<span class="eng-badge eng-badge-ok">Подтверждено к отправке</span>{% endif %}
+    {% if pdf_ok %}
+      · <a href="{{ url_for('eng_metadata.article_pdf', session_id=session_id, article_id=article_id) }}" target="_blank" rel="noopener">Открыть PDF</a>
+    {% endif %}
+  </p>
+  {% if article_url %}
+  <p class="muted eng-article-url">
+    Ссылка на статью (справочно):
+    <a href="{{ article_url }}" target="_blank" rel="noopener" class="mono">{{ article_url }}</a>
+  </p>
+  {% endif %}
+</div>
+
+{% if dry_run %}
+<div class="eng-flash">
+  {% if dry_run.apply and not dry_run.apply.dry_run %}
+  <strong>Отправка на платформу.</strong>
+  {{ dry_run.apply.message or dry_run.note }}
+  Применено полей: {{ (dry_run.apply.applied_fields or [])|length }}.
+  {% if dry_run.apply.errors %}
+  <div class="muted">Предупреждения: {{ dry_run.apply.errors|join('; ') }}</div>
+  {% endif %}
+  {% else %}
+  <strong>Подготовка к отправке.</strong>
+  {{ dry_run.note }}
+  Полей в payload: {{ dry_run.changes_count }}.
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="eng-review-layout">
+  <aside class="eng-pdf-pane">
+    <div class="eng-pdf-head">English PDF — сверяйте английские поля с текстом</div>
+    {% if pdf_ok %}
+    <iframe
+      class="eng-pdf-frame"
+      title="English PDF"
+      src="{{ url_for('eng_metadata.article_pdf', session_id=session_id, article_id=article_id) }}#view=FitH"
+    ></iframe>
+    {% else %}
+    <div class="eng-empty"><p>PDF для этой статьи не найден.</p></div>
+    {% endif %}
+  </aside>
+
+  <div class="eng-form-pane">
+    <form method="POST"
+          action="{{ url_for('eng_metadata.save_article', session_id=session_id, article_id=article_id) }}"
+          id="eng-meta-form">
+      {{ csrf_field() }}
+      <input type="hidden" name="authors_count" value="{{ form.authors|length }}" />
+
+      <div class="eng-toolbar">
+        <label class="eng-toolbar-check">
+          <input type="checkbox" id="toggle-all" checked>
+          Выбрать все
+        </label>
+        <span class="muted">Правьте английские поля по PDF. Русский текст под полем — справочно из JSON.</span>
+      </div>
+
+      <div class="eng-cards">
+        {# —— Title —— #}
+        <article class="eng-field-card" data-field-card>
+          <header class="eng-field-head">
+            <label class="eng-field-select">
+              <input type="checkbox" class="include-cb" checked>
+              <span class="eng-field-title">Заголовок (EN)</span>
+            </label>
+            <div class="eng-field-meta">
+              <span class="eng-badge eng-badge-fill">Из архива</span>
+            </div>
+          </header>
+          <div class="eng-en-now muted">Источник: JSON выпуска</div>
+          <textarea name="title_eng" id="title_eng" class="eng-pane-edit autosize" rows="2">{{ form.title_eng }}</textarea>
+          {% if form.title_ru %}
+          <div class="eng-ru-comment">
+            <div class="eng-ru-comment-label">RU (справочно)</div>
+            <div class="eng-ru-comment-body">{{ form.title_ru }}</div>
+          </div>
+          {% endif %}
+        </article>
+
+        {# —— Authors —— #}
+        {% for author in form.authors %}
+        {% set i = loop.index0 %}
+        {% set aff0 = (author.affiliations or [{}])[0] if author.affiliations else {} %}
+        <article class="eng-field-card" data-field-card>
+          <header class="eng-field-head">
+            <label class="eng-field-select">
+              <input type="checkbox" class="include-cb" checked>
+              <span class="eng-field-title">Автор {{ loop.index }}</span>
+            </label>
+            <div class="eng-field-meta">
+              <span class="eng-badge eng-badge-replace">Из архива</span>
+            </div>
+          </header>
+          <div class="eng-author-grid">
+            <div class="eng-mini">
+              <label class="eng-pane-label">Given (EN)</label>
+              <input type="text" name="author_{{ i }}_given_en" value="{{ author.given_en or '' }}" class="eng-pane-input" />
+            </div>
+            <div class="eng-mini">
+              <label class="eng-pane-label">Surname (EN)</label>
+              <input type="text" name="author_{{ i }}_surname_en" value="{{ author.surname_en or '' }}" class="eng-pane-input" />
+            </div>
+            <div class="eng-mini eng-mini-full">
+              <label class="eng-pane-label">Full name (EN)</label>
+              <input type="text" name="author_{{ i }}_full_name_en" value="{{ author.full_name_en or '' }}" class="eng-pane-input" />
+            </div>
+            <div class="eng-mini">
+              <label class="eng-pane-label">Email</label>
+              <input type="text" name="author_{{ i }}_email" value="{{ author.email or '' }}" class="eng-pane-input" />
+            </div>
+            <div class="eng-mini">
+              <label class="eng-pane-label">ORCID</label>
+              <input type="text" name="author_{{ i }}_orcid" value="{{ author.orcid or '' }}" class="eng-pane-input" />
+            </div>
+            <div class="eng-mini eng-mini-full">
+              <label class="eng-pane-label">Organization (EN)</label>
+              <input type="text" name="author_{{ i }}_org_en" value="{{ aff0.organization_en or '' }}" class="eng-pane-input" />
+            </div>
+            <div class="eng-mini eng-mini-full">
+              <label class="eng-pane-label">Address (EN)</label>
+              <input type="text" name="author_{{ i }}_address_en" value="{{ aff0.address_en or '' }}" class="eng-pane-input" />
+            </div>
+          </div>
+          {% if author.full_name_ru or aff0.organization_ru %}
+          <div class="eng-ru-comment">
+            <div class="eng-ru-comment-label">RU (справочно)</div>
+            <div class="eng-ru-comment-body">
+              {%- if author.full_name_ru -%}{{ author.full_name_ru }}{%- endif -%}
+              {%- if author.full_name_ru and aff0.organization_ru %}; {% endif -%}
+              {%- if aff0.organization_ru -%}{{ aff0.organization_ru }}{%- endif -%}
+            </div>
+          </div>
+          {% endif %}
+        </article>
+        {% else %}
+        <article class="eng-field-card">
+          <p class="muted" style="margin:0;">Авторы в JSON отсутствуют.</p>
+        </article>
+        {% endfor %}
+
+        {# —— Dates —— #}
+        <article class="eng-field-card" data-field-card>
+          <header class="eng-field-head">
+            <label class="eng-field-select">
+              <input type="checkbox" class="include-cb" checked>
+              <span class="eng-field-title">Даты</span>
+            </label>
+            <div class="eng-field-meta">
+              <span class="eng-badge eng-badge-fill">Из архива</span>
+            </div>
+          </header>
+          <div class="eng-dates-grid">
+            <div class="eng-mini">
+              <label class="eng-pane-label" for="date_received">Received</label>
+              <input type="text" id="date_received" name="date_received" value="{{ form.date_received }}" placeholder="YYYY-MM-DD" class="eng-pane-input" />
+            </div>
+            <div class="eng-mini">
+              <label class="eng-pane-label" for="date_revised">Revised</label>
+              <input type="text" id="date_revised" name="date_revised" value="{{ form.date_revised }}" placeholder="YYYY-MM-DD" class="eng-pane-input" />
+            </div>
+            <div class="eng-mini">
+              <label class="eng-pane-label" for="date_accepted">Accepted</label>
+              <input type="text" id="date_accepted" name="date_accepted" value="{{ form.date_accepted }}" placeholder="YYYY-MM-DD" class="eng-pane-input" />
+            </div>
+          </div>
+        </article>
+
+        {# —— Abstract —— #}
+        <article class="eng-field-card" data-field-card>
+          <header class="eng-field-head">
+            <label class="eng-field-select">
+              <input type="checkbox" class="include-cb" checked>
+              <span class="eng-field-title">Аннотация (EN)</span>
+            </label>
+            <div class="eng-field-meta">
+              <span class="eng-badge eng-badge-fill">Из архива</span>
+            </div>
+          </header>
+          <div class="eng-en-now muted">Источник: JSON выпуска</div>
+          <textarea name="abstract_eng" id="abstract_eng" class="eng-pane-edit autosize" rows="8">{{ form.abstract_eng }}</textarea>
+          {% if form.abstract_ru %}
+          <div class="eng-ru-comment">
+            <div class="eng-ru-comment-label">RU (справочно)</div>
+            <div class="eng-ru-comment-body">{{ form.abstract_ru }}</div>
+          </div>
+          {% endif %}
+        </article>
+
+        {# —— Keywords —— #}
+        <article class="eng-field-card" data-field-card>
+          <header class="eng-field-head">
+            <label class="eng-field-select">
+              <input type="checkbox" class="include-cb" checked>
+              <span class="eng-field-title">Ключевые слова (EN)</span>
+            </label>
+            <div class="eng-field-meta">
+              <span class="eng-chip">одна строка = одно слово</span>
+            </div>
+          </header>
+          <textarea name="keywords_eng" id="keywords_eng" class="eng-pane-edit autosize" rows="4" placeholder="Одна строка = один элемент">{{ form.keywords_eng }}</textarea>
+        </article>
+
+        {# —— References —— #}
+        {% set refs_list = form.references_eng or [] %}
+        {% set refs = refs_list if refs_list else [''] %}
+        {% set refs_n = refs_list|length %}
+        <section class="eng-refs-panel" data-field-card>
+          <header class="eng-field-head">
+            <label class="eng-field-select">
+              <input type="checkbox" class="include-cb" checked>
+              <span class="eng-field-title">Литература</span>
+            </label>
+            <div class="eng-field-meta">
+              <span class="eng-chip">
+                {{ refs_n }}
+                {%- if refs_n % 10 == 1 and refs_n % 100 != 11 %} источник
+                {%- elif refs_n % 10 in [2, 3, 4] and refs_n % 100 not in [12, 13, 14] %} источника
+                {%- else %} источников
+                {%- endif %}
+              </span>
+            </div>
+          </header>
+          <input type="hidden" name="references_count" value="{{ refs|length }}" />
+          <div class="eng-refs-pairs">
+            {% for ref in refs %}
+            <article class="eng-ref-pair">
+              <div class="eng-ref-pair-title">Источник {{ loop.index }}</div>
+              <textarea
+                name="ref_value_{{ loop.index0 }}"
+                id="ref_value_{{ loop.index0 }}"
+                class="eng-pane-edit autosize eng-ref-edit"
+                rows="3"
+                placeholder="Текст источника (EN)">{{ ref }}</textarea>
+            </article>
+            {% endfor %}
+          </div>
+        </section>
+      </div>
+
+      <div class="eng-actions">
+        <button type="submit" class="eng-btn">Сохранить черновик</button>
+        {% if platform_apply_enabled %}
+        <button type="submit"
+                class="eng-btn eng-btn-primary"
+                formaction="{{ url_for('eng_metadata.prepare_send', session_id=session_id, article_id=article_id) }}"
+                data-confirm="Отправить английские метаданные на Платформу? Изменения будут записаны в OJS.">
+          Подтвердить и отправить на Платформу
+        </button>
+        {% else %}
+        <button type="submit"
+                class="eng-btn eng-btn-primary"
+                formaction="{{ url_for('eng_metadata.prepare_send', session_id=session_id, article_id=article_id) }}"
+                data-confirm="Подготовить данные локально? На платформу сейчас ничего не отправится (PLATFORM_APPLY_ENABLED выключен).">
+          Подтвердить и подготовить для Платформы
+        </button>
+        {% endif %}
+        <a class="eng-btn" href="{{ url_for('eng_metadata.session_list', session_id=session_id) }}">К списку</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  function autosizeTextarea(el) {
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
+  }
+  document.querySelectorAll("textarea.autosize").forEach(function (el) {
+    autosizeTextarea(el);
+    el.addEventListener("input", function () { autosizeTextarea(el); });
+  });
+
+  var toggle = document.getElementById("toggle-all");
+  if (toggle) {
+    toggle.addEventListener("change", function () {
+      document.querySelectorAll(".include-cb").forEach(function (cb) {
+        cb.checked = toggle.checked;
+        var card = cb.closest("[data-field-card]");
+        if (card) card.classList.toggle("is-unchecked", !cb.checked);
+      });
+    });
+  }
+  document.querySelectorAll(".include-cb").forEach(function (cb) {
+    cb.addEventListener("change", function () {
+      var card = cb.closest("[data-field-card]");
+      if (card) card.classList.toggle("is-unchecked", !cb.checked);
+    });
+  });
+
+  document.querySelectorAll("[data-confirm]").forEach(function (btn) {
+    btn.addEventListener("click", function (e) {
+      var msg = btn.getAttribute("data-confirm");
+      if (msg && !window.confirm(msg)) e.preventDefault();
+    });
+  });
+})();
+</script>
+{% endblock %}

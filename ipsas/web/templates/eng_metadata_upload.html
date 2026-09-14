@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs, file_upload %}
+
+{% block title %}Обновление англоязычных метаданных — IPSAS{% endblock %}
+{% block topbar %}Обновление ENG-метаданных{% endblock %}
+
+{% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Обновление англоязычных метаданных'}
+]) }}
+
+<div class="card">
+  <h1 class="page-title">Обновление англоязычных метаданных</h1>
+  <p class="page-lead">
+    Загрузите архив выпуска: для каждой статьи внутри должны быть английский PDF
+    и файл с метаданными. Система проверит комплект, после чего вы сможете
+    открыть статью — слева текст PDF, справа поля, которые можно поправить.
+    Отправка на платформу пока не выполняется: можно только подготовить данные
+    и сохранить их локально.
+  </p>
+
+  <form method="POST"
+        action="{{ url_for('eng_metadata.upload_archive') }}"
+        enctype="multipart/form-data"
+        data-loading-form>
+    {{ csrf_field() }}
+    {{ file_upload(
+      name='zip_file',
+      input_id='zip_file',
+      accept='.zip,application/zip',
+      label='Архив выпуска',
+      help_text='ZIP с английскими PDF и метаданными статей'
+    ) }}
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Загрузить и проверить</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
