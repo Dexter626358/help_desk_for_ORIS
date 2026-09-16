@@ -154,27 +154,66 @@ class PlatformAuthClient:
     def login(self, username: str, password: str, *, remember: bool = True) -> None:
         if not username or not password:
             raise PlatformAuthError("Нужны username и password")
-        self.get_text(f"{self.base_url}{LOGIN_PATH}")
+        login_url = f"{self.base_url}{LOGIN_PATH}"
+        self.get_text(login_url)
         payload = {
             "username": username,
             "password": password,
-            "remember": "1" if remember else "0",
             "source": "",
         }
+        if remember:
+            payload["remember"] = "1"
         status, final_url, body = self.request(
             f"{self.base_url}{SIGN_IN_PATH}",
             data=payload,
+            headers={
+                "Referer": login_url,
+                "Origin": self.base_url,
+            },
         )
         text = body.decode("utf-8", "replace")
         if status >= 400:
             raise PlatformAuthError(f"Ошибка входа HTTP {status}")
-        if "signinForm" in text and "loginUsername" in text:
-            raise PlatformAuthError("Неверный логин или пароль")
+        if self._looks_like_failed_login(text, final_url):
+            reason = self._extract_login_error(text) or "неверный логин или пароль"
+            raise PlatformAuthError(reason)
         if not self.is_logged_in():
-            # иногда редирект уже достаточен
             if "login" in final_url.casefold() and "signinForm" in text:
                 raise PlatformAuthError("Сессия после входа не установлена")
         logger.info("Вход на платформу выполнен (%s)", username)
+
+    @staticmethod
+    def _looks_like_failed_login(html: str, final_url: str) -> bool:
+        low = html.casefold()
+        markers = (
+            "invalid username",
+            "invalid password",
+            "неправильный пароль",
+            "неверн",
+            "ошибка входа",
+            "authentication failed",
+            "incorrect username",
+            "incorrect password",
+        )
+        if any(m in low for m in markers):
+            return True
+        if "signinForm" in html and "loginUsername" in html:
+            if "/login" in final_url.casefold():
+                return True
+        return False
+
+    @staticmethod
+    def _extract_login_error(html: str) -> str | None:
+        marker = 'class="pkp_form_error"'
+        start = html.find(marker)
+        if start < 0:
+            return None
+        gt = html.find(">", start)
+        lt = html.find("<", gt + 1) if gt >= 0 else -1
+        if gt < 0 or lt < 0:
+            return None
+        msg = html[gt + 1 : lt].strip()
+        return msg or None
 
 
 def ensure_platform_auth(

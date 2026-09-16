@@ -7,6 +7,35 @@ from pathlib import Path
 from typing import Optional
 
 
+def _load_dotenv(path: Path) -> None:
+    """Простая загрузка KEY=VALUE из .env (без зависимости python-dotenv).
+
+    Уже заданные в окружении переменные не перезаписываются.
+    """
+    if not path.is_file():
+        return
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key = key.strip()
+        if not key or key in os.environ:
+            continue
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+            value = value[1:-1]
+        os.environ[key] = value
+
+
+# Подхватить .env из корня репозитория до чтения настроек
+_load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
+
+
 def _env_bool(name: str, default: bool) -> bool:
     raw = os.getenv(name)
     if raw is None:

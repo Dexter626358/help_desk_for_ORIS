@@ -9,6 +9,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
+from ipsas.modules.journal_site.docs_urls import (
+    DOC_BOARD,
+    DOC_DOI,
+    DOC_LANG,
+    DOC_RT,
+    DOC_SECTIONS,
+    DOC_STEP_1,
+    DOC_STEP_2,
+)
+
 CheckKind = Literal[
     "locale_flags",
     "setting_text",
@@ -101,7 +111,7 @@ DEFAULT_SETUP_CHECKLIST: tuple[ChecklistItem, ...] = (
         "locale_flags",
         setting_keys=("supportedLocales", "supportedSubmissionLocales", "supportedFormLocales"),
         locales=("ru",),
-        doc_url="https://docs.rfbr.ru/doc/yazyki-v-zhurnale-R01seFFrAg",
+        doc_url=DOC_LANG,
     ),
     ChecklistItem(
         "pages.lang.en",
@@ -110,14 +120,14 @@ DEFAULT_SETUP_CHECKLIST: tuple[ChecklistItem, ...] = (
         "locale_flags",
         setting_keys=("supportedLocales", "supportedSubmissionLocales", "supportedFormLocales"),
         locales=("en",),
-        doc_url="https://docs.rfbr.ru/doc/yazyki-v-zhurnale-R01seFFrAg",
+        doc_url=DOC_LANG,
     ),
     ChecklistItem(
         "pages.reader_tools",
         "pages",
         "Инструменты читателя: включены и настроены",
         "reader_tools",
-        doc_url="https://docs.rfbr.ru/doc/instrumenty-chitatelya-sgqJF9QfIm",
+        doc_url=DOC_RT,
     ),
     ChecklistItem(
         "pages.editorial_board",
@@ -125,21 +135,21 @@ DEFAULT_SETUP_CHECKLIST: tuple[ChecklistItem, ...] = (
         "Редакция журнала: корректно отображается (RU/EN)",
         "board",
         setting_keys=("boardCustomText", "boardEnabled"),
-        doc_url="https://docs.rfbr.ru/doc/redkollegiya-kak-vnesti-informaciyu-KO0EAvM4Gd",
+        doc_url=DOC_BOARD,
     ),
     ChecklistItem(
         "pages.section_articles",
         "pages",
         "Раздел «Статьи»: название/сокращение RU+EN; скрыт в «О журнале»; только редакторы",
         "sections_articles",
-        doc_url="https://docs.rfbr.ru/doc/razdely-i-rubriki-zhurnala-8EwNvt3xjH",
+        doc_url=DOC_SECTIONS,
     ),
     ChecklistItem(
         "pages.sections_other",
         "pages",
         "Созданы и настроены прочие разделы журнала",
         "sections_other",
-        doc_url="https://docs.rfbr.ru/doc/razdely-i-rubriki-zhurnala-8EwNvt3xjH",
+        doc_url=DOC_SECTIONS,
     ),
     # --- Шлюзы ---
     ChecklistItem(
@@ -169,7 +179,7 @@ DEFAULT_SETUP_CHECKLIST: tuple[ChecklistItem, ...] = (
         expect_enabled=True,
         severity="recommended",
         note_hint="Опционально: включать только если журнал присваивает DOI статьям.",
-        doc_url="https://docs.rfbr.ru/doc/doi-i-edn-kak-nastroit-moduli-publichnyh-identifikatorov-GtLjeoHspG",
+        doc_url=DOC_DOI,
     ),
     ChecklistItem(
         "modules.edn",
@@ -370,7 +380,7 @@ DEFAULT_SETUP_CHECKLIST: tuple[ChecklistItem, ...] = (
         "1.2 Редакция: контактное лицо (ФИО и e-mail)",
         "primary_contact",
         setting_keys=("contactName", "contactEmail"),
-        doc_url="https://docs.rfbr.ru/doc/nastrojka-sajta-zhurnala-na-platforme-xwmhtcejap#h-shag-1-detali",
+        doc_url=DOC_STEP_1,
     ),
     ChecklistItem(
         "step1.support",
@@ -400,7 +410,7 @@ DEFAULT_SETUP_CHECKLIST: tuple[ChecklistItem, ...] = (
         "setting_present_or_empty_ok",
         setting_keys=("sponsors", "contributorNote"),
         severity="info",
-        doc_url="https://docs.rfbr.ru/doc/nastrojka-sajta-zhurnala-na-platforme-xwmhtcejap#h-shag-1-detali",
+        doc_url=DOC_STEP_1,
     ),
     ChecklistItem(
         "step1.funding",
@@ -409,7 +419,7 @@ DEFAULT_SETUP_CHECKLIST: tuple[ChecklistItem, ...] = (
         "setting_present_or_empty_ok",
         setting_keys=("contributors", "contributorNote"),
         severity="info",
-        doc_url="https://docs.rfbr.ru/doc/nastrojka-sajta-zhurnala-na-platforme-xwmhtcejap#h-shag-1-detali",
+        doc_url=DOC_STEP_1,
     ),
     ChecklistItem(
         "step1.indexing_kw",
@@ -426,7 +436,7 @@ DEFAULT_SETUP_CHECKLIST: tuple[ChecklistItem, ...] = (
         "setting_present_or_empty_ok",
         setting_keys=("history",),
         severity="info",
-        doc_url="https://docs.rfbr.ru/doc/nastrojka-sajta-zhurnala-na-platforme-xwmhtcejap#h-shag-1-detali",
+        doc_url=DOC_STEP_1,
     ),
     # --- Шаг 2 ---
     ChecklistItem(
@@ -452,7 +462,7 @@ DEFAULT_SETUP_CHECKLIST: tuple[ChecklistItem, ...] = (
         "setting_text",
         setting_keys=("privacyStatement",),
         min_chars=40,
-        doc_url="https://docs.rfbr.ru/doc/nastrojka-sajta-zhurnala-na-platforme-xwmhtcejap#h-shag-2-politika",
+        doc_url=DOC_STEP_2,
     ),
     # --- Шаг 3 ---
     ChecklistItem(

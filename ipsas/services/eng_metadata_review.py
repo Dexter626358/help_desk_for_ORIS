@@ -16,6 +16,7 @@ from ipsas.modules.eng_metadata.platform_client import (
     PlatformClientError,
     PlatformClientSettings,
 )
+from ipsas.modules.eng_metadata.platform_auth import PlatformAuthError
 from ipsas.modules.eng_metadata.platform_update import ApplyResult, UpdateService
 from ipsas.modules.eng_metadata.session import (
     create_session_from_zip,
@@ -146,19 +147,25 @@ def apply_platform_update(session_id: str, article_id: str) -> dict[str, Any]:
             "(ожидается …/{issn}/article/view/{id})"
         )
 
-    client = PlatformClient(
-        PlatformClientSettings(
-            base_url=settings.platform_base_url,
-            username=settings.platform_username,
-            password=settings.platform_password,
-            cookie_file=settings.platform_cookie_file,
-            request_timeout=float(settings.request_timeout),
-            request_delay=float(settings.platform_request_delay),
-        )
-    )
-    service = UpdateService(client, issn=issn)
     try:
+        client = PlatformClient(
+            PlatformClientSettings(
+                base_url=settings.platform_base_url,
+                username=settings.platform_username,
+                password=settings.platform_password,
+                cookie_file=settings.platform_cookie_file,
+                request_timeout=float(settings.request_timeout),
+                request_delay=float(settings.platform_request_delay),
+            )
+        )
+        service = UpdateService(client, issn=issn)
         result: ApplyResult = service.apply_payload(payload, allow_apply=True)
+    except PlatformAuthError as exc:
+        logger.error("platform auth failed: %s", exc)
+        raise ValueError(
+            f"Не удалось войти на платформу: {exc}. "
+            "Проверьте PLATFORM_USERNAME / PLATFORM_PASSWORD."
+        ) from exc
     except PlatformClientError as exc:
         logger.error("platform apply failed: %s", exc, exc_info=True)
         raise ValueError(f"Ошибка связи с платформой: {exc}") from exc

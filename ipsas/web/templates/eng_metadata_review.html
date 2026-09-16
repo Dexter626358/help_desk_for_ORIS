@@ -5,7 +5,7 @@
 {% block topbar %}Сверка ENG-метаданных{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/eng_metadata.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/eng_metadata.css') }}?v=refs-aff-3" />
 {% endblock %}
 
 {% block content %}
@@ -106,7 +106,7 @@
         {# —— Authors —— #}
         {% for author in form.authors %}
         {% set i = loop.index0 %}
-        {% set aff0 = (author.affiliations or [{}])[0] if author.affiliations else {} %}
+        {% set affs = author.affiliations if author.affiliations else [{}] %}
         <article class="eng-field-card" data-field-card>
           <header class="eng-field-head">
             <label class="eng-field-select">
@@ -138,23 +138,44 @@
               <label class="eng-pane-label">ORCID</label>
               <input type="text" name="author_{{ i }}_orcid" value="{{ author.orcid or '' }}" class="eng-pane-input" />
             </div>
-            <div class="eng-mini eng-mini-full">
-              <label class="eng-pane-label">Organization (EN)</label>
-              <input type="text" name="author_{{ i }}_org_en" value="{{ aff0.organization_en or '' }}" class="eng-pane-input" />
-            </div>
-            <div class="eng-mini eng-mini-full">
-              <label class="eng-pane-label">Address (EN)</label>
-              <input type="text" name="author_{{ i }}_address_en" value="{{ aff0.address_en or '' }}" class="eng-pane-input" />
-            </div>
           </div>
-          {% if author.full_name_ru or aff0.organization_ru %}
-          <div class="eng-ru-comment">
-            <div class="eng-ru-comment-label">RU (справочно)</div>
-            <div class="eng-ru-comment-body">
-              {%- if author.full_name_ru -%}{{ author.full_name_ru }}{%- endif -%}
-              {%- if author.full_name_ru and aff0.organization_ru %}; {% endif -%}
-              {%- if aff0.organization_ru -%}{{ aff0.organization_ru }}{%- endif -%}
+          <input type="hidden" name="author_{{ i }}_aff_count" value="{{ affs|length }}" />
+          {% for aff in affs %}
+          {% set j = loop.index0 %}
+          <div class="eng-aff-block">
+            <div class="eng-aff-title">Организация {{ loop.index }}</div>
+            <div class="eng-author-grid">
+              <div class="eng-mini eng-mini-full">
+                <label class="eng-pane-label">Organization (EN)</label>
+                <input type="text"
+                       name="author_{{ i }}_aff_{{ j }}_org_en"
+                       value="{{ aff.organization_en or '' }}"
+                       class="eng-pane-input" />
+              </div>
+              <div class="eng-mini eng-mini-full">
+                <label class="eng-pane-label">Address (EN)</label>
+                <input type="text"
+                       name="author_{{ i }}_aff_{{ j }}_address_en"
+                       value="{{ aff.address_en or '' }}"
+                       class="eng-pane-input" />
+              </div>
             </div>
+            {% if aff.organization_ru or aff.address_ru %}
+            <div class="eng-ru-comment">
+              <div class="eng-ru-comment-label">RU (справочно)</div>
+              <div class="eng-ru-comment-body">
+                {%- if aff.organization_ru -%}{{ aff.organization_ru }}{%- endif -%}
+                {%- if aff.organization_ru and aff.address_ru %}; {% endif -%}
+                {%- if aff.address_ru -%}{{ aff.address_ru }}{%- endif -%}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+          {% if author.full_name_ru %}
+          <div class="eng-ru-comment">
+            <div class="eng-ru-comment-label">ФИО RU (справочно)</div>
+            <div class="eng-ru-comment-body">{{ author.full_name_ru }}</div>
           </div>
           {% endif %}
         </article>
@@ -230,27 +251,35 @@
         {% set refs_list = form.references_eng or [] %}
         {% set refs = refs_list if refs_list else [''] %}
         {% set refs_n = refs_list|length %}
-        <section class="eng-refs-panel" data-field-card>
+        <section class="eng-refs-panel" data-field-card id="eng-refs-panel">
           <header class="eng-field-head">
             <label class="eng-field-select">
               <input type="checkbox" class="include-cb" checked>
               <span class="eng-field-title">Литература</span>
             </label>
             <div class="eng-field-meta">
-              <span class="eng-chip">
-                {{ refs_n }}
-                {%- if refs_n % 10 == 1 and refs_n % 100 != 11 %} источник
-                {%- elif refs_n % 10 in [2, 3, 4] and refs_n % 100 not in [12, 13, 14] %} источника
+              <span class="eng-chip" id="eng-refs-count-chip">
+                <span id="eng-refs-count-num">{{ refs|length }}</span>
+                <span id="eng-refs-count-word">
+                {%- set n = refs|length -%}
+                {%- if n % 10 == 1 and n % 100 != 11 %} источник
+                {%- elif n % 10 in [2, 3, 4] and n % 100 not in [12, 13, 14] %} источника
                 {%- else %} источников
-                {%- endif %}
+                {%- endif -%}
+                </span>
               </span>
             </div>
           </header>
-          <input type="hidden" name="references_count" value="{{ refs|length }}" />
-          <div class="eng-refs-pairs">
+          <input type="hidden" name="references_count" id="references_count" value="{{ refs|length }}" />
+          <div class="eng-refs-pairs" id="eng-refs-pairs">
             {% for ref in refs %}
-            <article class="eng-ref-pair">
-              <div class="eng-ref-pair-title">Источник {{ loop.index }}</div>
+            <article class="eng-ref-pair" data-ref-pair>
+              <div class="eng-ref-pair-head">
+                <div class="eng-ref-pair-title">Источник {{ loop.index }}</div>
+                <button type="button" class="eng-btn eng-btn-sm eng-ref-remove-btn" data-ref-remove>
+                  Удалить
+                </button>
+              </div>
               <textarea
                 name="ref_value_{{ loop.index0 }}"
                 id="ref_value_{{ loop.index0 }}"
@@ -260,22 +289,31 @@
             </article>
             {% endfor %}
           </div>
+          <div class="eng-refs-toolbar">
+            <button type="button" class="eng-btn eng-btn-sm" id="eng-refs-add">
+              + Добавить в конец
+            </button>
+          </div>
         </section>
       </div>
 
       <div class="eng-actions">
-        <button type="submit" class="eng-btn">Сохранить черновик</button>
+        <button type="submit" class="eng-btn" name="form_action" value="save">
+          Сохранить черновик
+        </button>
         {% if platform_apply_enabled %}
         <button type="submit"
                 class="eng-btn eng-btn-primary"
-                formaction="{{ url_for('eng_metadata.prepare_send', session_id=session_id, article_id=article_id) }}"
+                name="form_action"
+                value="prepare"
                 data-confirm="Отправить английские метаданные на Платформу? Изменения будут записаны в OJS.">
           Подтвердить и отправить на Платформу
         </button>
         {% else %}
         <button type="submit"
                 class="eng-btn eng-btn-primary"
-                formaction="{{ url_for('eng_metadata.prepare_send', session_id=session_id, article_id=article_id) }}"
+                name="form_action"
+                value="prepare"
                 data-confirm="Подготовить данные локально? На платформу сейчас ничего не отправится (PLATFORM_APPLY_ENABLED выключен).">
           Подтвердить и подготовить для Платформы
         </button>
@@ -322,6 +360,133 @@
       if (msg && !window.confirm(msg)) e.preventDefault();
     });
   });
+
+  function refsWord(n) {
+    var mod10 = n % 10, mod100 = n % 100;
+    if (mod10 === 1 && mod100 !== 11) return " источник";
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return " источника";
+    return " источников";
+  }
+
+  function reindexRefs() {
+    var pairs = document.querySelectorAll("#eng-refs-pairs [data-ref-pair]");
+    pairs.forEach(function (pair, i) {
+      var title = pair.querySelector(".eng-ref-pair-title");
+      if (title) title.textContent = "Источник " + (i + 1);
+      var ta = pair.querySelector("textarea");
+      if (ta) {
+        ta.name = "ref_value_" + i;
+        ta.id = "ref_value_" + i;
+      }
+    });
+    var countInput = document.getElementById("references_count");
+    if (countInput) countInput.value = String(pairs.length);
+    var numEl = document.getElementById("eng-refs-count-num");
+    var wordEl = document.getElementById("eng-refs-count-word");
+    if (numEl) numEl.textContent = String(pairs.length);
+    if (wordEl) wordEl.textContent = refsWord(pairs.length);
+  }
+
+  function createRefPair(idx) {
+    var article = document.createElement("article");
+    article.className = "eng-ref-pair";
+    article.setAttribute("data-ref-pair", "");
+    article.innerHTML =
+      '<div class="eng-ref-pair-head">' +
+        '<div class="eng-ref-pair-title">Источник ' + (idx + 1) + '</div>' +
+        '<button type="button" class="eng-btn eng-btn-sm eng-ref-remove-btn" data-ref-remove>Удалить</button>' +
+      '</div>' +
+      '<textarea name="ref_value_' + idx + '" id="ref_value_' + idx + '" ' +
+        'class="eng-pane-edit autosize eng-ref-edit" rows="3" ' +
+        'placeholder="Текст источника (EN)"></textarea>';
+    var ta = article.querySelector("textarea");
+    if (ta) {
+      autosizeTextarea(ta);
+      ta.addEventListener("input", function () { autosizeTextarea(ta); });
+    }
+    return article;
+  }
+
+  function insertRefAt(index) {
+    var container = document.getElementById("eng-refs-pairs");
+    if (!container) return;
+    var pairs = container.querySelectorAll("[data-ref-pair]");
+    var article = createRefPair(index);
+    if (index >= pairs.length) {
+      container.appendChild(article);
+    } else {
+      container.insertBefore(article, pairs[index]);
+    }
+    reindexRefs();
+    rebuildInsertSlots();
+    var ta = article.querySelector("textarea");
+    if (ta) ta.focus();
+  }
+
+  function makeInsertSlot(index) {
+    var slot = document.createElement("div");
+    slot.className = "eng-ref-slot";
+    slot.setAttribute("data-ref-slot", "");
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "eng-ref-slot-btn";
+    btn.setAttribute("data-ref-insert-at", String(index));
+    btn.textContent = "+ Вставить здесь";
+    slot.appendChild(btn);
+    return slot;
+  }
+
+  function rebuildInsertSlots() {
+    var container = document.getElementById("eng-refs-pairs");
+    if (!container) return;
+    container.querySelectorAll("[data-ref-slot]").forEach(function (el) {
+      el.remove();
+    });
+    var pairs = container.querySelectorAll("[data-ref-pair]");
+    pairs.forEach(function (pair, i) {
+      container.insertBefore(makeInsertSlot(i), pair);
+    });
+    container.appendChild(makeInsertSlot(pairs.length));
+  }
+
+  var refsRoot = document.getElementById("eng-refs-pairs");
+  if (refsRoot) {
+    refsRoot.addEventListener("click", function (e) {
+      var insertBtn = e.target.closest("[data-ref-insert-at]");
+      if (insertBtn) {
+        e.preventDefault();
+        insertRefAt(parseInt(insertBtn.getAttribute("data-ref-insert-at") || "0", 10));
+        return;
+      }
+      var removeBtn = e.target.closest("[data-ref-remove]");
+      if (!removeBtn) return;
+      e.preventDefault();
+      var pairs = refsRoot.querySelectorAll("[data-ref-pair]");
+      if (pairs.length <= 1) {
+        var only = pairs[0];
+        var ta = only && only.querySelector("textarea");
+        if (ta) {
+          ta.value = "";
+          autosizeTextarea(ta);
+        }
+        return;
+      }
+      var pair = removeBtn.closest("[data-ref-pair]");
+      if (pair) pair.remove();
+      reindexRefs();
+      rebuildInsertSlots();
+    });
+    rebuildInsertSlots();
+  }
+
+  var addBtn = document.getElementById("eng-refs-add");
+  if (addBtn) {
+    addBtn.addEventListener("click", function () {
+      var container = document.getElementById("eng-refs-pairs");
+      if (!container) return;
+      insertRefAt(container.querySelectorAll("[data-ref-pair]").length);
+    });
+  }
 })();
 </script>
 {% endblock %}

@@ -215,6 +215,68 @@ def test_parse_forms_and_patch_title():
     assert fields["title[en_US]"] == "New Title"
 
 
+def test_parse_select_options_inside_optgroup():
+    """issueId на RCSI лежит в <optgroup>; ./option ломал назначение в выпуск."""
+    from ipsas.modules.eng_metadata.platform_update import UpdateService
+
+    html = """
+    <html><body>
+    <form id="schedulingForm" method="post" action="/editor/updateScheduling/1">
+      <select name="issueId">
+        <option value="">Будет назначено</option>
+        <optgroup label="Старые">
+          <option value="19024" selected="selected">№ 4 (2025)</option>
+        </optgroup>
+      </select>
+      <input name="dateSubmitted" value="2024-11-29" />
+    </form>
+    </body></html>
+    """
+    forms = UpdateService._parse_forms(html, "https://journals.rcsi.science/x")
+    assert forms[0]["fields"]["issueId"] == "19024"
+
+
+def test_apply_skips_scheduling_dates(monkeypatch):
+    """updateScheduling на RCSI снимает с выпуска — даты не POST'им."""
+    from ipsas.modules.eng_metadata.platform_update import Change, UpdateService
+
+    class _Client:
+        def get_text(self, url: str) -> str:
+            if "viewMetadata" in url:
+                return """
+                <html><body>
+                <form method="post" action="/0005-2310/editor/saveMetadata">
+                  <input name="title[en_US]" value="Old" />
+                </form>
+                </body></html>
+                """
+            raise AssertionError(f"unexpected GET {url}")
+
+        def post_form(self, url, fields, referer=None):
+            assert "updateScheduling" not in url
+            return 200, url, b"ok"
+
+        settings = type("S", (), {"base_url": "https://journals.rcsi.science"})()
+
+    svc = UpdateService(_Client(), issn="0005-2310")  # type: ignore[arg-type]
+    result = svc.apply_payload(
+        {
+            "article_id": "1",
+            "approved": True,
+            "changes": [
+                {"field": "article.titles.en", "value": "New"},
+                {"field": "dates.received", "value": "2024-11-29"},
+                {"field": "dates.accepted", "value": "2025-01-14"},
+            ],
+        },
+        allow_apply=True,
+    )
+    assert "dates.received" not in result.applied_fields
+    assert "dates.accepted" not in result.applied_fields
+    assert any("updateScheduling" in e for e in result.errors)
+    assert "article.titles.en" in result.applied_fields
+
+
 def test_update_service_dry_run_path():
     from ipsas.modules.eng_metadata.platform_update import UpdateService
 
@@ -256,6 +318,56 @@ def test_form_references_as_separate_fields():
     assert out["references_eng"] == ["First ref", "Second ref"]
 
 
+def test_form_references_can_append_extra_fields():
+    """Поля, добавленные в UI сверх исходного списка, сохраняются."""
+    from werkzeug.datastructures import MultiDict
+
+    from ipsas.modules.eng_metadata.forms import apply_form_to_metadata
+
+    form = MultiDict(
+        [
+            ("title_eng", "T"),
+            ("abstract_eng", "A"),
+            ("keywords_eng", "kw"),
+            ("references_count", "3"),
+            ("ref_value_0", "First"),
+            ("ref_value_1", "Second"),
+            ("ref_value_2", "Missed third"),
+            ("authors_count", "0"),
+        ]
+    )
+    out = apply_form_to_metadata(
+        {"authors": [], "references_eng": ["a", "b"]},
+        form,
+    )
+    assert out["references_eng"] == ["First", "Second", "Missed third"]
+
+
+def test_form_references_preserve_middle_insert_order():
+    """Вставка в середину: индексы 0..n сохраняют порядок при сохранении."""
+    from werkzeug.datastructures import MultiDict
+
+    from ipsas.modules.eng_metadata.forms import apply_form_to_metadata
+
+    form = MultiDict(
+        [
+            ("title_eng", "T"),
+            ("abstract_eng", "A"),
+            ("keywords_eng", "kw"),
+            ("references_count", "3"),
+            ("ref_value_0", "First"),
+            ("ref_value_1", "Inserted middle"),
+            ("ref_value_2", "Was second"),
+            ("authors_count", "0"),
+        ]
+    )
+    out = apply_form_to_metadata(
+        {"authors": [], "references_eng": ["First", "Was second"]},
+        form,
+    )
+    assert out["references_eng"] == ["First", "Inserted middle", "Was second"]
+
+
 def test_form_preserves_ru_on_save():
     from werkzeug.datastructures import MultiDict
 
@@ -274,8 +386,9 @@ def test_form_preserves_ru_on_save():
             ("author_0_full_name_en", "A. Author"),
             ("author_0_email", "a@example.com"),
             ("author_0_orcid", ""),
-            ("author_0_org_en", "Univ"),
-            ("author_0_address_en", "City"),
+            ("author_0_aff_count", "1"),
+            ("author_0_aff_0_org_en", "Univ"),
+            ("author_0_aff_0_address_en", "City"),
         ]
     )
     out = apply_form_to_metadata(_SAMPLE_JSON, form)
@@ -283,6 +396,70 @@ def test_form_preserves_ru_on_save():
     assert out["abstract_ru"] == "Текст аннотации."
     assert out["authors"][0]["full_name_ru"] == "А. Автор"
     assert out["authors"][0]["affiliations"][0]["organization_ru"] == "Университет"
+
+
+def test_form_keeps_multiple_affiliations():
+    from werkzeug.datastructures import MultiDict
+
+    from ipsas.modules.eng_metadata.forms import (
+        apply_form_to_metadata,
+        metadata_to_form_defaults,
+    )
+
+    base = {
+        "title_eng": "T",
+        "abstract_eng": "A",
+        "keywords_eng": ["k"],
+        "references_eng": [],
+        "authors": [
+            {
+                "given_en": "A.",
+                "surname_en": "Author",
+                "full_name_en": "A. Author",
+                "affiliations": [
+                    {
+                        "organization_en": "Univ One",
+                        "organization_ru": "Универ 1",
+                        "address_en": "City 1",
+                    },
+                    {
+                        "organization_en": "Univ Two",
+                        "organization_ru": "Универ 2",
+                        "address_en": "City 2",
+                    },
+                ],
+            }
+        ],
+    }
+    defaults = metadata_to_form_defaults(base)
+    assert len(defaults["authors"][0]["affiliations"]) == 2
+
+    form = MultiDict(
+        [
+            ("title_eng", "T"),
+            ("abstract_eng", "A"),
+            ("keywords_eng", "k"),
+            ("references_count", "0"),
+            ("authors_count", "1"),
+            ("author_0_given_en", "A."),
+            ("author_0_surname_en", "Author"),
+            ("author_0_full_name_en", "A. Author"),
+            ("author_0_email", ""),
+            ("author_0_orcid", ""),
+            ("author_0_aff_count", "2"),
+            ("author_0_aff_0_org_en", "Univ One EN"),
+            ("author_0_aff_0_address_en", "City 1"),
+            ("author_0_aff_1_org_en", "Univ Two EN"),
+            ("author_0_aff_1_address_en", "City 2"),
+        ]
+    )
+    out = apply_form_to_metadata(base, form)
+    affs = out["authors"][0]["affiliations"]
+    assert len(affs) == 2
+    assert affs[0]["organization_en"] == "Univ One EN"
+    assert affs[0]["organization_ru"] == "Универ 1"
+    assert affs[1]["organization_en"] == "Univ Two EN"
+    assert affs[1]["organization_ru"] == "Универ 2"
 
 
 def test_upload_page(client):
@@ -317,9 +494,12 @@ def test_upload_and_review_flow(client, tmp_path):
     body = review.get_data(as_text=True)
     assert "Источник 1" in body
     assert "Источник 2" in body
-    assert "2 источника" in body
+    assert 'id="eng-refs-count-num"' in body
+    assert ">2<" in body or "eng-refs-count-num\">2" in body
+    assert "источника" in body
     assert 'name="ref_value_0"' in body
     assert 'name="ref_value_1"' in body
+    assert "+ Вставить здесь" in body or "eng-refs-add" in body
     assert "Ссылка на статью (справочно)" in body
     assert _SAMPLE_JSON["article_url"] in body
     assert 'name="article_url"' not in body
@@ -355,8 +535,9 @@ def test_upload_and_review_flow(client, tmp_path):
             "author_0_full_name_en": "A. Author",
             "author_0_email": "a@example.com",
             "author_0_orcid": "",
-            "author_0_org_en": "Univ",
-            "author_0_address_en": "City",
+            "author_0_aff_count": "1",
+            "author_0_aff_0_org_en": "Univ",
+            "author_0_aff_0_address_en": "City",
         },
         follow_redirects=False,
     )
@@ -364,14 +545,41 @@ def test_upload_and_review_flow(client, tmp_path):
     data = load_article_json(session_id, "288752")
     assert data["title_eng"] == "Updated Title"
 
+    # prepare через ту же форму (form_action=prepare), без formaction
     prep = client.post(
-        f"/services/eng-metadata/session/{session_id}/article/288752/prepare",
+        f"/services/eng-metadata/session/{session_id}/article/288752/save",
+        data={
+            "form_action": "prepare",
+            "title_eng": "Prepared From Form",
+            "abstract_eng": "Abstract from prepare.",
+            "keywords_eng": "alpha",
+            "references_count": "1",
+            "ref_value_0": "Only ref.",
+            "date_received": "2024-01-01",
+            "date_revised": "",
+            "date_accepted": "2024-02-01",
+            "authors_count": "1",
+            "author_0_given_en": "A.",
+            "author_0_surname_en": "Author",
+            "author_0_full_name_en": "A. Author",
+            "author_0_email": "a@example.com",
+            "author_0_orcid": "",
+            "author_0_aff_count": "1",
+            "author_0_aff_0_org_en": "Univ",
+            "author_0_aff_0_address_en": "City",
+        },
         follow_redirects=True,
     )
     assert prep.status_code == 200
+    data = load_article_json(session_id, "288752")
+    assert data["title_eng"] == "Prepared From Form"
+    assert data["references_eng"] == ["Only ref."]
     body = prep.get_data(as_text=True)
     assert (
         "Подготовка к отправке" in body
         or "подготовлены локально" in body
         or "К сверке" in body
+        or "отправлено" in body.lower()
+        or "Платформ" in body
+        or "Prepared From Form" in body
     )

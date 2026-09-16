@@ -24,16 +24,18 @@ class FixGuide:
         }
 
 
-_DOC_5_STEPS = "https://docs.rfbr.ru/doc/nastrojka-sajta-zhurnala-na-platforme-xwmhtcejap"
-_DOC_LANG = "https://docs.rfbr.ru/doc/yazyki-v-zhurnale-R01seFFrAg"
-_DOC_BOARD = "https://docs.rfbr.ru/doc/redkollegiya-kak-vnesti-informaciyu-KO0EAvM4Gd"
-_DOC_SECTIONS = "https://docs.rfbr.ru/doc/razdely-i-rubriki-zhurnala-8EwNvt3xjH"
-_DOC_RT = "https://docs.rfbr.ru/doc/instrumenty-chitatelya-sgqJF9QfIm"
-_DOC_MAP = "https://docs.rfbr.ru/doc/karta-instrukciya-po-nastrojke-HRdfuJ0SEJ"
-_DOC_SMTP = "https://docs.rfbr.ru/doc/pochta-cherez-protokol-smtp-nastrojka-t1I6xCCthE"
-_DOC_DOI = "https://docs.rfbr.ru/doc/doi-i-edn-kak-nastroit-moduli-publichnyh-identifikatorov-GtLjeoHspG"
-_DOC_USERS = "https://docs.rfbr.ru/doc/polzovateli-i-roli-upravlenie"
-_DOC_BAZA = "https://docs.rfbr.ru/doc/chek-list-baza-R1h7hW4AxG"
+from ipsas.modules.journal_site.docs_urls import (
+    DOC_5_STEPS as _DOC_5_STEPS,
+    DOC_BAZA as _DOC_BAZA,
+    DOC_BOARD as _DOC_BOARD,
+    DOC_DOI as _DOC_DOI,
+    DOC_LANG as _DOC_LANG,
+    DOC_MAP as _DOC_MAP,
+    DOC_RT as _DOC_RT,
+    DOC_SECTIONS as _DOC_SECTIONS,
+    DOC_SMTP as _DOC_SMTP,
+    DOC_USERS as _DOC_USERS,
+)
 
 _PATH_LANG = "Личный кабинет → Издатель → Управление страницами → Языки"
 _PATH_BOARD_PAGE = "Личный кабинет → Издатель → Редакция журнала"

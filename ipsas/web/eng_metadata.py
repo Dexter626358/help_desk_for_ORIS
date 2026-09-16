@@ -19,6 +19,7 @@ from werkzeug.utils import secure_filename
 from ipsas.common.zip_safe import UnsafeZipError
 from ipsas.config.settings import get_settings
 from ipsas.modules.eng_metadata.forms import metadata_to_form_defaults
+from ipsas.modules.eng_metadata.platform_auth import PlatformAuthError
 from ipsas.modules.eng_metadata.session import (
     get_article_dir,
     is_safe_article_id,
@@ -202,21 +203,51 @@ def save_article(session_id: str, article_id: str):
     if not is_safe_session_id(session_id) or not is_safe_article_id(article_id):
         flash("Статья не найдена", "error")
         return redirect(url_for("eng_metadata.upload_page"))
+
+    intent = (request.form.get("form_action") or "save").strip().lower()
+    review_url = url_for(
+        "eng_metadata.review_article",
+        session_id=session_id,
+        article_id=article_id,
+    )
+
     try:
-        save_article_edits(session_id, article_id, request.form)
-        flash("Метаданные сохранены", "success")
+        if "title_eng" not in request.form and "abstract_eng" not in request.form:
+            logger.error(
+                "eng_metadata empty form session=%s article=%s keys=%s",
+                session_id,
+                article_id,
+                list(request.form.keys())[:40],
+            )
+            flash(
+                "Форма не передала поля редактирования. "
+                "Обновите страницу (Ctrl+F5) и повторите.",
+                "error",
+            )
+            return redirect(review_url)
+
+        saved = save_article_edits(session_id, article_id, request.form)
+        logger.info(
+            "eng_metadata saved session=%s article=%s intent=%s title=%r refs=%s",
+            session_id,
+            article_id,
+            intent,
+            (saved.get("title_eng") or "")[:80],
+            len(saved.get("references_eng") or []),
+        )
     except ValueError as exc:
         flash(f"Не удалось сохранить: {exc}", "error")
+        return redirect(review_url)
     except (FileNotFoundError, OSError) as exc:
         logger.error("save eng metadata: %s", exc, exc_info=True)
         flash("Не удалось сохранить метаданные", "error")
-    return redirect(
-        url_for(
-            "eng_metadata.review_article",
-            session_id=session_id,
-            article_id=article_id,
-        )
-    )
+        return redirect(review_url)
+
+    if intent == "prepare":
+        return _run_prepare_send(session_id, article_id)
+
+    flash("Метаданные сохранены", "success")
+    return redirect(review_url)
 
 
 @eng_metadata_bp.route(
@@ -224,12 +255,56 @@ def save_article(session_id: str, article_id: str):
     methods=["POST"],
 )
 def prepare_send(session_id: str, article_id: str):
+    """Совместимость: прямой POST /prepare тоже сначала сохраняет форму."""
     if not is_safe_session_id(session_id) or not is_safe_article_id(article_id):
         flash("Статья не найдена", "error")
         return redirect(url_for("eng_metadata.upload_page"))
-    settings = get_settings()
+    review_url = url_for(
+        "eng_metadata.review_article",
+        session_id=session_id,
+        article_id=article_id,
+    )
     try:
-        # При включённом флаге — реальная отправка; иначе только локальный payload
+        if "title_eng" in request.form or "abstract_eng" in request.form:
+            saved = save_article_edits(session_id, article_id, request.form)
+            logger.info(
+                "eng_metadata saved(via prepare) session=%s article=%s title=%r",
+                session_id,
+                article_id,
+                (saved.get("title_eng") or "")[:80],
+            )
+        else:
+            logger.warning(
+                "prepare without editable fields session=%s article=%s keys=%s",
+                session_id,
+                article_id,
+                list(request.form.keys())[:40],
+            )
+        return _run_prepare_send(session_id, article_id)
+    except ValueError as exc:
+        flash(f"Не удалось подготовить/отправить: {exc}", "error")
+        return redirect(review_url)
+    except PlatformAuthError as exc:
+        flash(
+            f"Не удалось войти на платформу: {exc}. "
+            "Проверьте PLATFORM_USERNAME / PLATFORM_PASSWORD.",
+            "error",
+        )
+        return redirect(review_url)
+    except (FileNotFoundError, OSError) as exc:
+        logger.error("prepare/apply eng metadata: %s", exc, exc_info=True)
+        flash("Не удалось подготовить отправку", "error")
+        return redirect(url_for("eng_metadata.upload_page"))
+
+
+def _run_prepare_send(session_id: str, article_id: str):
+    settings = get_settings()
+    review_url = url_for(
+        "eng_metadata.review_article",
+        session_id=session_id,
+        article_id=article_id,
+    )
+    try:
         summary = (
             apply_platform_update(session_id, article_id)
             if settings.platform_apply_enabled
@@ -279,13 +354,14 @@ def prepare_send(session_id: str, article_id: str):
         )
     except ValueError as exc:
         flash(f"Не удалось подготовить/отправить: {exc}", "error")
-        return redirect(
-            url_for(
-                "eng_metadata.review_article",
-                session_id=session_id,
-                article_id=article_id,
-            )
+        return redirect(review_url)
+    except PlatformAuthError as exc:
+        flash(
+            f"Не удалось войти на платформу: {exc}. "
+            "Проверьте PLATFORM_USERNAME / PLATFORM_PASSWORD.",
+            "error",
         )
+        return redirect(review_url)
     except (FileNotFoundError, OSError) as exc:
         logger.error("prepare/apply eng metadata: %s", exc, exc_info=True)
         flash("Не удалось подготовить отправку", "error")

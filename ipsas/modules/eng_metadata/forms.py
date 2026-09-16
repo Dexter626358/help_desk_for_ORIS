@@ -60,6 +60,14 @@ def _collect_references(
     except ValueError:
         pass
 
+    # Учитываем поля, добавленные в UI сверх исходного списка
+    for key in form.keys():
+        if not key.startswith("ref_value_"):
+            continue
+        suffix = key[len("ref_value_") :]
+        if suffix.isdigit():
+            count = max(count, int(suffix) + 1)
+
     # Indexed fields from the review UI
     has_indexed = any(form.get(f"ref_value_{i}") is not None for i in range(max(count, 1)))
     if has_indexed or form.get("references_count") is not None:
@@ -113,27 +121,25 @@ def apply_form_to_metadata(
             if isinstance(base_author.get("affiliations"), list)
             else []
         )
-        base_aff0 = base_affs[0] if base_affs and isinstance(base_affs[0], dict) else {}
 
         given = (form.get(prefix + "given_en") or "").strip()
         surname = (form.get(prefix + "surname_en") or "").strip()
         full = (form.get(prefix + "full_name_en") or "").strip()
         if not full and (given or surname):
             full = f"{given} {surname}".strip()
-        org = (form.get(prefix + "org_en") or "").strip()
-        addr = (form.get(prefix + "address_en") or "").strip()
         email = (form.get(prefix + "email") or "").strip() or None
         orcid = (form.get(prefix + "orcid") or "").strip() or None
-        affiliations: list[dict[str, Any]] = []
-        if org or addr or base_aff0.get("organization_ru"):
-            affiliations.append(
-                {
-                    "organization_en": org or None,
-                    "organization_ru": base_aff0.get("organization_ru"),
-                    "address_en": addr or None,
-                }
-            )
-        if not any([given, surname, full, org, addr, email, orcid]):
+
+        affiliations = _collect_author_affiliations(form, prefix, base_affs)
+        has_aff_fields = any(
+            form.get(f"{prefix}aff_{j}_org_en") is not None
+            or form.get(f"{prefix}aff_{j}_address_en") is not None
+            or form.get(f"{prefix}org_en") is not None
+            or form.get(f"{prefix}address_en") is not None
+            for j in range(max(len(base_affs), 1))
+        )
+
+        if not any([given, surname, full, email, orcid]) and not has_aff_fields:
             if base_author:
                 authors.append(dict(base_author))
             continue
@@ -152,3 +158,77 @@ def apply_form_to_metadata(
         )
     data["authors"] = authors
     return data
+
+
+def _collect_author_affiliations(
+    form: MultiDict[str, str],
+    prefix: str,
+    base_affs: list[Any],
+) -> list[dict[str, Any]]:
+    """Собрать все организации автора из author_{i}_aff_{j}_* (и legacy org_en)."""
+    aff_count = len(base_affs) if base_affs else 0
+    try:
+        aff_count = max(aff_count, int(form.get(prefix + "aff_count") or aff_count))
+    except ValueError:
+        pass
+
+    for key in form.keys():
+        marker = prefix + "aff_"
+        if not key.startswith(marker):
+            continue
+        rest = key[len(marker) :]
+        idx_s = rest.split("_", 1)[0]
+        if idx_s.isdigit():
+            aff_count = max(aff_count, int(idx_s) + 1)
+
+    # Legacy: одна организация без индекса
+    legacy_org = (form.get(prefix + "org_en") or "").strip()
+    legacy_addr = (form.get(prefix + "address_en") or "").strip()
+    has_indexed = any(
+        form.get(f"{prefix}aff_{j}_org_en") is not None
+        or form.get(f"{prefix}aff_{j}_address_en") is not None
+        for j in range(max(aff_count, 1))
+    )
+
+    if not has_indexed and (legacy_org or legacy_addr or form.get(prefix + "org_en") is not None):
+        base0 = base_affs[0] if base_affs and isinstance(base_affs[0], dict) else {}
+        if legacy_org or legacy_addr or base0.get("organization_ru"):
+            return [
+                {
+                    "organization_en": legacy_org or None,
+                    "organization_ru": base0.get("organization_ru"),
+                    "address_en": legacy_addr or None,
+                    "address_ru": base0.get("address_ru"),
+                }
+            ]
+        return []
+
+    if aff_count <= 0 and not has_indexed:
+        # Сохранить исходные аффилиации, если форма их не трогала
+        return [dict(a) for a in base_affs if isinstance(a, dict)]
+
+    out: list[dict[str, Any]] = []
+    for j in range(max(aff_count, 1)):
+        base_aff = (
+            base_affs[j] if j < len(base_affs) and isinstance(base_affs[j], dict) else {}
+        )
+        org_key = f"{prefix}aff_{j}_org_en"
+        addr_key = f"{prefix}aff_{j}_address_en"
+        if form.get(org_key) is None and form.get(addr_key) is None:
+            # Поля не пришли — сохранить исходную запись, если есть
+            if base_aff:
+                out.append(dict(base_aff))
+            continue
+        org = (form.get(org_key) or "").strip()
+        addr = (form.get(addr_key) or "").strip()
+        if not org and not addr and not base_aff.get("organization_ru"):
+            continue
+        out.append(
+            {
+                "organization_en": org or None,
+                "organization_ru": base_aff.get("organization_ru"),
+                "address_en": addr or None,
+                "address_ru": base_aff.get("address_ru"),
+            }
+        )
+    return out

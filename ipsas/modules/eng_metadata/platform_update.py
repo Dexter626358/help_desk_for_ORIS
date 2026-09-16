@@ -125,14 +125,16 @@ class UpdateService:
                 elif tag == "textarea":
                     fields[name] = "".join(el.itertext()) or ""
                 elif tag == "select":
+                    # .//option — опции могут быть внутри <optgroup>
+                    # (иначе issueId всегда «Будет назначено» и POST снимает с выпуска)
                     opt = None
-                    for candidate in el.xpath("./option"):
+                    options = el.xpath(".//option")
+                    for candidate in options:
                         if candidate.get("selected") is not None:
                             opt = candidate
                             break
                     if opt is None:
-                        opts = el.xpath("./option")
-                        opt = opts[0] if opts else None
+                        opt = options[0] if options else None
                     fields[name] = (opt.get("value") if opt is not None else "") or ""
             forms.append(
                 {
@@ -221,6 +223,22 @@ class UpdateService:
         applied: list[str] = []
         errors: list[str] = []
 
+        # RCSI: POST updateScheduling (даже с верным issueId) снимает статью
+        # с выпуска → «Новые». Даты received/accepted на платформу не шлём.
+        date_skip_note: str | None = None
+        if date_changes:
+            skipped = ", ".join(c.field for c in date_changes)
+            date_skip_note = (
+                f"Даты не отправлены ({skipped}): форма updateScheduling на "
+                "платформе снимает статью с выпуска. Проставьте даты вручную в OJS."
+            )
+            logger.warning(
+                "skip updateScheduling for article %s (%s)",
+                article_id,
+                skipped,
+            )
+        date_changes = []
+
         author_ids = self._author_ids_from_fields(fields)
         for field_name, value in self._coalesce_author_changes(author_changes):
             try:
@@ -276,6 +294,9 @@ class UpdateService:
             else:
                 errors.append(detail)
 
+        if date_skip_note:
+            errors.append(date_skip_note)
+
         if not applied and errors:
             return ApplyResult(
                 article_id=article_id,
@@ -285,12 +306,18 @@ class UpdateService:
                 message="не применено",
             )
 
+        # Даты только предупреждение: метаданные могли уйти успешно
+        ok = not [e for e in errors if e != date_skip_note]
         return ApplyResult(
             article_id=article_id,
-            ok=not errors,
+            ok=ok,
             applied_fields=applied,
             errors=errors,
-            message="отправлено на платформу" if not errors else "отправлено с предупреждениями",
+            message=(
+                "отправлено на платформу"
+                if ok and not date_skip_note
+                else "отправлено с предупреждениями"
+            ),
         )
 
     def _patch_main_fields(
@@ -695,6 +722,16 @@ class UpdateService:
         form = usable[0]
         action = urljoin(get_url, form["action"] or get_url)
         fields = dict(form["fields"])
+        # Пустой issueId в POST = «снять с выпуска» → статья уходит в «Новые».
+        # Не трогаем даты, если выпуск не прочитан (уже снят или ошибка парсера).
+        if "issueId" in fields and not str(fields.get("issueId") or "").strip():
+            return (
+                False,
+                "Пропуск updateScheduling: issueId пуст (статья не в выпуске "
+                "или форма не прочитана). Даты не отправлялись, чтобы не снять "
+                "статью с выпуска.",
+                [],
+            )
         applied: list[str] = []
         for change in changes:
             form_key = DATE_FIELD_MAP.get(change.field)

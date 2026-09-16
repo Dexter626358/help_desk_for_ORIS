@@ -302,6 +302,19 @@
   grid-template-columns: 1fr 1fr;
 }
 
+.eng-aff-block {
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+  border-top: 1px dashed var(--border);
+}
+
+.eng-aff-title {
+  font-weight: 650;
+  font-size: 0.9rem;
+  margin-bottom: 0.45rem;
+  color: var(--text-muted, #5b6573);
+}
+
 .eng-dates-grid {
   grid-template-columns: 1fr 1fr 1fr;
 }
@@ -327,14 +340,66 @@
   background: #fff;
 }
 
+.eng-ref-pair-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+}
+
 .eng-ref-pair-title {
   font-weight: 650;
-  margin-bottom: 0.45rem;
   font-size: 0.95rem;
+}
+
+.eng-ref-remove-btn {
+  flex-shrink: 0;
+  color: #9b1c1c;
+  border-color: #f0c2c2;
+}
+
+.eng-ref-remove-btn:hover {
+  background: #fff5f5;
+  border-color: #e39a9a;
 }
 
 .eng-ref-edit {
   min-height: 4.5rem;
+}
+
+.eng-ref-slot {
+  display: flex;
+  justify-content: center;
+  margin: 0.15rem 0;
+}
+
+.eng-ref-slot-btn {
+  appearance: none;
+  width: 100%;
+  border: 1px dashed #7aa89a;
+  background: #f3faf7;
+  color: #0b5f4b;
+  border-radius: 10px;
+  padding: 0.45rem 0.75rem;
+  font: inherit;
+  font-weight: 650;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.eng-ref-slot-btn:hover {
+  background: #e7f6ef;
+  border-color: #0b5f4b;
+}
+
+.eng-refs-toolbar {
+  margin-top: 0.75rem;
+}
+
+.eng-btn-sm {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.9rem;
 }
 
 .eng-actions {

@@ -31,6 +31,10 @@ def main() -> None:
     logger.info("Веб-приложение инициализировано")
     logger.info("Директория данных: %s", settings.data_dir)
     logger.info("Директория логов: %s", settings.logs_dir)
+    logger.info(
+        "PLATFORM_APPLY_ENABLED=%s",
+        "1" if settings.platform_apply_enabled else "0",
+    )
 
     host = "0.0.0.0"
     port = int(os.getenv("PORT", "5000"))

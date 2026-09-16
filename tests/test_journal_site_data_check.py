@@ -397,7 +397,7 @@ def test_editorial_letter_for_data_checklist(sample_bytes: bytes) -> None:
     assert "<li>" in html
     assert "Где исправить:" in html
     assert "Как исправить:" in html
-    assert "docs.rfbr.ru" in html
+    assert "docs.rcsi.science" in html
     assert "javascript:" not in html.lower()
     assert "boardCustomText" not in html
     assert html.index("просим внести") < html.index("Дата проверки")
@@ -416,7 +416,7 @@ def test_letter_uses_actual_deficits_not_full_check(sample_export) -> None:
             "note": "Проблемы: нет ограничения «только редакторы».",
             "actual": "title=Статьи/Articles; abbrev=СТ/ART; hideAbout=True; editorRestriction=False",
             "deficits": ["section_articles.editor_restriction"],
-            "doc_url": "https://docs.rfbr.ru/doc/razdely-i-rubriki-zhurnala-8EwNvt3xjH",
+            "doc_url": "https://docs.rcsi.science/s/04e1effc-c00c-40f6-a466-01641831e089/doc/razdely-i-rubriki-zhurnala-n72MHYSKXm",
         }
     )
     assert "только редакторы" in articles["action"]
@@ -458,7 +458,7 @@ def test_letter_uses_actual_deficits_not_full_check(sample_export) -> None:
     html = build_journal_site_editorial_letter_html(report)
     assert "<strong>«Abyss»</strong>" in html
     assert "Где исправить:" in html
-    assert "docs.rfbr.ru" in html
+    assert "docs.rcsi.science" in html
     assert "javascript:" not in html.lower()
     assert "<ol>" in html
     assert "<p><strong>Дата проверки:</strong> 3 сентября 2026 года.</p>" in html
