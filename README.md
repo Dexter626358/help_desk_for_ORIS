@@ -1,6 +1,6 @@
 # Internal Publishing Support System (IPSAS)
 
-Внутренний веб-сервис на Flask для обработки журнальных материалов: XML, библиографии, метаданных выпусков, PDF и CSV.
+Внутренний веб-сервис на Flask для обработки журнальных материалов: XML, библиографии, метаданных выпусков, PDF, CSV и операций на журнальной платформе (OJS).
 
 **Поддерживаемая версия Python: 3.11** (см. `runtime.txt`; в pyproject.toml указано >=3.10).
 
@@ -9,9 +9,11 @@
 - Валидация XML по XSD (`schemas/journal3.xsd` / пакетные ресурсы)
 - Анализ XML журнала (метаданные RUS/ENG)
 - Обработка списков литературы
-- Парсер выпуска по URL (OJS/HTML, только чтение, только POST)
+- Парсер выпуска по URL (OJS/HTML, только чтение публичных страниц)
 - Сопоставление PDF / CSV
-- Проверка настроек сайта журнала по `.data`
+- Проверка настроек сайта журнала по `.data` (чек-лист БАЗА: [docs.rcsi.science/s/modulbaza](https://docs.rcsi.science/s/modulbaza))
+- Обновление ENG-метаданных статей (локальный разбор ZIP; запись на Платформу — опционально)
+- Архивация ошибочно загруженных рукописей из «Новые» по отправителю
 - Встроенный XML-редактор (сессии во временном каталоге)
 
 Без базы данных и без встроенной авторизации. История задач после перезапуска не сохраняется.
@@ -34,6 +36,8 @@ pip install -r requirements-dev.txt
 copy .env.example .env
 python run.py
 ```
+
+Откройте **http://localhost:5000** (или порт из `PORT`).
 
 ## Production
 
@@ -66,11 +70,26 @@ Railway: сборка через Dockerfile (`railway.json`).
 
 См. [.env.example](.env.example) и таблицу в [DEPLOYMENT.md](DEPLOYMENT.md). Секреты только в окружении сервера.
 
+Для сервисов, ходящих на Платформу под учётной записью редактора (ENG-метаданные apply, архивация «Новые»):
+
+- `PLATFORM_USERNAME` / `PLATFORM_PASSWORD` (или `RCSI_USERNAME` / `RCSI_PASSWORD`)
+- `PLATFORM_APPLY_ENABLED=1` — разрешить запись ENG-метаданных (по умолчанию выкл.)
+- `ISSUE_FETCH_ALLOWED_HOSTS` должен включать хост платформы
+
 ## Health
 
 `GET /health` → `{"status":"ok","service":"ipsas"}`
 
 `/health/ready` проверяет запись в temp и наличие `journal3.xsd`.
+
+## Документация
+
+| Файл | Содержание |
+|------|------------|
+| [QUICKSTART.md](QUICKSTART.md) | Быстрый старт и список сервисов UI |
+| [STRUCTURE.md](STRUCTURE.md) | Слои кода, модули, blueprints |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | Production, env, Docker, systemd |
+| [RAILWAY_DEPLOY.md](RAILWAY_DEPLOY.md) | Railway |
 
 ## Тесты
 
@@ -82,7 +101,7 @@ pip-audit -r requirements.txt
 
 ## Важно
 
-- Запись данных на Платформу из IPSAS не выполняется.
+- Запись на Платформу по умолчанию выключена (`PLATFORM_APPLY_ENABLED=0`); включайте осознанно.
 - CSRF включён для POST-форм; `IPSAS_DISABLE_CSRF` в production запрещён.
 - `FLASK_DEBUG` не связан с `LOG_LEVEL`; в production debug запрещён.
 - Каталог `xml-editor/` — legacy; в production используется `ipsas.modules.xml_editor`.

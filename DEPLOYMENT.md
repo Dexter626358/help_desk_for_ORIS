@@ -7,7 +7,10 @@
 
 - Задачи и история операций хранятся в `TEMP_DIR` / памяти процесса и **не переживают перезапуск**.
 - Rate limit и лимит одновременных POST (`RequestGuard`) — **in-memory** → **один Gunicorn worker**.
-- Запись метаданных на Платформу (dry-run/apply) **не реализована**: сервис только читает URL и обрабатывает локальные файлы.
+- Запись ENG-метаданных на Платформу по умолчанию **выключена** (`PLATFORM_APPLY_ENABLED=0`).
+  При включении нужны учётные данные редактора (`PLATFORM_*` / `RCSI_*`) и allowlist хостов.
+- Архивация «Новые» по отправителю всегда ходит на Платформу под этими учётными данными
+  (в UI по умолчанию dry-run).
 - Standalone каталог `xml-editor/` **не** входит в этот production-пакет.
 
 ## Требования
@@ -44,6 +47,11 @@
 | `TRUST_PROXY_HEADERS` | только за доверенным proxy | Доверять `X-Forwarded-For` |
 | `MAX_CONCURRENT_JOBS` | нет (`4`) | Лимит POST + workers фонового пула |
 | `MAX_JOB_QUEUE` | нет (`8`) | Очередь фоновых задач парсера |
+| `PLATFORM_APPLY_ENABLED` | нет (`0`) | `1` — разрешить запись ENG-метаданных в OJS |
+| `PLATFORM_BASE_URL` | нет | Базовый URL платформы |
+| `PLATFORM_USERNAME` / `PLATFORM_PASSWORD` | для apply / архивации | Учётка редактора (или `RCSI_*`) |
+| `PLATFORM_COOKIE_FILE` | нет | Файл cookie-сессии |
+| `PLATFORM_REQUEST_DELAY` | нет (`0.35`) | Пауза между запросами к платформе (с) |
 | `GUNICORN_WORKERS` | держите `1` | Не увеличивать без выноса rate-limit |
 | `PORT` | нет | Порт bind |
 
@@ -119,6 +127,8 @@ curl -s http://127.0.0.1:8000/health
 
 - Входящий: только из внутренней сети / VPN (Nginx allow / Basic Auth).
 - Исходящий: HTTPS к разрешённым хостам OJS (`ISSUE_FETCH_ALLOWED_HOSTS`).
+- Для ENG-apply и архивации «Новые» исходящие запросы идут с cookie/логином редактора —
+  ограничьте доступ к инстансу IPSAS так же жёстко, как к самой Платформе.
 - SSRF: localhost, private IP, link-local и редиректы на них блокируются.
 
 ## Railway (legacy)

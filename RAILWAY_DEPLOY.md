@@ -54,8 +54,15 @@ ISSUE_PARSER_TASK_TTL_S=7200
 MAX_CONCURRENT_JOBS=4
 MAX_JOB_QUEUE=8
 RATE_LIMIT_PER_MINUTE=30
+PLATFORM_APPLY_ENABLED=0
+PLATFORM_USERNAME=
+PLATFORM_PASSWORD=
+# PLATFORM_BASE_URL=https://journals.rcsi.science
 PORT=<Railway задаёт сам>
 ```
+
+Для архивации «Новые» и записи ENG-метаданных задайте `PLATFORM_*` (или `RCSI_*`).
+Запись ENG на платформу включается только при `PLATFORM_APPLY_ENABLED=1`.
 
 `temp/`, `logs/`, `data/` на эфемерном диске Railway **не переживают** redeploy. Логи — в stdout. Health: `/health`, `/health/live`, `/health/ready`.
 
@@ -116,7 +123,10 @@ python run.py
 
 - Валидация XML (XSD)
 - Анализ XML журнала (метаданные RUS/ENG, источники, авторы)
+- Редактор XML
 - Обработка списков литературы
 - Парсер выпуска по URL
 - CSV PDF выпуска
-- Проверка настроек сайта журнала (`.data`)
+- Обновление ENG-метаданных (ZIP; apply на платформу — опционально)
+- Архивация «Новые» по отправителю
+- Проверка настроек сайта журнала (`.data`, документация БАЗА: modulbaza)
