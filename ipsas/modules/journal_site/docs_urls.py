@@ -1,13 +1,11 @@
 """Актуальные ссылки на документацию Outline (уровень БАЗА).
 
-Коллекция: https://docs.rcsi.science/s/04e1effc-c00c-40f6-a466-01641831e089
+Коллекция: https://docs.rcsi.science/s/modulbaza
 """
 
 from __future__ import annotations
 
-DOC_COLLECTION = (
-    "https://docs.rcsi.science/s/04e1effc-c00c-40f6-a466-01641831e089"
-)
+DOC_COLLECTION = "https://docs.rcsi.science/s/modulbaza"
 
 DOC_BAZA = f"{DOC_COLLECTION}/doc/chek-list-baza-C6SqiXX8pO"
 DOC_SETUP_OVERVIEW = (
@@ -21,9 +19,8 @@ DOC_SECTIONS = f"{DOC_COLLECTION}/doc/razdely-i-rubriki-zhurnala-n72MHYSKXm"
 DOC_RT = f"{DOC_COLLECTION}/doc/instrumenty-chitatelya-K9SYeC7N76"
 DOC_MAP = f"{DOC_COLLECTION}/doc/karta-instrukciya-po-nastrojke-mJIRTlWWie"
 DOC_USERS = f"{DOC_COLLECTION}/doc/polzovateli-i-roli-upravlenie-Wd9EgJezaa"
-DOC_SMTP = (
-    f"{DOC_COLLECTION}/doc/2e6bef68-fd76-4f59-9c67-8fce6fe1696b"
-)
+# Отдельной страницы SMTP в коллекции больше нет — раздел в «5 шагах»
+DOC_SMTP = f"{DOC_5_STEPS}#h-14-nastrojka-ishodyashej-pochty"
 # Отдельной страницы DOI/EDN в публичной БАЗА пока нет — шаг 4 (модули/управление)
 DOC_DOI = f"{DOC_5_STEPS}#h-shag-4-upravlenie"
 

@@ -416,7 +416,7 @@ def test_letter_uses_actual_deficits_not_full_check(sample_export) -> None:
             "note": "Проблемы: нет ограничения «только редакторы».",
             "actual": "title=Статьи/Articles; abbrev=СТ/ART; hideAbout=True; editorRestriction=False",
             "deficits": ["section_articles.editor_restriction"],
-            "doc_url": "https://docs.rcsi.science/s/04e1effc-c00c-40f6-a466-01641831e089/doc/razdely-i-rubriki-zhurnala-n72MHYSKXm",
+            "doc_url": "https://docs.rcsi.science/s/modulbaza/doc/razdely-i-rubriki-zhurnala-n72MHYSKXm",
         }
     )
     assert "только редакторы" in articles["action"]

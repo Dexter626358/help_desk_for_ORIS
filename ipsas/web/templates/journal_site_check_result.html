@@ -308,10 +308,19 @@
       <span class="mono">{{ report.data_source.filename }}</span> ·
     {% endif %}
     Методика: чек-лист настройки +
-    <a href="https://docs.rcsi.science/s/04e1effc-c00c-40f6-a466-01641831e089/doc/chek-list-baza-C6SqiXX8pO" target="_blank" rel="noopener noreferrer">БАЗА</a>
+    <a href="https://docs.rcsi.science/s/modulbaza/doc/chek-list-baza-C6SqiXX8pO" target="_blank" rel="noopener noreferrer">БАЗА</a>.
+    Показаны только пункты, которые ещё нужно настроить или проверить.
   </p>
 </div>
   {% for sec in report.checklist_sections %}
+    {% set ns = namespace(open_items=[]) %}
+    {% for item in sec.entries %}
+      {% set st = item.ui_status or item.status %}
+      {% if item.status != 'na' and st != 'ok' %}
+        {% set ns.open_items = ns.open_items + [item] %}
+      {% endif %}
+    {% endfor %}
+    {% if ns.open_items %}
 <div class="card" style="margin-top:1rem;">
   <h2 class="section-title">
     {{ sec.title }}
@@ -329,8 +338,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for item in sec.entries %}
-          {% if item.status != 'na' %}
+        {% for item in ns.open_items %}
         <tr>
           <td>
             {{ item.requirement_label or item.title }}
@@ -339,12 +347,8 @@
           <td>{{ result_chip(item) }}</td>
           <td style="font-size:0.9rem;">{{ item.detected or '—' }}</td>
           <td style="font-size:0.9rem;">
-            {% if item.ui_status == 'ok' or item.status == 'ok' %}
-              <span class="muted">—</span>
-            {% else %}
-              <div><strong>Что сделать:</strong> {{ item.action or '—' }}</div>
-              {{ fix_guide_block(item) }}
-            {% endif %}
+            <div><strong>Что сделать:</strong> {{ item.action or '—' }}</div>
+            {{ fix_guide_block(item) }}
             {% if item.tech_detail %}
             <details class="tech-details">
               <summary>Подробности</summary>
@@ -353,12 +357,12 @@
             {% endif %}
           </td>
         </tr>
-          {% endif %}
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
+    {% endif %}
   {% endfor %}
 {% endif %}
 
