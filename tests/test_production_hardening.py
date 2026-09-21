@@ -152,3 +152,20 @@ def test_health_ready_no_path_leak(client):
     assert body["schemas_ok"] is True
     assert body["temp_ok"] is True
     assert body["status"] == "ok"
+
+
+def test_favicon_is_quiet_no_flash(client):
+    resp = client.get("/favicon.ico")
+    assert resp.status_code == 204
+    with client.session_transaction() as sess:
+        flashes = sess.get("_flashes") or []
+    assert not any("Страница не найдена" in str(m) for m in flashes)
+
+
+def test_unknown_page_flashes_and_redirects(client):
+    resp = client.get("/definitely-missing-page-xyz", follow_redirects=False)
+    assert resp.status_code in {302, 303}
+    assert "/dashboard" in (resp.headers.get("Location") or "")
+    with client.session_transaction() as sess:
+        flashes = sess.get("_flashes") or []
+    assert any("Страница не найдена" in str(m) for m in flashes)

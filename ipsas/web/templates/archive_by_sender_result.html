@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs %}
+
+{% block title %}Результат архивации — IPSAS{% endblock %}
+{% block topbar %}Архивация по отправителю{% endblock %}
+
+{% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Архивация «Новые»', 'url': url_for('archive_by_sender.archive_page')},
+  {'label': 'Результат'}
+]) }}
+
+<div class="card">
+  <h1 class="page-title">Результат: {{ summary.journal }}</h1>
+  <p class="page-lead">
+    {% if summary.dry_run %}Режим проверки (без изменений).{% else %}Реальная архивация.{% endif %}
+    Обработано за {{ '%.1f'|format(elapsed) }} с.
+  </p>
+
+  <div class="stats-row" style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1.25rem;">
+    <div><strong>Всего:</strong> {{ summary.total }}</div>
+    <div><strong>К архивации / dry-run:</strong> {{ summary.dry_run_hits }}</div>
+    <div><strong>Заархивировано:</strong> {{ summary.archived }}</div>
+    <div><strong>Пропуск (отправитель):</strong> {{ summary.skipped_sender }}</div>
+    <div><strong>Ошибки:</strong> {{ summary.errors }}</div>
+  </div>
+
+  <div class="form-actions" style="margin-bottom:1rem;display:flex;gap:0.75rem;flex-wrap:wrap;">
+    <a class="btn btn-secondary" href="{{ url_for('archive_by_sender.archive_page') }}">Новый запуск</a>
+    {% if csv_name %}
+    <a class="btn btn-outline-primary"
+       href="{{ url_for('archive_by_sender.download_report', filename=csv_name) }}">
+      Скачать CSV
+    </a>
+    {% endif %}
+  </div>
+
+  {% if summary.results %}
+  <div class="table-wrap" style="overflow-x:auto;">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Название</th>
+          <th>Отправитель</th>
+          <th>Статус</th>
+          <th>Сообщение</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in summary.results %}
+        <tr>
+          <td>{{ r.article_id }}</td>
+          <td>{{ r.title }}</td>
+          <td>{{ r.sender }}</td>
+          <td><code>{{ r.status }}</code></td>
+          <td>{{ r.message }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="muted">В «Новые» нет рукописей для этого журнала.</p>
+  {% endif %}
+</div>
+{% endblock %}

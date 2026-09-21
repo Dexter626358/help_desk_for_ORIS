@@ -27,10 +27,11 @@
 {% set xml_edit_active = ep.startswith('xml_editor.') %}
 {% set site_active = ep.startswith('journal_site_check.') %}
 {% set eng_meta_active = ep.startswith('eng_metadata.') %}
-{% set check_open = xml_active or issue_active or site_active or eng_meta_active %}
+{% set archive_sender_active = ep.startswith('archive_by_sender.') %}
+{% set check_open = xml_active or issue_active or site_active or eng_meta_active or archive_sender_active %}
 {% set fix_open = bib_active or pdf_active or typo_active or xml_edit_active %}
 {% set issue_open = issue_active or csv_active %}
-{% set meta_open = site_active or eng_meta_active %}
+{% set meta_open = site_active or eng_meta_active or archive_sender_active %}
 
 <div class="app-shell" data-app-shell{% if ep == 'eng_metadata.review_article' %} data-collapse-sidebar="1"{% endif %}>
     <aside class="sidebar" aria-label="Основное меню">
@@ -192,6 +193,16 @@
                            {{ 'aria-current="page"' if eng_meta_active else '' }}>
                             <span class="nav-ico" aria-hidden="true">{{ icon('globe', 18) }}</span>
                             <span class="nav-label">Обновление ENG-метаданных</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav-link {{ 'is-active' if archive_sender_active else '' }}"
+                           href="{{ url_for('archive_by_sender.archive_page') }}"
+                           data-tooltip="Архивация «Новые» по отправителю"
+                           title="Архивация рукописей из «Новые» по отправителю"
+                           {{ 'aria-current="page"' if archive_sender_active else '' }}>
+                            <span class="nav-ico" aria-hidden="true">{{ icon('file-check', 18) }}</span>
+                            <span class="nav-label">Архивация по отправителю</span>
                         </a>
                     </li>
                     <li>

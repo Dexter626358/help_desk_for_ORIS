@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs %}
+
+{% block title %}Архивация «Новые» по отправителю — IPSAS{% endblock %}
+{% block topbar %}Архивация по отправителю{% endblock %}
+
+{% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Архивация «Новые» по отправителю'}
+]) }}
+
+<div class="card">
+  <h1 class="page-title">Архивация рукописей из «Новые»</h1>
+  <p class="page-lead">
+    Укажите ссылку на журнал на платформе. Сервис просмотрит очередь «Новые»,
+    и если отправитель совпадает со списком сотрудников ОРИС — отклонит и
+    заархивирует рукопись без отправки письма (кнопка «Пропустить»).
+  </p>
+
+  <form method="POST"
+        action="{{ url_for('archive_by_sender.process_archive') }}"
+        data-loading-form>
+    {{ csrf_field() }}
+
+    <div class="form-group">
+      <label for="journal_url">Ссылка на журнал или ISSN</label>
+      <input type="text"
+             id="journal_url"
+             name="journal_url"
+             class="form-control"
+             required
+             placeholder="https://journals.rcsi.science/0002-337X/ … или 0002-337X"
+             value="{{ request.form.journal_url or '' }}" />
+      <p class="form-hint">
+        Подойдёт главная журнала, страница «Новые» или голый ISSN.
+      </p>
+    </div>
+
+    <div class="form-group">
+      <label for="senders_text">Отправители (по одному на строку)</label>
+      <textarea id="senders_text"
+                name="senders_text"
+                class="form-control"
+                rows="10">{{ default_senders }}</textarea>
+      <p class="form-hint">По умолчанию — список сотрудников, загружавших рукописи по ошибке.</p>
+    </div>
+
+    <div class="form-group form-check">
+      <label class="form-check-label">
+        <input type="checkbox" name="dry_run" value="1" checked />
+        Только проверка (не архивировать)
+      </label>
+    </div>
+
+    <div class="form-group form-check">
+      <label class="form-check-label">
+        <input type="checkbox" name="verify" value="1" checked />
+        После архивации проверить, что статьи нет в «Новые»
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit"
+              class="btn btn-primary"
+              data-confirm="Запустить обработку журнала на платформе?">
+        Запустить
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  document.querySelectorAll("[data-confirm]").forEach(function (btn) {
+    btn.addEventListener("click", function (e) {
+      var msg = btn.getAttribute("data-confirm");
+      if (msg && !window.confirm(msg)) e.preventDefault();
+    });
+  });
+})();
+</script>
+{% endblock %}

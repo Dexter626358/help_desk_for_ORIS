@@ -74,6 +74,7 @@ def create_app(*, testing: bool = False) -> Flask:
     from ipsas.web.journal_site_check import journal_site_check_bp
     from ipsas.web.xml_editor import xml_editor_bp
     from ipsas.web.eng_metadata import eng_metadata_bp
+    from ipsas.web.archive_by_sender import archive_by_sender_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(xml_validation_bp, url_prefix="/services")
@@ -87,6 +88,7 @@ def create_app(*, testing: bool = False) -> Flask:
     app.register_blueprint(journal_site_check_bp, url_prefix="/services")
     app.register_blueprint(xml_editor_bp, url_prefix="/services/xml-editor")
     app.register_blueprint(eng_metadata_bp, url_prefix="/services")
+    app.register_blueprint(archive_by_sender_bp, url_prefix="/services")
 
     guard = RequestGuard(
         max_concurrent=settings.max_concurrent_jobs,
@@ -211,10 +213,34 @@ def create_app(*, testing: bool = False) -> Flask:
         flash("Доступ запрещён.", "error")
         return redirect(url_for("main.dashboard"), code=403)
 
+    @app.get("/favicon.ico")
+    def favicon():
+        # Браузер всегда запрашивает favicon; без маршрута это давало ложный flash 404.
+        return ("", 204)
+
     @app.errorhandler(404)
     def handle_not_found(_error):
+        path = (request.path or "").lower()
+        # Тихие 404 для служебных/иконочных запросов браузера — без flash и редиректа.
+        quiet_prefixes = (
+            "/favicon",
+            "/apple-touch-icon",
+            "/robots.txt",
+            "/sitemap.xml",
+            "/.well-known/",
+            "/static/",
+        )
+        if path == "/favicon.ico" or any(path.startswith(p) for p in quiet_prefixes):
+            return ("", 404)
+        wants_json = (
+            request.accept_mimetypes.best == "application/json"
+            or path.endswith(".json")
+            or (request.path or "").startswith("/health/")
+        )
+        if wants_json:
+            return jsonify({"error": "not_found", "request_id": getattr(g, "request_id", None)}), 404
         flash("Страница не найдена.", "error")
-        return redirect(url_for("main.dashboard"), code=404)
+        return redirect(url_for("main.dashboard"))
 
     @app.errorhandler(Exception)
     def handle_unexpected(error: Exception):
