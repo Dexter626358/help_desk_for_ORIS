@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs %}
+
+{% block title %}Результат загрузки рисунков — IPSAS{% endblock %}
+{% block topbar %}Работа с выпуском{% endblock %}
+
+{% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Рисунки выпуска → доп. файлы', 'url': url_for('issue_supp_images.upload_page')},
+  {'label': 'Результат'}
+]) }}
+
+<div class="card">
+  <h1 class="page-title">Результат: {{ summary.journal }} / {{ summary.issue_id }}</h1>
+  <p class="page-lead">
+    {% if summary.dry_run %}Режим проверки (без изменений).{% else %}Реальная загрузка.{% endif %}
+    Обработано за {{ '%.1f'|format(elapsed) }} с.
+  </p>
+
+  <div class="stats-row" style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1.25rem;">
+    <div><strong>Файлов:</strong> {{ summary.total_files }}</div>
+    <div><strong>К загрузке / dry-run:</strong> {{ summary.dry_run_hits }}</div>
+    <div><strong>Загружено:</strong> {{ summary.uploaded }}</div>
+    <div><strong>Статей с матчем:</strong> {{ summary.matched_articles }}</div>
+    <div><strong>Ошибки:</strong> {{ summary.errors }}</div>
+  </div>
+
+  {% if summary.unmatched_folders %}
+  <p class="muted" style="margin-bottom:1rem;">
+    Папки без статьи в TOC:
+    {% for name in summary.unmatched_folders %}
+      <span class="mono">{{ name }}</span>{% if not loop.last %}, {% endif %}
+    {% endfor %}
+  </p>
+  {% endif %}
+
+  <div class="form-actions" style="margin-bottom:1rem;display:flex;gap:0.75rem;flex-wrap:wrap;">
+    <a class="btn btn-secondary" href="{{ url_for('issue_supp_images.upload_page') }}">Новый запуск</a>
+    {% if csv_name %}
+    <a class="btn btn-outline-primary"
+       href="{{ url_for('issue_supp_images.download_report', filename=csv_name) }}">
+      Скачать CSV
+    </a>
+    {% endif %}
+  </div>
+
+  {% if summary.results %}
+  <div class="table-wrap" style="overflow-x:auto;">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Статья</th>
+          <th>Страницы</th>
+          <th>Файл</th>
+          <th>Статус</th>
+          <th>Сообщение</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in summary.results %}
+        <tr>
+          <td>{{ r.article_id }}</td>
+          <td>{{ r.pages }}</td>
+          <td>{{ r.filename }}</td>
+          <td><code>{{ r.status }}</code></td>
+          <td>{{ r.message }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="muted">Нет файлов для обработки.</p>
+  {% endif %}
+</div>
+{% endblock %}

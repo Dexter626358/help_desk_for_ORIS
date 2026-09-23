@@ -28,9 +28,10 @@
 {% set site_active = ep.startswith('journal_site_check.') %}
 {% set eng_meta_active = ep.startswith('eng_metadata.') %}
 {% set archive_sender_active = ep.startswith('archive_by_sender.') %}
+{% set supp_images_active = ep.startswith('issue_supp_images.') %}
 {% set check_open = xml_active or issue_active or site_active or eng_meta_active or archive_sender_active %}
 {% set fix_open = bib_active or pdf_active or typo_active or xml_edit_active %}
-{% set issue_open = issue_active or csv_active %}
+{% set issue_open = issue_active or csv_active or supp_images_active %}
 {% set meta_open = site_active or eng_meta_active or archive_sender_active %}
 
 <div class="app-shell" data-app-shell{% if ep == 'eng_metadata.review_article' %} data-collapse-sidebar="1"{% endif %}>
@@ -163,6 +164,16 @@
                            {{ 'aria-current="page"' if csv_active else '' }}>
                             <span class="nav-ico" aria-hidden="true">{{ icon('table', 18) }}</span>
                             <span class="nav-label">Сформировать CSV для загрузки PDF</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav-link {{ 'is-active' if supp_images_active else '' }}"
+                           href="{{ url_for('issue_supp_images.upload_page') }}"
+                           data-tooltip="Рисунки выпуска → доп. файлы"
+                           title="Загрузить рисунки в доп. файлы статей выпуска"
+                           {{ 'aria-current="page"' if supp_images_active else '' }}>
+                            <span class="nav-ico" aria-hidden="true">{{ icon('file-plus', 18) }}</span>
+                            <span class="nav-label">Рисунки → доп. файлы</span>
                         </a>
                     </li>
                 </ul>

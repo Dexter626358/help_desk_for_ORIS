@@ -75,6 +75,7 @@ def create_app(*, testing: bool = False) -> Flask:
     from ipsas.web.xml_editor import xml_editor_bp
     from ipsas.web.eng_metadata import eng_metadata_bp
     from ipsas.web.archive_by_sender import archive_by_sender_bp
+    from ipsas.web.issue_supp_images import issue_supp_images_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(xml_validation_bp, url_prefix="/services")
@@ -89,6 +90,7 @@ def create_app(*, testing: bool = False) -> Flask:
     app.register_blueprint(xml_editor_bp, url_prefix="/services/xml-editor")
     app.register_blueprint(eng_metadata_bp, url_prefix="/services")
     app.register_blueprint(archive_by_sender_bp, url_prefix="/services")
+    app.register_blueprint(issue_supp_images_bp, url_prefix="/services")
 
     guard = RequestGuard(
         max_concurrent=settings.max_concurrent_jobs,

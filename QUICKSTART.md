@@ -55,6 +55,7 @@ python run.py
 | Добавить PDF в XML | `/services/pdf-matching` | ZIP с PDF → привязка к XML |
 | Проверить опубликованный выпуск | `/services/issue-metadata` | Аудит выпуска по URL |
 | CSV для загрузки PDF | `/services/issue-pdf-csv` | CSV к выпуску |
+| Рисунки → доп. файлы | `/services/issue-supp-images` | images.zip → доп. файлы статей |
 | Обновление ENG-метаданных | `/services/eng-metadata` | ZIP JSON+PDF → подготовка / apply |
 | Архивация «Новые» по отправителю | `/services/archive-by-sender` | URL журнала → архив без письма |
 | Проверить сайт журнала | `/services/journal-site-check` | Файл `.data` / чек-лист БАЗА |

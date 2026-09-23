@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import http.cookiejar
 import logging
+import re
+import uuid
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -19,6 +21,18 @@ DEFAULT_BASE_URL = "https://journals.rcsi.science"
 LOGIN_PATH = "/index/login"
 SIGN_IN_PATH = "/index/login/signIn"
 DEFAULT_USER_AGENT = "Mozilla/5.0 (compatible; ipsas-eng-metadata/1.0)"
+
+_SAFE_UPLOAD_NAME_RE = re.compile(r"[^A-Za-z0-9._-]+")
+
+
+def _ascii_upload_filename(filename: str) -> str:
+    """Имя файла для Content-Disposition: только ASCII без пробелов."""
+    name = Path(filename).name.strip() or "file.bin"
+    stem = Path(name).stem
+    suffix = Path(name).suffix
+    safe_stem = _SAFE_UPLOAD_NAME_RE.sub("_", stem).strip("._") or "file"
+    safe_suffix = _SAFE_UPLOAD_NAME_RE.sub("", suffix)
+    return f"{safe_stem}{safe_suffix}"
 
 
 class PlatformAuthError(RuntimeError):
@@ -79,6 +93,63 @@ class PlatformAuthClient:
             data=body,
             headers=req_headers,
             method=method,
+        )
+        try:
+            with self._opener.open(req, timeout=self.timeout) as resp:
+                content = resp.read()
+                final_url = resp.geturl()
+                status = getattr(resp, "status", 200) or 200
+                return status, final_url, content
+        except UnsafeUrlError:
+            raise
+        except urllib.error.HTTPError as exc:
+            content = exc.read() if exc.fp else b""
+            return exc.code, url, content
+
+    def request_multipart(
+        self,
+        url: str,
+        *,
+        fields: Mapping[str, str],
+        files: Mapping[str, tuple[str, bytes, str]],
+        headers: Mapping[str, str] | None = None,
+    ) -> tuple[int, str, bytes]:
+        """POST multipart/form-data (загрузка файлов на платформу).
+
+        files: name -> (filename, content, content_type)
+        """
+        assert self._opener is not None
+        assert_safe_fetch_url(url, resolve_dns=True)
+        boundary = f"----ipsasBoundary{uuid.uuid4().hex}"
+        body = bytearray()
+        for name, value in fields.items():
+            body.extend(f"--{boundary}\r\n".encode("ascii"))
+            body.extend(
+                f'Content-Disposition: form-data; name="{name}"\r\n\r\n'.encode("ascii")
+            )
+            body.extend(str(value).encode("utf-8"))
+            body.extend(b"\r\n")
+        for name, (filename, content, content_type) in files.items():
+            safe_name = _ascii_upload_filename(filename)
+            body.extend(f"--{boundary}\r\n".encode("ascii"))
+            body.extend(
+                (
+                    f'Content-Disposition: form-data; name="{name}"; '
+                    f'filename="{safe_name}"\r\n'
+                    f"Content-Type: {content_type or 'application/octet-stream'}\r\n\r\n"
+                ).encode("ascii")
+            )
+            body.extend(content)
+            body.extend(b"\r\n")
+        body.extend(f"--{boundary}--\r\n".encode("ascii"))
+
+        req_headers = self._headers(headers)
+        req_headers["Content-Type"] = f"multipart/form-data; boundary={boundary}"
+        req = urllib.request.Request(
+            url,
+            data=bytes(body),
+            headers=req_headers,
+            method="POST",
         )
         try:
             with self._opener.open(req, timeout=self.timeout) as resp:
