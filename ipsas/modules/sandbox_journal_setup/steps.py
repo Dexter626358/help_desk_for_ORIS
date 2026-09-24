@@ -15,6 +15,10 @@ from ipsas.modules.sandbox_journal_setup.forms import (
     find_post_form,
     plugin_action_links,
 )
+from ipsas.modules.sandbox_journal_setup.labels import (
+    CITATION_PARSER_RU,
+    plugin_label,
+)
 from ipsas.modules.sandbox_journal_setup.urls import journal_url
 
 logger = logging.getLogger(__name__)
@@ -70,7 +74,7 @@ def step_languages(
     html = auth.get_text(url)
     form = find_post_form(html, url, action_contains="saveLanguageSettings")
     if form is None:
-        return StepResult("languages", "Языки", False, "Форма saveLanguageSettings не найдена")
+        return StepResult("languages", "Языки", False, "Форма настроек языков не найдена")
 
     before = {name: set(form.values_for(name)) for name in LOCALE_FIELD_NAMES}
     for name in LOCALE_FIELD_NAMES:
@@ -81,31 +85,40 @@ def step_languages(
     if not need:
         return StepResult(
             "languages",
-            "Языки RU/EN",
+            "Языки (русский и английский)",
             True,
-            "ru_RU и en_US уже во всех трёх колонках",
+            "Русский и английский уже включены во всех колонках "
+            "(интерфейс, отправка рукописи, формы)",
             changed=False,
             dry_run=dry_run,
         )
-    detail = "; ".join(f"{k}: {sorted(after[k])}" for k in LOCALE_FIELD_NAMES)
+    detail = (
+        "включить русский и английский во всех колонках "
+        "(интерфейс, отправка рукописи, формы)"
+    )
     if dry_run:
         return StepResult(
             "languages",
-            "Языки RU/EN",
+            "Языки (русский и английский)",
             True,
-            f"dry-run: будет POST saveLanguageSettings ({detail})",
+            f"Будет сделано: {detail}",
             changed=True,
             dry_run=True,
         )
     status, _, _ = auth.request(form.action, data=form.fields)
     _delay(delay)
     if status >= 400:
-        return StepResult("languages", "Языки RU/EN", False, f"HTTP {status}")
+        return StepResult(
+            "languages",
+            "Языки (русский и английский)",
+            False,
+            f"Ошибка сохранения языков (HTTP {status})",
+        )
     return StepResult(
         "languages",
-        "Языки RU/EN",
+        "Языки (русский и английский)",
         True,
-        f"Сохранено ({detail})",
+        "Русский и английский включены во всех колонках",
         changed=True,
         dry_run=False,
     )
@@ -153,9 +166,9 @@ def step_section_articles(
         if dry_run:
             return StepResult(
                 "section",
-                "Раздел Статьи",
+                "Раздел «Статьи»",
                 True,
-                f"dry-run: раздела нет — создать и заполнить RU/EN",
+                "Раздела нет — будет создан с названиями RU/EN",
                 changed=True,
                 dry_run=True,
             )
@@ -165,7 +178,12 @@ def step_section_articles(
             # create may post to createSection/save
             form = find_post_form(html, create_url)
         if form is None:
-            return StepResult("section", "Раздел Статьи", False, "Форма создания раздела не найдена")
+            return StepResult(
+                "section",
+                "Раздел «Статьи»",
+                False,
+                "Форма создания раздела не найдена",
+            )
         created = True
     else:
         html = auth.get_text(edit_url)
@@ -173,9 +191,9 @@ def step_section_articles(
         if form is None:
             return StepResult(
                 "section",
-                "Раздел Статьи",
+                "Раздел «Статьи»",
                 False,
-                f"Форма updateSection не найдена ({label})",
+                f"Форма редактирования раздела не найдена ({label})",
             )
 
     # RU + EN поля (OJS принимает оба locale в одном POST)
@@ -190,23 +208,28 @@ def step_section_articles(
     # снять metaReviewed / hideTitle и т.п. — оставляем как были, кроме целевых
 
     summary = (
-        f"RU «{SECTION_RU_TITLE}/{SECTION_RU_ABBREV}», "
-        f"EN «{SECTION_EN_TITLE}/{SECTION_EN_ABBREV}», "
-        f"policy очищен, hideAbout, editorRestriction"
+        f"название «{SECTION_RU_TITLE}» / «{SECTION_EN_TITLE}», "
+        f"сокращение «{SECTION_RU_ABBREV}» / «{SECTION_EN_ABBREV}», "
+        f"правила раздела очищены, скрыт в «О журнале», только редакторы"
     )
     if dry_run:
         return StepResult(
             "section",
-            "Раздел Статьи",
+            "Раздел «Статьи»",
             True,
-            f"dry-run: {label or 'новый раздел'} — {summary}",
+            f"Будет обновлён ({label or 'новый раздел'}): {summary}",
             changed=True,
             dry_run=True,
         )
     status, _, body = auth.request(form.action, data=form.fields)
     _delay(delay)
     if status >= 400:
-        return StepResult("section", "Раздел Статьи", False, f"HTTP {status}")
+        return StepResult(
+            "section",
+            "Раздел «Статьи»",
+            False,
+            f"Ошибка сохранения раздела (HTTP {status})",
+        )
     # если EN не сохранилось через один POST — дописать через formLocale
     verify = auth.get_text(edit_url or form.action.replace("updateSection", "editSection"))
     if "title[en_US]" not in verify and "Articles" not in verify:
@@ -220,9 +243,9 @@ def step_section_articles(
         )
     return StepResult(
         "section",
-        "Раздел Статьи",
+        "Раздел «Статьи»",
         True,
-        ("Создан и настроен: " if created else "Обновлён: ") + summary,
+        ("Создан: " if created else "Обновлён: ") + summary,
         changed=True,
         dry_run=False,
     )
@@ -266,7 +289,12 @@ def step_reader_tools(
     html = auth.get_text(url)
     form = find_post_form(html, url, action_contains="saveSettings")
     if form is None:
-        return StepResult("rt", "Инструменты читателя", False, "Форма rtadmin/saveSettings не найдена")
+        return StepResult(
+            "rt",
+            "Инструменты читателя",
+            False,
+            "Форма настроек инструментов читателя не найдена",
+        )
     # enabled checkbox value="1"; checked → уже в fields
     enabled_now = bool(form.values_for("enabled"))
     form.set_checkbox("enabled", True, "1")
@@ -284,14 +312,19 @@ def step_reader_tools(
             "rt",
             "Инструменты читателя",
             True,
-            "dry-run: будет включено (enabled=1)",
+            "Будут включены",
             changed=True,
             dry_run=True,
         )
     status, _, _ = auth.request(form.action, data=form.fields)
     _delay(delay)
     if status >= 400:
-        return StepResult("rt", "Инструменты читателя", False, f"HTTP {status}")
+        return StepResult(
+            "rt",
+            "Инструменты читателя",
+            False,
+            f"Ошибка сохранения (HTTP {status})",
+        )
     return StepResult(
         "rt",
         "Инструменты читателя",
@@ -315,33 +348,43 @@ def _toggle_plugins(
 ) -> StepResult:
     html = auth.get_text(page_url)
     links = plugin_action_links(html)
-    actions: list[str] = []
+    enabled_already: list[str] = []
+    enabled_now: list[str] = []
+    disabled_already: list[str] = []
+    disabled_now: list[str] = []
+    missing: list[str] = []
+
     for key in sorted(to_enable):
-        info = links.get(key) or links.get(key.replace("plugin", ""))
-        # keys in page are like DOIPubIdPlugin → lower doipubidplugin
+        label = plugin_label(key)
         matched = None
         for k, v in links.items():
             if k == key or k.endswith(key) or key in k:
                 matched = v
                 break
         if matched is None:
-            actions.append(f"{key}: не найден")
+            missing.append(label)
             continue
         if "disable" in matched:
-            actions.append(f"{matched.get('key', key)}: уже включён")
+            enabled_already.append(label)
             continue
         enable_url = matched.get("enable")
         if not enable_url:
-            actions.append(f"{key}: нет ссылки enable")
+            missing.append(label)
             continue
-        actions.append(f"ENABLE {matched.get('key', key)}")
+        enabled_now.append(label)
         if not dry_run:
             status, _, _ = auth.request(enable_url, method="GET")
             _delay(delay)
             if status >= 400:
-                return StepResult(step_id, title, False, f"enable {key}: HTTP {status}")
+                return StepResult(
+                    step_id,
+                    title,
+                    False,
+                    f"Не удалось включить «{label}» (HTTP {status})",
+                )
 
     for key in sorted(to_disable):
+        label = plugin_label(key)
         matched = None
         for k, v in links.items():
             if k == key or key in k:
@@ -350,24 +393,42 @@ def _toggle_plugins(
         if matched is None:
             continue
         if "enable" in matched and "disable" not in matched:
-            actions.append(f"{matched.get('key', key)}: уже выключен")
+            disabled_already.append(label)
             continue
         disable_url = matched.get("disable")
         if disable_url:
-            actions.append(f"DISABLE {matched.get('key', key)}")
+            disabled_now.append(label)
             if not dry_run:
                 status, _, _ = auth.request(disable_url, method="GET")
                 _delay(delay)
                 if status >= 400:
-                    return StepResult(step_id, title, False, f"disable {key}: HTTP {status}")
+                    return StepResult(
+                        step_id,
+                        title,
+                        False,
+                        f"Не удалось выключить «{label}» (HTTP {status})",
+                    )
 
-    changed = any(a.startswith("ENABLE") or a.startswith("DISABLE") for a in actions)
-    prefix = "dry-run: " if dry_run and changed else ""
+    parts: list[str] = []
+    if enabled_now:
+        verb = "Будут включены" if dry_run else "Включены"
+        parts.append(f"{verb}: {', '.join(enabled_now)}")
+    if enabled_already:
+        parts.append(f"Уже были включены: {', '.join(enabled_already)}")
+    if disabled_now:
+        verb = "Будут выключены" if dry_run else "Выключены"
+        parts.append(f"{verb}: {', '.join(disabled_now)}")
+    if disabled_already:
+        parts.append(f"Уже были выключены: {', '.join(disabled_already)}")
+    if missing:
+        parts.append(f"Не найдены на странице: {', '.join(missing)}")
+
+    changed = bool(enabled_now or disabled_now)
     return StepResult(
         step_id,
         title,
         True,
-        prefix + "; ".join(actions) if actions else "нечего менять",
+        "; ".join(parts) if parts else "Изменений не требуется",
         changed=changed,
         dry_run=dry_run,
     )
@@ -428,7 +489,7 @@ def step_generic(
         dry_run=dry_run,
         delay=delay,
         step_id="generic",
-        title="Основные модули (whitelist)",
+        title="Основные модули",
     )
 
 
@@ -451,7 +512,7 @@ def step_browse_settings(
                 "browse",
                 "Браузер: просмотр по разделам",
                 True,
-                "dry-run: enableBrowseBySections=1 (после включения плагина)",
+                "Будет включён просмотр по разделам (после включения плагина «Браузер»)",
                 changed=True,
                 dry_run=True,
             )
@@ -459,7 +520,7 @@ def step_browse_settings(
             "browse",
             "Браузер: просмотр по разделам",
             False,
-            "Страница настроек недоступна — сначала включите browseplugin",
+            "Страница настроек недоступна — сначала включите плагин «Браузер»",
         )
 
     if 'name="enableBrowseBySections"' not in html:
@@ -467,7 +528,7 @@ def step_browse_settings(
             "browse",
             "Браузер: просмотр по разделам",
             False,
-            "Поле enableBrowseBySections не найдено на странице настроек",
+            "На странице настроек нет параметра «По разделам»",
         )
 
     already = bool(
@@ -482,7 +543,7 @@ def step_browse_settings(
             "browse",
             "Браузер: просмотр по разделам",
             True,
-            "enableBrowseBySections уже включён",
+            "Просмотр по разделам уже включён",
             changed=False,
             dry_run=dry_run,
         )
@@ -491,7 +552,7 @@ def step_browse_settings(
             "browse",
             "Браузер: просмотр по разделам",
             True,
-            "dry-run: enableBrowseBySections=1",
+            "Будет включён просмотр по разделам",
             changed=True,
             dry_run=True,
         )
@@ -516,7 +577,7 @@ def step_browse_settings(
             "browse",
             "Браузер: просмотр по разделам",
             False,
-            f"HTTP {status}",
+            f"Ошибка сохранения (HTTP {status})",
         )
 
     verify = auth.get_text(url)
@@ -532,7 +593,7 @@ def step_browse_settings(
             "browse",
             "Браузер: просмотр по разделам",
             True,
-            "enableBrowseBySections включён",
+            "Просмотр по разделам включён",
             changed=True,
             dry_run=False,
         )
@@ -540,7 +601,7 @@ def step_browse_settings(
         "browse",
         "Браузер: просмотр по разделам",
         False,
-        "POST выполнен, но enableBrowseBySections не отмечен — проверьте вручную",
+        "Сохранение выполнено, но «По разделам» не отмечено — проверьте вручную",
     )
 
 
@@ -576,42 +637,43 @@ def step_setup3(
     html = auth.get_text(url)
     form = find_post_form(html, url, action_contains="saveSetup/3")
     if form is None:
-        return StepResult("setup3", "Шаг 3", False, "Форма saveSetup/3 не найдена")
+        return StepResult("setup3", "Шаг 3. Приём статей", False, "Форма шага 3 не найдена")
 
     before = _checklist_indexes(form.fields)
     if before:
-        notes.append(f"очистить требования к статьям ({len(before)} пункт(ов))")
+        notes.append(
+            f"очистить требования к статьям ({len(before)} пункт(ов))"
+        )
         if not dry_run:
-            # Надёжный способ: saveSetup без submissionChecklist[] (не delChecklist по одному)
             payload = _payload_without_checklist(form.fields)
             status, _, _ = auth.request(form.action, data=payload)
             _delay(delay)
             if status >= 400:
                 return StepResult(
                     "setup3",
-                    "Шаг 3",
+                    "Шаг 3. Приём статей",
                     False,
-                    f"Не удалось очистить требования к статьям: HTTP {status}",
+                    f"Не удалось очистить требования к статьям (HTTP {status})",
                 )
             html_after = auth.get_text(url)
             form_after = find_post_form(html_after, url, action_contains="saveSetup/3")
             if form_after is None:
                 return StepResult(
                     "setup3",
-                    "Шаг 3",
+                    "Шаг 3. Приём статей",
                     False,
-                    "После очистки требований форма saveSetup/3 не найдена",
+                    "После очистки требований форма шага 3 не найдена",
                 )
             left = _checklist_indexes(form_after.fields)
             if left:
                 return StepResult(
                     "setup3",
-                    "Шаг 3",
+                    "Шаг 3. Приём статей",
                     False,
                     (
                         "Не удалось очистить требования к статьям: "
                         f"было {len(before)}, осталось {len(left)}. "
-                        "Проверьте шаг 3 вручную (manager/setup/3)."
+                        "Проверьте шаг 3 вручную."
                     ),
                 )
             form = form_after
@@ -619,28 +681,32 @@ def step_setup3(
     else:
         notes.append("требования к статьям уже пусты")
 
-    # metaSubject + Vancouver + сохранить (без повторного добавления checklist)
     form.set_checkbox("metaSubject", True, "1")
     form.set_value("metaCitationOutputFilterId", VANCOUVER_OUTPUT_ID)
-    notes.append("metaSubject=1")
-    notes.append("metaCitationOutputFilterId=Vancouver(22)")
+    notes.append("включены ключевые слова")
+    notes.append("выгрузка цитат: Vancouver")
 
     if not dry_run:
         payload = _payload_without_checklist(form.fields)
         status, _, _ = auth.request(form.action, data=payload)
         _delay(delay)
         if status >= 400:
-            return StepResult("setup3", "Шаг 3", False, f"saveSetup/3 HTTP {status}")
+            return StepResult(
+                "setup3",
+                "Шаг 3. Приём статей",
+                False,
+                f"Ошибка сохранения шага 3 (HTTP {status})",
+            )
 
     parser_notes = _ensure_citation_parsers(
         auth, base_url=base_url, journal=journal, dry_run=dry_run, delay=delay
     )
     notes.extend(parser_notes)
 
-    prefix = "dry-run: " if dry_run else ""
+    prefix = "Будет сделано: " if dry_run else ""
     return StepResult(
         "setup3",
-        "Шаг 3 (checklist / keywords / citations)",
+        "Шаг 3. Приём статей",
         True,
         prefix + "; ".join(notes),
         changed=True,
@@ -672,35 +738,32 @@ def _ensure_citation_parsers(
         text = body.decode("utf-8", "replace")
         existing = set(re.findall(r"FreeCite|ParsCit|ParaCite|RegEx", text))
     except Exception as exc:  # noqa: BLE001
-        return [f"parser grid: {exc}"]
+        return [f"не удалось прочитать список служб экстракции: {exc}"]
 
-    wanted = {
-        "26": "FreeCite",
-        "27": "ParsCit",
-        "28": "ParaCite",
-        "29": "RegEx",
-    }
-    for tid, label in wanted.items():
+    for tid, label in CITATION_PARSER_RU.items():
         # ParaCite в HTML может быть "ParaCite ()"
         present = any(label.casefold() in e.casefold() for e in existing) or label in existing
         if label == "ParaCite":
             present = present or "ParaCite" in text
         if present:
-            notes.append(f"{label}: уже есть")
+            notes.append(f"служба экстракции «{label}»: уже добавлена")
             continue
-        notes.append(f"add {label}({tid})")
+        notes.append(
+            f"добавить службу экстракции «{label}»"
+            if dry_run
+            else f"добавлена служба экстракции «{label}»"
+        )
         if dry_run:
             continue
         status, _, body = auth.request(update_url, data={"filterTemplateId": tid})
         _delay(delay)
         if status >= 400:
-            notes.append(f"{label}: HTTP {status}")
+            notes.append(f"«{label}»: ошибка HTTP {status}")
             continue
-        # refresh existing names
         try:
             resp = json.loads(body.decode("utf-8", "replace"))
             if not resp.get("status"):
-                notes.append(f"{label}: status=false")
+                notes.append(f"«{label}»: не удалось добавить")
         except json.JSONDecodeError:
             pass
     return notes
@@ -718,36 +781,46 @@ def step_setup4(
     html = auth.get_text(url)
     form = find_post_form(html, url, action_contains="saveSetup/4")
     if form is None:
-        return StepResult("setup4", "Шаг 4 пагинация", False, "Форма saveSetup/4 не найдена")
+        return StepResult(
+            "setup4",
+            "Шаг 4. Пагинация",
+            False,
+            "Форма шага 4 не найдена",
+        )
     already = bool(form.values_for("enablePageNumber"))
     form.set_checkbox("enablePageNumber", True, "1")
     if already:
         return StepResult(
             "setup4",
-            "Шаг 4 пагинация",
+            "Шаг 4. Пагинация",
             True,
-            "enablePageNumber уже включён",
+            "Нумерация страниц уже включена",
             changed=False,
             dry_run=dry_run,
         )
     if dry_run:
         return StepResult(
             "setup4",
-            "Шаг 4 пагинация",
+            "Шаг 4. Пагинация",
             True,
-            "dry-run: enablePageNumber=1",
+            "Будет включена нумерация страниц",
             changed=True,
             dry_run=True,
         )
     status, _, _ = auth.request(form.action, data=form.fields)
     _delay(delay)
     if status >= 400:
-        return StepResult("setup4", "Шаг 4 пагинация", False, f"HTTP {status}")
+        return StepResult(
+            "setup4",
+            "Шаг 4. Пагинация",
+            False,
+            f"Ошибка сохранения (HTTP {status})",
+        )
     return StepResult(
         "setup4",
-        "Шаг 4 пагинация",
+        "Шаг 4. Пагинация",
         True,
-        "enablePageNumber включён",
+        "Нумерация страниц включена",
         changed=True,
         dry_run=False,
     )
@@ -774,9 +847,9 @@ def step_setup5_description(
     if form is None:
         return StepResult(
             "setup5",
-            "Шаг 5 содержание главной",
+            "Шаг 5. Содержание главной",
             False,
-            "Форма saveSetup/5 не найдена",
+            "Форма шага 5 не найдена",
         )
 
     current_ru = ""
@@ -801,32 +874,32 @@ def step_setup5_description(
     if not need_ru and not need_en:
         return StepResult(
             "setup5",
-            "Шаг 5 содержание главной",
+            "Шаг 5. Содержание главной",
             True,
-            "description RU/EN уже заполнены — не перезаписываем",
+            "Русский и английский тексты уже заполнены — не перезаписываем",
             changed=False,
             dry_run=dry_run,
         )
 
     parts: list[str] = []
     if need_ru:
-        parts.append("description[ru_RU]=шаблон")
+        parts.append("RU")
         form.set_value("description[ru_RU]", HOMEPAGE_DESCRIPTION_RU.strip())
     else:
         form.set_value("description[ru_RU]", current_ru)
     if need_en:
-        parts.append("description[en_US]=шаблон")
+        parts.append("EN")
         form.set_value("description[en_US]", HOMEPAGE_DESCRIPTION_EN.strip())
     elif current_en:
         form.set_value("description[en_US]", current_en)
 
-    detail = ", ".join(parts)
+    detail = " и ".join(parts)
     if dry_run:
         return StepResult(
             "setup5",
-            "Шаг 5 содержание главной",
+            "Шаг 5. Содержание главной",
             True,
-            f"dry-run: вставить шаблон ({detail})",
+            f"Будет вставлен шаблон для {detail}",
             changed=True,
             dry_run=True,
         )
@@ -836,9 +909,9 @@ def step_setup5_description(
     if status >= 400:
         return StepResult(
             "setup5",
-            "Шаг 5 содержание главной",
+            "Шаг 5. Содержание главной",
             False,
-            f"HTTP {status}",
+            f"Ошибка сохранения (HTTP {status})",
         )
 
     if need_en:
@@ -848,9 +921,9 @@ def step_setup5_description(
             if form2 is None:
                 return StepResult(
                     "setup5",
-                    "Шаг 5 содержание главной",
+                    "Шаг 5. Содержание главной",
                     False,
-                    "EN шаблон не сохранился, форма не найдена",
+                    "Английский шаблон не сохранился, форма не найдена",
                 )
             form2.set_value("formLocale", "en_US")
             form2.set_value(
@@ -866,22 +939,22 @@ def step_setup5_description(
             if status2 >= 400:
                 return StepResult(
                     "setup5",
-                    "Шаг 5 содержание главной",
+                    "Шаг 5. Содержание главной",
                     False,
-                    f"EN locale HTTP {status2}",
+                    f"Ошибка сохранения английского текста (HTTP {status2})",
                 )
             verify2 = auth.get_text(url)
             if "[specify]" not in verify2 and "Founder:" not in verify2:
                 return StepResult(
                     "setup5",
-                    "Шаг 5 содержание главной",
+                    "Шаг 5. Содержание главной",
                     False,
-                    "RU сохранён, EN шаблон не подтверждён — проверьте вручную",
+                    "Русский сохранён, английский шаблон не подтверждён — проверьте вручную",
                 )
 
     return StepResult(
         "setup5",
-        "Шаг 5 содержание главной",
+        "Шаг 5. Содержание главной",
         True,
         f"Вставлен шаблон ({detail})",
         changed=True,

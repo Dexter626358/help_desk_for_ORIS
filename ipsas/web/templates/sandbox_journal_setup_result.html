@@ -46,9 +46,9 @@
           <td>{{ s.title }}</td>
           <td>
             {% if s.ok %}
-            <span class="chip" style="background:var(--success-bg, #e8f5e9);color:var(--success, #2e7d32);">OK</span>
+            <span class="chip" style="background:var(--success-bg, #e8f5e9);color:var(--success, #2e7d32);">успех</span>
             {% else %}
-            <span class="chip" style="background:var(--danger-bg, #ffebee);color:var(--danger, #c62828);">FAIL</span>
+            <span class="chip" style="background:var(--danger-bg, #ffebee);color:var(--danger, #c62828);">ошибка</span>
             {% endif %}
           </td>
           <td>{% if s.changed %}да{% else %}нет{% endif %}</td>

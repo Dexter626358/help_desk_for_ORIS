@@ -96,6 +96,15 @@ def test_html_form_set_checkbox() -> None:
     assert form.values_for("enabled") == []
 
 
+def test_plugin_label_ru() -> None:
+    from ipsas.modules.sandbox_journal_setup.labels import plugin_label
+
+    assert plugin_label("DOIPubIdPlugin") == "DOI"
+    assert plugin_label("browseplugin") == "Браузер"
+    assert plugin_label("acronPlugin") == "ACRON"
+    assert plugin_label("fundrefplugin") == "FundRef"
+
+
 def test_checklist_payload_helpers() -> None:
     from ipsas.modules.sandbox_journal_setup.steps import (
         _checklist_indexes,
