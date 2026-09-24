@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import http.cookiejar
 import logging
 import re
@@ -11,7 +12,7 @@ import urllib.parse
 import urllib.request
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Mapping
+from typing import Mapping, Sequence
 
 from ipsas.common.ssrf import UnsafeUrlError, assert_safe_fetch_url, build_safe_opener
 
@@ -46,6 +47,7 @@ class PlatformAuthClient:
     base_url: str = DEFAULT_BASE_URL
     user_agent: str = DEFAULT_USER_AGENT
     timeout: float = 60.0
+    basic_auth: tuple[str, str] | None = None
     _cookie_jar: http.cookiejar.CookieJar = field(
         default_factory=http.cookiejar.CookieJar, repr=False
     )
@@ -66,6 +68,10 @@ class PlatformAuthClient:
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.8",
         }
+        if self.basic_auth:
+            user, password = self.basic_auth
+            token = base64.b64encode(f"{user}:{password}".encode("utf-8")).decode("ascii")
+            headers["Authorization"] = f"Basic {token}"
         if extra:
             headers.update(extra)
         return headers
@@ -74,7 +80,7 @@ class PlatformAuthClient:
         self,
         url: str,
         *,
-        data: Mapping[str, str] | None = None,
+        data: Mapping[str, str] | Sequence[tuple[str, str]] | None = None,
         method: str | None = None,
         headers: Mapping[str, str] | None = None,
     ) -> tuple[int, str, bytes]:
@@ -83,7 +89,10 @@ class PlatformAuthClient:
         body: bytes | None = None
         req_headers = self._headers(headers)
         if data is not None:
-            body = urllib.parse.urlencode(dict(data)).encode("utf-8")
+            if isinstance(data, Mapping):
+                body = urllib.parse.urlencode(dict(data)).encode("utf-8")
+            else:
+                body = urllib.parse.urlencode(list(data), doseq=True).encode("utf-8")
             req_headers.setdefault(
                 "Content-Type", "application/x-www-form-urlencoded"
             )

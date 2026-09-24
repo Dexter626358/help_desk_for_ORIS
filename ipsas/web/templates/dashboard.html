@@ -131,6 +131,18 @@
       </div>
     </a>
 
+    <a class="action-card" href="{{ url_for('sandbox_journal_setup.setup_page') }}">
+      <div class="action-card-head">
+        <span class="action-card-ico" aria-hidden="true">{{ icon('wand', 20) }}</span>
+      </div>
+      <h3>Настройка журнала в песочнице</h3>
+      <p class="action-card-desc">Базовая настройка ветки на f23g45: языки, раздел, плагины, setup 3–4</p>
+      <div class="action-card-foot">
+        <p class="action-card-io">URL журнала → dry-run / запись настроек</p>
+        <span class="action-card-cta">Открыть →</span>
+      </div>
+    </a>
+
     <a class="action-card" href="{{ url_for('journal_site_check.journal_site_check_page') }}">
       <div class="action-card-head">
         <span class="action-card-ico" aria-hidden="true">{{ icon('radar', 20) }}</span>
@@ -217,6 +229,13 @@
         <p>Архивация ошибочно загруженных сотрудниками рукописей из очереди «Новые»</p>
       </div>
       <a class="btn btn-secondary" href="{{ url_for('archive_by_sender.archive_page') }}">Открыть</a>
+    </div>
+    <div class="tool-row">
+      <div>
+        <h3>Настройка журнала в песочнице</h3>
+        <p>Базовая настройка ветки на f23g45 (языки, раздел, плагины, setup)</p>
+      </div>
+      <a class="btn btn-secondary" href="{{ url_for('sandbox_journal_setup.setup_page') }}">Открыть</a>
     </div>
     <div class="tool-row">
       <div>

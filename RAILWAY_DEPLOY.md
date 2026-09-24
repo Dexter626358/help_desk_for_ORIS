@@ -30,10 +30,11 @@
 ```
 SECRET_KEY=<случайная длинная строка>
 IPSAS_ENV=production
-ISSUE_FETCH_ALLOWED_HOSTS=journals.rcsi.science
+ISSUE_FETCH_ALLOWED_HOSTS=journals.rcsi.science,f23g45.rcsi.science
 ```
 
 Без `SECRET_KEY` или `ISSUE_FETCH_ALLOWED_HOSTS` приложение в production **не стартует**.
+Добавьте `f23g45.rcsi.science` в allowlist, если используете настройку журнала в песочнице.
 
 **Рекомендуется:**
 ```
@@ -58,12 +59,20 @@ PLATFORM_APPLY_ENABLED=0
 PLATFORM_USERNAME=
 PLATFORM_PASSWORD=
 # PLATFORM_BASE_URL=https://journals.rcsi.science
+# Песочница (настройка ветки журнала):
+# SANDBOX_BASE_URL=https://f23g45.rcsi.science
+# SANDBOX_GATE_USERNAME=   # или SANDBOX_USER1_USERNAME
+# SANDBOX_GATE_PASSWORD=
+# SANDBOX_OJS_USERNAME=    # или SANDBOX_USER2_USERNAME
+# SANDBOX_OJS_PASSWORD=
 PORT=<Railway задаёт сам>
 ```
 
-Для архивации «Новые» и записи ENG-метаданных задайте `PLATFORM_*` (или `RCSI_*`).
+Для архивации «Новые», рисунков выпуска и записи ENG-метаданных задайте `PLATFORM_*` (или `RCSI_*`).
 Запись ENG на платформу включается только при `PLATFORM_APPLY_ENABLED=1`.
 
+Для `/services/sandbox-journal-setup` задайте `SANDBOX_*` и хост песочницы в `ISSUE_FETCH_ALLOWED_HOSTS`.
+По умолчанию UI песочницы — dry-run; запись только после снятия галочки.
 `temp/`, `logs/`, `data/` на эфемерном диске Railway **не переживают** redeploy. Логи — в stdout. Health: `/health`, `/health/live`, `/health/ready`.
 
 PostgreSQL / `DATABASE_URI` **не нужны**.
@@ -93,8 +102,9 @@ gunicorn -c gunicorn.conf.py ipsas.web.wsgi:app
 После деплоя:
 
 - https://\<ваш-домен\>/health → `{"status":"ok","service":"ipsas"}`
-- https://\<ваш-домен\>/dashboard — список сервисов
+- https://\<ваш-домен\>/dashboard — список сервисов (в т.ч. «Настройка в песочнице»)
 - **Валидатор XML** — `/services/xml-validator` (схема XSD + метаданные; старый `/services/xml-report` редиректит сюда)
+- **Песочница** — `/services/sandbox-journal-setup` (нужны `SANDBOX_*` и хост в allowlist)
 - Любой POST-сервис из браузера (CSRF включён; токен подставляется формами)
 
 Если сайт не открывается из браузера (`ERR_CONNECTION_TIMED_OUT`), а curl/VPN работает — это сетевая фильтрация до `*.railway.app`, а не ошибка приложения. Помогает VPN или свой домен.
@@ -127,6 +137,8 @@ python run.py
 - Обработка списков литературы
 - Парсер выпуска по URL
 - CSV PDF выпуска
+- Рисунки выпуска → доп. файлы
 - Обновление ENG-метаданных (ZIP; apply на платформу — опционально)
 - Архивация «Новые» по отправителю
+- Настройка журнала в песочнице (f23g45)
 - Проверка настроек сайта журнала (`.data`, документация БАЗА: modulbaza)

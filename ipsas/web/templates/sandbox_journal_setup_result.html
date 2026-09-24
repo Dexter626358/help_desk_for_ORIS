@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs %}
+
+{% block title %}Результат настройки песочницы — IPSAS{% endblock %}
+{% block topbar %}Песочница{% endblock %}
+
+{% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Настройка журнала в песочнице', 'url': url_for('sandbox_journal_setup.setup_page')},
+  {'label': 'Результат'}
+]) }}
+
+<div class="card">
+  <h1 class="page-title">Журнал {{ report.journal }}</h1>
+  <p class="page-lead">
+    {{ report.base_url }}/{{ report.journal }}
+    — {% if report.dry_run %}режим проверки (без изменений){% else %}запись изменений{% endif %}.
+    За {{ '%.1f'|format(elapsed) }} с.
+  </p>
+
+  {% if report.error %}
+  <div class="alert alert-error" role="alert" style="margin-bottom:1rem;">
+    {{ report.error }}
+  </div>
+  {% endif %}
+
+  <div class="form-actions" style="margin-bottom:1rem;">
+    <a class="btn btn-secondary" href="{{ url_for('sandbox_journal_setup.setup_page') }}">Новый запуск</a>
+  </div>
+
+  {% if report.steps %}
+  <div class="table-wrap" style="overflow-x:auto;">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Шаг</th>
+          <th>Статус</th>
+          <th>Изменение</th>
+          <th>Сообщение</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in report.steps %}
+        <tr>
+          <td>{{ s.title }}</td>
+          <td>
+            {% if s.ok %}
+            <span class="chip" style="background:var(--success-bg, #e8f5e9);color:var(--success, #2e7d32);">OK</span>
+            {% else %}
+            <span class="chip" style="background:var(--danger-bg, #ffebee);color:var(--danger, #c62828);">FAIL</span>
+            {% endif %}
+          </td>
+          <td>{% if s.changed %}да{% else %}нет{% endif %}</td>
+          <td>{{ s.message }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="muted">Шаги не выполнялись.</p>
+  {% endif %}
+</div>
+{% endblock %}

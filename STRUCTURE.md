@@ -39,16 +39,17 @@ Help_desk_for_ORIS/
 │   ├── cli.py
 │   ├── common/                 # validation, ssrf, zip_safe, xml_secure,
 │   │                           # models (Finding), rate_limit, exceptions
-│   ├── config/settings.py      # env, SECRET_KEY, лимиты, TTL, PLATFORM_*
+│   ├── config/settings.py      # env, SECRET_KEY, лимиты, TTL, PLATFORM_*, SANDBOX_*
 │   ├── jobs/issue_metadata.py  # файловое хранилище task JSON
 │   ├── services/               # сценарии UI
 │   ├── modules/                # доменная логика (+ shim’ы)
 │   ├── utils/                  # logger, temp_files, download_names, …
 │   └── web/                    # Flask: app, blueprints, templates, static
+├── setup_sandbox_journal.py    # CLI базовой настройки журнала в песочнице
+├── upload_issue_images.py      # CLI: рисунки выпуска → доп. файлы
 ├── tests/
 └── temp/ / logs/ / data/       # runtime (на Railway — эфемерны)
 ```
-
 ---
 
 ## `ipsas/common/`
@@ -126,6 +127,20 @@ Shim: `issue_metadata_parser.py`.
 
 `constants.py` (список ФИО по умолчанию), `parser.py`, `service.py`, `models.py`.
 
+### Рисунки выпуска — `issue_supp_images/`
+
+Сопоставление папок `{start}-{end}_images` из ZIP с интервалами страниц в issueToc,
+загрузка в доп. файлы статей. CLI: `upload_issue_images.py`.
+
+### Песочница — `sandbox_journal_setup/`
+
+Базовая настройка ветки журнала на f23g45: GATE (Basic Auth) + OJS login,
+языки RU/EN, раздел «Статьи», RT, DOI/EDN, метрики, generic whitelist,
+browse (по разделам), setup 3–5 (в т.ч. шаблон содержания главной).
+
+CLI: `setup_sandbox_journal.py "https://f23g45.rcsi.science/257/index"` (`--apply` для записи).
+Web: `/services/sandbox-journal-setup`. Env: `SANDBOX_GATE_*` / `SANDBOX_OJS_*` (alias `USER1`/`USER2`).
+
 ### Прочее
 
 | Модуль | Назначение |
@@ -159,7 +174,8 @@ Shim: `issue_metadata_parser.py`.
 - `file_ops.py` — upload/temp/download XML  
 - `routes.py` — dashboard + заглушки «В разработке»  
 - Blueprints: `xml_validation`, `xml_report`, `reference_*`, `pdf_matching`, `issue_pdf_csv`,
-  `issue_metadata`, `journal_site_check`, `eng_metadata`, `archive_by_sender`, `xml_editor`
+  `issue_metadata`, `journal_site_check`, `eng_metadata`, `archive_by_sender`,
+  `issue_supp_images`, `sandbox_journal_setup`, `xml_editor`
 - Пакет `issue_metadata/` — `routes.py` + `inflight.py`  
 - Shim: `issue_metadata_tasks.py` → `ipsas.jobs.issue_metadata`  
 - `templates/` + `static/css/{theme,app}.css`
@@ -181,6 +197,8 @@ Shim: `issue_metadata_parser.py`.
 | Проверить сайт журнала | `check_journal_site` | `journal_site` |
 | ENG-метаданные | `eng_metadata_review` | `eng_metadata` |
 | Архивация по отправителю | `archive_by_sender` | `archive_by_sender` |
+| Рисунки → доп. файлы | (web `issue_supp_images`) | `issue_supp_images` |
+| Настройка в песочнице | (web `sandbox_journal_setup`) | `sandbox_journal_setup` |
 | Редактор XML | (web `xml_editor`) | `xml_editor` |
 
 ---
@@ -195,6 +213,8 @@ Shim: `issue_metadata_parser.py`.
 | Сайт журнала | `test_journal_site_*.py` |
 | ENG-метаданные | `test_eng_metadata.py` |
 | Архивация «Новые» | `test_archive_by_sender.py` |
+| Рисунки выпуска | `test_issue_supp_images.py` |
+| Песочница | `test_sandbox_journal_setup.py` |
 | Безопасность / prod | `test_security.py`, `test_production_hardening.py` |
 | Общее | `test_validator.py`, `test_maintainability.py`, `test_download_names.py`, `test_operation_history_and_cleaner.py` |
 
@@ -215,3 +235,4 @@ pytest
 | Лимиты | `MAX_CONTENT_LENGTH`, `MAX_CONCURRENT_JOBS`, `RATE_LIMIT_PER_MINUTE` |
 | SSRF | `ISSUE_FETCH_ALLOWED_HOSTS` (**обязателен** в production) |
 | Платформа | `PLATFORM_*` / `RCSI_*`, `PLATFORM_APPLY_ENABLED` |
+| Песочница | `SANDBOX_GATE_*` / `SANDBOX_OJS_*` (alias `USER1`/`USER2`), `SANDBOX_BASE_URL` |

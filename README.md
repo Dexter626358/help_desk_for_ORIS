@@ -14,6 +14,8 @@
 - Проверка настроек сайта журнала по `.data` (чек-лист БАЗА: [docs.rcsi.science/s/modulbaza](https://docs.rcsi.science/s/modulbaza))
 - Обновление ENG-метаданных статей (локальный разбор ZIP; запись на Платформу — опционально)
 - Архивация ошибочно загруженных рукописей из «Новые» по отправителю
+- Загрузка рисунков выпуска в доп. файлы статей (images.zip)
+- Базовая настройка журнала в песочнице (f23g45: языки, раздел, плагины, setup 3–5)
 - Встроенный XML-редактор (сессии во временном каталоге)
 
 Без базы данных и без встроенной авторизации. История задач после перезапуска не сохраняется.
@@ -70,12 +72,20 @@ Railway: сборка через Dockerfile (`railway.json`).
 
 См. [.env.example](.env.example) и таблицу в [DEPLOYMENT.md](DEPLOYMENT.md). Секреты только в окружении сервера.
 
-Для сервисов, ходящих на Платформу под учётной записью редактора (ENG-метаданные apply, архивация «Новые»):
+Для сервисов, ходящих на Платформу под учётной записью редактора (ENG-метаданные apply, архивация «Новые», рисунки выпуска):
 
 - `PLATFORM_USERNAME` / `PLATFORM_PASSWORD` (или `RCSI_USERNAME` / `RCSI_PASSWORD`)
 - `PLATFORM_APPLY_ENABLED=1` — разрешить запись ENG-метаданных (по умолчанию выкл.)
 - `ISSUE_FETCH_ALLOWED_HOSTS` должен включать хост платформы
 
+Для **настройки журнала в песочнице** (`/services/sandbox-journal-setup`, CLI `setup_sandbox_journal.py`):
+
+- `SANDBOX_BASE_URL` (например `https://f23g45.rcsi.science`)
+- `SANDBOX_GATE_*` / `SANDBOX_USER1_*` — HTTP Basic (ворота сайта)
+- `SANDBOX_OJS_*` / `SANDBOX_USER2_*` — логин OJS
+- в `ISSUE_FETCH_ALLOWED_HOSTS` добавьте хост песочницы (`f23g45.rcsi.science`)
+
+По умолчанию песочница и архивация работают в **dry-run**; запись — только после снятия галочки / флага `--apply`.
 ## Health
 
 `GET /health` → `{"status":"ok","service":"ipsas"}`

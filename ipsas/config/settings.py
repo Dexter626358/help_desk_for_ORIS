@@ -176,6 +176,37 @@ class Settings:
         ).expanduser().resolve()
         self.platform_request_delay: float = _env_float("PLATFORM_REQUEST_DELAY", 0.35)
 
+        # Песочница f23g45: ворота (Basic Auth) + OJS-логин (отдельно от PLATFORM_*)
+        self.sandbox_base_url: str = (
+            os.getenv("SANDBOX_BASE_URL", "https://f23g45.rcsi.science").strip()
+            or "https://f23g45.rcsi.science"
+        )
+        self.sandbox_gate_username: str = (
+            os.getenv("SANDBOX_GATE_USERNAME")
+            or os.getenv("SANDBOX_USER1_USERNAME")
+            or ""
+        ).strip()
+        self.sandbox_gate_password: str = (
+            os.getenv("SANDBOX_GATE_PASSWORD")
+            or os.getenv("SANDBOX_USER1_PASSWORD")
+            or ""
+        ).strip()
+        self.sandbox_ojs_username: str = (
+            os.getenv("SANDBOX_OJS_USERNAME")
+            or os.getenv("SANDBOX_USER2_USERNAME")
+            or ""
+        ).strip()
+        self.sandbox_ojs_password: str = (
+            os.getenv("SANDBOX_OJS_PASSWORD")
+            or os.getenv("SANDBOX_USER2_PASSWORD")
+            or ""
+        ).strip()
+        sandbox_cookie_default = self.temp_dir / "sandbox_cookies.txt"
+        self.sandbox_cookie_file: Path = Path(
+            os.getenv("SANDBOX_COOKIE_FILE") or sandbox_cookie_default
+        ).expanduser().resolve()
+        self.sandbox_request_delay: float = _env_float("SANDBOX_REQUEST_DELAY", 0.35)
+
         # Доверять X-Forwarded-For только если явно включено (за корректным proxy)
         self.trust_proxy_headers: bool = _env_bool("TRUST_PROXY_HEADERS", False)
 

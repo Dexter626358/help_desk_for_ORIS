@@ -9,8 +9,10 @@
 - Rate limit и лимит одновременных POST (`RequestGuard`) — **in-memory** → **один Gunicorn worker**.
 - Запись ENG-метаданных на Платформу по умолчанию **выключена** (`PLATFORM_APPLY_ENABLED=0`).
   При включении нужны учётные данные редактора (`PLATFORM_*` / `RCSI_*`) и allowlist хостов.
-- Архивация «Новые» по отправителю всегда ходит на Платформу под этими учётными данными
-  (в UI по умолчанию dry-run).
+- Архивация «Новые» по отправителю и загрузка рисунков выпуска ходят на Платформу под этими
+  учётными данными (в UI по умолчанию dry-run).
+- Настройка журнала в **песочнице** использует отдельные `SANDBOX_*` (ворота + OJS);
+  хост песочницы должен быть в `ISSUE_FETCH_ALLOWED_HOSTS` (например `f23g45.rcsi.science`).
 - Standalone каталог `xml-editor/` **не** входит в этот production-пакет.
 
 ## Требования
@@ -49,9 +51,14 @@
 | `MAX_JOB_QUEUE` | нет (`8`) | Очередь фоновых задач парсера |
 | `PLATFORM_APPLY_ENABLED` | нет (`0`) | `1` — разрешить запись ENG-метаданных в OJS |
 | `PLATFORM_BASE_URL` | нет | Базовый URL платформы |
-| `PLATFORM_USERNAME` / `PLATFORM_PASSWORD` | для apply / архивации | Учётка редактора (или `RCSI_*`) |
+| `PLATFORM_USERNAME` / `PLATFORM_PASSWORD` | для apply / архивации / рисунков | Учётка редактора (или `RCSI_*`) |
 | `PLATFORM_COOKIE_FILE` | нет | Файл cookie-сессии |
 | `PLATFORM_REQUEST_DELAY` | нет (`0.35`) | Пауза между запросами к платформе (с) |
+| `SANDBOX_BASE_URL` | для песочницы | Базовый URL (напр. `https://f23g45.rcsi.science`) |
+| `SANDBOX_GATE_USERNAME` / `SANDBOX_GATE_PASSWORD` | для песочницы | HTTP Basic ворот (или `SANDBOX_USER1_*`) |
+| `SANDBOX_OJS_USERNAME` / `SANDBOX_OJS_PASSWORD` | для песочницы | Логин OJS (или `SANDBOX_USER2_*`) |
+| `SANDBOX_COOKIE_FILE` | нет | Cookie-сессия песочницы |
+| `SANDBOX_REQUEST_DELAY` | нет (`0.35`) | Пауза между запросами к песочнице (с) |
 | `GUNICORN_WORKERS` | держите `1` | Не увеличивать без выноса rate-limit |
 | `PORT` | нет | Порт bind |
 
@@ -112,7 +119,8 @@ curl -s http://127.0.0.1:8000/health
 3. Обновить код / образ.
 4. `pip install -r requirements.txt` (без Docker).
 5. Запустить; проверить `/health`.
-6. Прогнать smoke: главная страница, один upload XML.
+6. Прогнать smoke: главная страница, один upload XML, при необходимости
+   `/services/sandbox-journal-setup` (dry-run).
 
 ## Откат
 
@@ -127,8 +135,9 @@ curl -s http://127.0.0.1:8000/health
 
 - Входящий: только из внутренней сети / VPN (Nginx allow / Basic Auth).
 - Исходящий: HTTPS к разрешённым хостам OJS (`ISSUE_FETCH_ALLOWED_HOSTS`).
-- Для ENG-apply и архивации «Новые» исходящие запросы идут с cookie/логином редактора —
-  ограничьте доступ к инстансу IPSAS так же жёстко, как к самой Платформе.
+- Для ENG-apply, архивации «Новые», рисунков выпуска исходящие запросы идут с cookie/логином
+  редактора (`PLATFORM_*`) — ограничьте доступ к инстансу IPSAS так же жёстко, как к Платформе.
+- Для настройки песочницы — отдельные `SANDBOX_*` и хост в allowlist (напр. `f23g45.rcsi.science`).
 - SSRF: localhost, private IP, link-local и редиректы на них блокируются.
 
 ## Railway (legacy)

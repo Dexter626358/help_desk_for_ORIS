@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs %}
+
+{% block title %}Настройка журнала в песочнице — IPSAS{% endblock %}
+{% block topbar %}Песочница{% endblock %}
+
+{% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Настройка журнала в песочнице'}
+]) }}
+
+<div class="card">
+  <h1 class="page-title">Базовая настройка журнала в песочнице</h1>
+  <p class="page-lead">
+    Укажите ссылку на ветку журнала на
+    <span class="mono">{{ sandbox_base_url }}</span>.
+    Сервис выполнит шаги: языки RU/EN, раздел «Статьи», инструменты читателя,
+    DOI/EDN, метрики, основные модули, браузер (по разделам), шаги 3–5 setup
+    (включая шаблон содержания главной).
+  </p>
+
+  {% if not has_gate_creds or not has_ojs_creds %}
+  <div class="alert alert-warning" role="status" style="margin-bottom:1rem;">
+    {% if not has_gate_creds %}
+    <p>Не заданы учётные данные ворот (<code>SANDBOX_GATE_*</code> / <code>SANDBOX_USER1_*</code>).</p>
+    {% endif %}
+    {% if not has_ojs_creds %}
+    <p>Не заданы учётные данные OJS (<code>SANDBOX_OJS_*</code> / <code>SANDBOX_USER2_*</code>).</p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <form method="POST"
+        action="{{ url_for('sandbox_journal_setup.process_setup') }}"
+        data-loading-form>
+    {{ csrf_field() }}
+
+    <div class="form-group">
+      <label for="journal_url">Ссылка на журнал</label>
+      <input type="url"
+             id="journal_url"
+             name="journal_url"
+             class="form-control"
+             required
+             placeholder="https://f23g45.rcsi.science/257/index"
+             value="{{ request.form.journal_url or default_journal_url }}" />
+      <p class="form-hint">
+        Пример: <span class="mono">https://f23g45.rcsi.science/257/index</span>
+      </p>
+    </div>
+
+    <div class="form-group form-check">
+      <label class="form-check-label">
+        <input type="checkbox" name="dry_run" value="1" checked id="dry_run" />
+        Только проверка (не записывать изменения)
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit"
+              class="btn btn-primary"
+              data-confirm-dry="Запустить проверку настроек журнала?"
+              data-confirm-apply="Записать изменения в журнал песочницы? Это изменит настройки на сервере.">
+        Запустить
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var btn = document.querySelector("[data-confirm-dry]");
+  var dry = document.getElementById("dry_run");
+  if (!btn || !dry) return;
+  btn.addEventListener("click", function (e) {
+    var msg = dry.checked
+      ? btn.getAttribute("data-confirm-dry")
+      : btn.getAttribute("data-confirm-apply");
+    if (msg && !window.confirm(msg)) e.preventDefault();
+  });
+})();
+</script>
+{% endblock %}
