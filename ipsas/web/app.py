@@ -278,7 +278,6 @@ def create_app(*, testing: bool = False) -> Flask:
         return {
             "max_file_size": settings.max_file_size,
             "app_version": "0.1.0",
-            "editorial_board_url": settings.editorial_board_url,
             "app_name": "IPSAS",
             "request_id": getattr(g, "request_id", None),
             "standalone_css": Markup(load_standalone_css()),

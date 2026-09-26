@@ -187,17 +187,6 @@
                 </button>
                 <ul class="nav-section-body">
                     <li>
-                        <a class="nav-link"
-                           href="{{ editorial_board_url|default('https://parseeditorialboard-production.up.railway.app') }}"
-                           target="_blank"
-                           rel="noopener noreferrer"
-                           data-tooltip="Обработать редакционную коллегию"
-                           title="Обработать редакционную коллегию (откроется в новой вкладке)">
-                            <span class="nav-ico" aria-hidden="true">{{ icon('external-link', 18) }}</span>
-                            <span class="nav-label">Обработать редакционную коллегию</span>
-                        </a>
-                    </li>
-                    <li>
                         <a class="nav-link {{ 'is-active' if eng_meta_active else '' }}"
                            href="{{ url_for('eng_metadata.upload_page') }}"
                            data-tooltip="Обновление англоязычных метаданных"

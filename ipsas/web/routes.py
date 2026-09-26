@@ -24,11 +24,9 @@ def dashboard():
     """Дашборд с сервисами."""
     from ipsas.utils.operation_history import list_operations
 
-    settings = get_settings()
     return render_template(
         "dashboard.html",
         recent_operations=list_operations(limit=8),
-        editorial_board_url=settings.editorial_board_url,
     )
 
 
