@@ -123,12 +123,6 @@ class Settings:
 
         self.xml_typo_fixes_url: str = os.getenv("XML_TYPO_FIXES_URL", "").strip()
         self.journal_site_check_url: str = os.getenv("JOURNAL_SITE_CHECK_URL", "").strip()
-        # Без жёсткого внешнего URL по умолчанию в production
-        editorial_default = "" if self.is_production else ""
-        self.editorial_board_url: str = os.getenv(
-            "EDITORIAL_BOARD_URL",
-            editorial_default,
-        ).strip()
 
         # SSRF / исходящие запросы к OJS
         self.issue_fetch_allowed_hosts: str = os.getenv(
