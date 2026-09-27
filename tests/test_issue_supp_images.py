@@ -62,14 +62,26 @@ def test_parse_issue_toc_pages():
 
 def test_parse_images_archive_and_match(tmp_path: Path):
     zpath = tmp_path / "images.zip"
+    captions = (
+        '{\n'
+        '  "Fig. 1": "Корреляция",\n'
+        '  "Fig. 2": "Второй рисунок"\n'
+        '}\n'
+    ).encode("utf-8")
     with zipfile.ZipFile(zpath, "w") as zf:
         zf.writestr("47-67_images/Fig. 1.jpeg", b"fakejpeg")
         zf.writestr("47-67_images/Fig. 2.jpeg", b"fakejpeg2")
+        zf.writestr("47-67_images/figure_captions.json", captions)
         zf.writestr("68-82_images/Fig. 1.jpeg", b"x")
         zf.writestr("ignore.txt", b"no")
     bundles = parse_images_archive(zpath, tmp_path / "ex")
     assert [b.page_range.key for b in bundles] == ["47-67", "68-82"]
     assert len(bundles[0].files) == 2
+    by_name = {f.original_name: f for f in bundles[0].files}
+    assert by_name["Fig. 1.jpeg"].display_title == "Корреляция"
+    assert by_name["Fig. 2.jpeg"].display_title == "Второй рисунок"
+    # Без JSON — fallback на имя файла
+    assert bundles[1].files[0].display_title == "Fig. 1.jpeg"
 
     toc_html = """
     <input name="pages[1]" value="47-67" />
@@ -80,6 +92,21 @@ def test_parse_images_archive_and_match(tmp_path: Path):
     articles = parse_issue_toc(toc_html)
     assert match_article(articles, bundles[0].page_range).article_id == 1
     assert match_article(articles, bundles[1].page_range).article_id == 2
+
+
+def test_caption_lookup_helpers():
+    from ipsas.modules.issue_supp_images.archive import (
+        _caption_for_filename,
+        _load_captions_json,
+    )
+
+    captions = _load_captions_json(
+        '{"Fig. 1": "Реальное название", "Fig. 2": "  "}'.encode("utf-8")
+    )
+    assert captions == {"Fig. 1": "Реальное название"}
+    assert _caption_for_filename(captions, "Fig. 1.jpeg") == "Реальное название"
+    assert _caption_for_filename(captions, "Fig. 2.jpeg") == ""
+    assert _caption_for_filename({}, "Fig. 1.jpeg") == ""
 
 
 def test_ascii_upload_filename_and_redirect():

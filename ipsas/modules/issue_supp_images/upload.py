@@ -52,9 +52,9 @@ def _guess_content_type(filename: str) -> str:
     return ctype or "application/octet-stream"
 
 
-def _title_from_filename(original_name: str) -> str:
-    """Название доп. файла = имя файла (как в архиве)."""
-    return original_name.strip() or "figure"
+def _title_for_image(image: ImageFile) -> str:
+    """Название доп. файла: подпись из JSON или имя файла."""
+    return image.display_title
 
 
 def parse_edit_supp_redirect(final_url: str, html: str) -> tuple[int, int]:
@@ -266,7 +266,7 @@ def upload_image_to_article(
     dry_run: bool = False,
     delay: float = 0.35,
 ) -> UploadResult:
-    title = _title_from_filename(image.original_name)
+    title = _title_for_image(image)
     if dry_run:
         return UploadResult(
             article_id=article_id,

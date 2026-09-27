@@ -3,15 +3,17 @@
 
 Структура архива:
   47-67_images/Fig. 1.jpeg
+  47-67_images/Fig. 2.jpeg
+  47-67_images/figure_captions.json   # {"Fig. 1": "реальное название", …}
   68-82_images/Fig. 1.jpeg
-  83-103_images/Fig. 1.pdf
   …
 
 Скрипт:
   1) открывает editor/issueToc/{issueId}
   2) сопоставляет папки с интервалами pages статей
   3) для каждой статьи: submissionEditing → Доп. файлы → upload
-  4) title = имя файла, type = «Рисунок (материалы исследования)»
+  4) title = подпись из figure_captions.json (иначе имя файла),
+     type = «Рисунок (материалы исследования)»
   5) включает показ для скрытых языков (кнопка «Показывать»)
 
 Примеры:
