@@ -33,6 +33,15 @@ class ImageFile:
     path: Path
     original_name: str
     folder_key: str
+    # Подпись из figure_captions.json; если пусто — берём original_name
+    title: str = ""
+
+    @property
+    def display_title(self) -> str:
+        text = (self.title or "").strip()
+        if text:
+            return text
+        return (self.original_name or "").strip() or "figure"
 
 
 @dataclass
