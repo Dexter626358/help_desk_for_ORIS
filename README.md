@@ -31,6 +31,20 @@
 
 ## Локальный запуск
 
+Одна команда (создаёт venv, ставит зависимости, готовит `.env`, поднимает сервер,
+дожидается ответа `/health` и печатает адрес):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\deploy\local-start.ps1
+```
+
+Откройте **http://localhost:5000** (или порт из `PORT`). Остановить — `Ctrl+C`.
+Скрипт идемпотентен: повторный запуск не переустанавливает зависимости.
+Ключи: `-Install` (переустановить), `-NoRun` (только подготовить), `-Port 5050`,
+`-SkipChecks` (без HTTP-проверки).
+
+Вручную — то же самое по шагам:
+
 ```bash
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
@@ -39,11 +53,29 @@ copy .env.example .env
 python run.py
 ```
 
-Откройте **http://localhost:5000** (или порт из `PORT`).
+Проверить, что всё поднялось:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\deploy\smoke-test.ps1
+```
 
 ## Production
 
-Подробно: **[DEPLOYMENT.md](DEPLOYMENT.md)**.
+Развёртывание — две команды на сервере:
+
+```bash
+git pull
+docker compose up -d --build
+```
+
+`--build` обязателен: код находится внутри образа, и без пересборки compose
+запустит старую версию без всякой ошибки.
+
+Пошаговая инструкция первого запуска (nginx, `.env`, проверка, откат):
+**[deploy/SERVER_DEPLOY.md](deploy/SERVER_DEPLOY.md)**.
+
+Пайплайн GitLab гоняет тесты на каждом пуше — `.gitlab-ci.yml`.
+Сводка по настройкам: **[DEPLOYMENT.md](DEPLOYMENT.md)**.
 
 ```bash
 export IPSAS_ENV=production
@@ -99,7 +131,20 @@ Railway: сборка через Dockerfile (`railway.json`).
 | [QUICKSTART.md](QUICKSTART.md) | Быстрый старт и список сервисов UI |
 | [STRUCTURE.md](STRUCTURE.md) | Слои кода, модули, blueprints |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Production, env, Docker, systemd |
+| [deploy/SERVER_DEPLOY.md](deploy/SERVER_DEPLOY.md) | **Пошаговое развёртывание на сервере с нуля** (systemd + nginx) |
 | [RAILWAY_DEPLOY.md](RAILWAY_DEPLOY.md) | Railway |
+
+### Скрипты развёртывания
+
+| Скрипт | Назначение |
+|--------|-----------|
+| `deploy/local-start.ps1` | Локальный запуск одной командой (Windows) |
+| `deploy/smoke-test.ps1` | Проверка запущенного экземпляра (Windows) |
+| `deploy/smoke-test.sh` | То же для Linux: `bash deploy/smoke-test.sh http://127.0.0.1:8000` |
+| `docker-compose.yml` | Запуск на сервере: `docker compose up -d --build` |
+| `deploy/ipsas.env.production.example` | Шаблон `.env` для сервера |
+| `deploy/ipsas.service.example` | systemd-юнит (вариант без Docker) |
+| `deploy/nginx.example.conf` | Конфигурация reverse-proxy |
 
 ## Тесты
 

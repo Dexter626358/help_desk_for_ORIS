@@ -1,0 +1,76 @@
+# Развёртывание IPSAS в Docker Compose.
+#
+# На сервере:
+#   git pull
+#   docker compose up -d --build
+#
+# Обновление на сервере не делает ничего, пока контейнер не пересобран.
+# Именно поэтому нужен --build: без него compose увидит, что образ ipsas:latest
+# уже существует, и запустит старый код - без единой ошибки.
+#
+# Перед первым запуском создайте .env в этом же каталоге (git его игнорирует,
+# поэтому git pull его не затронет):
+#
+#   cp deploy/ipsas.env.production.example .env
+#   # вписать SECRET_KEY (openssl rand -hex 32) и ISSUE_FETCH_ALLOWED_HOSTS
+#   chmod 600 .env
+#
+# Наружу контейнер не публикуется: порт виден только на 127.0.0.1:8000,
+# в интернет его отдаёт nginx (deploy/nginx.example.conf).
+
+services:
+  ipsas:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ipsas:latest
+    container_name: ipsas
+    restart: unless-stopped
+
+    # SECRET_KEY, ISSUE_FETCH_ALLOWED_HOSTS и остальные настройки приложения.
+    env_file:
+      - .env
+
+    # Перекрывает .env: значения, которые обязаны быть именно такими
+    # при запуске в контейнере.
+    environment:
+      IPSAS_ENV: production
+      FLASK_ENV: production
+      # Внутри контейнера gunicorn обязан слушать 0.0.0.0, иначе проброс
+      # порта на хост не соединится и nginx отдаст 502.
+      GUNICORN_BIND: "0.0.0.0:8000"
+      PORT: "8000"
+      # Один worker: лимит запросов и очередь задач живут в памяти процесса.
+      GUNICORN_WORKERS: "1"
+      GUNICORN_THREADS: "4"
+      GUNICORN_TIMEOUT: "120"
+      TEMP_DIR: /var/lib/ipsas/temp
+      DATA_DIR: /var/lib/ipsas/data
+      LOG_TO_FILE: "false"
+      # nginx на хосте проксирует сюда; см. TRUST_PROXY_HEADERS в .env.
+      TRUST_PROXY_HEADERS: "true"
+      SESSION_COOKIE_SECURE: "false"
+
+    # Только loopback: снаружи доступ даёт nginx, не Docker.
+    ports:
+      - "127.0.0.1:8000:8000"
+
+    # Именованные тома, а не bind mount: том наследует владельца из образа
+    # (uid 10001), и приложение может писать. Каталог, примонтированный
+    # с хоста, будет принадлежать root, и загрузка файлов упадёт.
+    volumes:
+      - ipsas-temp:/var/lib/ipsas/temp
+      - ipsas-data:/var/lib/ipsas/data
+
+    # HEALTHCHECK наследуется из Dockerfile: раз в 30 секунд дёргает
+    # /health внутри контейнера.
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  ipsas-temp:
+  ipsas-data:
