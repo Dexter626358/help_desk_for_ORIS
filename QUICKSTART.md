@@ -76,3 +76,32 @@ python setup_sandbox_journal.py "https://f23g45.rcsi.science/257/index" --apply
 ## Остановка сервера
 
 `Ctrl+C` в терминале.
+
+## Развёртывание на сервере
+
+Запуск из `venv` — только для разработки. Продакшен поднимается через Docker Compose
+за Nginx:
+
+```bash
+cp deploy/ipsas.env.production.example .env
+# заполнить SECRET_KEY и ISSUE_FETCH_ALLOWED_HOSTS
+chmod 600 .env
+docker compose up -d --build
+curl -s http://127.0.0.1:8000/health
+```
+
+Обновление развёртывания:
+
+```bash
+git pull
+docker compose up -d --build      # без --build поднимется старый образ
+bash deploy/smoke-test.sh http://127.0.0.1/
+```
+
+Подробности, включая настройку Nginx и разбор ошибок: [`DEPLOYMENT.md`](DEPLOYMENT.md)
+(сводка) и [`deploy/SERVER_DEPLOY.md`](deploy/SERVER_DEPLOY.md) (пошагово).
+
+## Работа по Spec Kit
+
+Изменения проекта планируются в [`specs/`](specs/001-speckit-baseline/spec.md) до написания
+кода. Установка и команды — в [README.md](README.md#работа-по-spec-kit).
