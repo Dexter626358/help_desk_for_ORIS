@@ -42,8 +42,20 @@ docker --version && docker compose version
 ```bash
 sudo apt install -y nginx
 sudo cp /opt/ipsas/deploy/nginx.example.conf /etc/nginx/sites-available/ipsas.conf
-sudo ln -s /etc/nginx/sites-available/ipsas.conf /etc/nginx/sites-enabled/ipsas.conf
+sudo ln -sf /etc/nginx/sites-available/ipsas.conf /etc/nginx/sites-enabled/ipsas.conf
 sudo rm -f /etc/nginx/sites-enabled/default
+```
+
+`ln -sf` и удаление `default` обязательны. Если оставить стандартный сайт
+nginx, то открываться будет страница «Welcome to nginx!» вместо IPSAS, а
+если оставить оба сайта с `default_server`, nginx вообще не запустится
+с ошибкой про дублирующийся default server.
+
+Проверить, что подключился именно наш конфиг:
+
+```bash
+ls -l /etc/nginx/sites-enabled/
+# должно быть ровно одно: ipsas.conf -> /etc/nginx/sites-available/ipsas.conf
 ```
 
 Конфигурация готова к применению как есть: порт 80, доступ по адресу сервера,
@@ -53,6 +65,13 @@ sudo rm -f /etc/nginx/sites-enabled/default
 Пока контейнер не запущен, `nginx -t` может ругаться на недоступный апстрим —
 это нормально. Проверить синтаксис можно сразу, а перезапускать nginx — после
 первого `docker compose up`.
+
+Открыть и убедиться, что отдаётся именно IPSAS:
+
+```bash
+curl -I http://127.0.0.1/
+```
+`HTTP/1.1 200 OK` вместо `Welcome to nginx!` — значит всё настроено верно.
 
 Если порт 80 на этой машине занят другим сайтом, уберите `default_server`
 в блоке `server` и поправьте `server_name`.
