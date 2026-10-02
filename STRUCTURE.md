@@ -6,6 +6,7 @@
 |------|-------------|
 | Локальный запуск | `run.py` → `create_app()` |
 | Production (Gunicorn) | `wsgi:app` / `ipsas.web.wsgi:app` |
+| Production (Docker Compose) | `docker compose up -d --build` → Nginx → Gunicorn в контейнере |
 | CLI-отчёт journal XML | `python -m ipsas.cli report input.xml` |
 | CLI JATS → Метафора | `python -m ipsas.cli validate article.xml\|issue.zip` (`--json`) |
 | Конфиг пакета | `pyproject.toml` (+ тонкий `setup.py`) |
@@ -32,8 +33,22 @@ HTTP (ipsas/web)
 Help_desk_for_ORIS/
 ├── run.py / wsgi.py
 ├── report_generator.py         # CLI-обёртка → journal_xml
-├── pyproject.toml / setup.py / requirements.txt
+├── pyproject.toml / setup.py / requirements.txt / requirements-dev.txt
 ├── runtime.txt / Procfile / railway.json
+├── Dockerfile                  # production-образ: Python 3.11, uid 10001
+├── docker-compose.yml          # основной запуск: nginx → 127.0.0.1:8000
+├── .gitlab-ci.yml              # CI только на тесты (деплоя нет)
+├── .gitattributes              # LF для *.sh и *.yml
+├── deploy/                     # развёртывание и эксплуатация
+│   ├── SERVER_DEPLOY.md        # пошаговая инструкция для сервера
+│   ├── nginx.example.conf      # reverse proxy (+ примеры TLS / Basic Auth)
+│   ├── ipsas.env.production.example  # шаблон .env для production
+│   ├── ipsas.service.example   # unit-файл systemd (альтернатива compose)
+│   ├── smoke-test.sh / .ps1    # 17 проверок живого инстанса
+│   └── IPSAS_VERSION           # версия, проставленная в образ
+├── .specify/                   # Spec Kit: конституция, скрипты, шаблоны
+├── .opencode/commands/         # команды /speckit.*
+├── specs/                      # спецификации: specs/NNN-<slug>/{spec,plan,tasks}.md
 ├── README.md / QUICKSTART.md / DEPLOYMENT.md / RAILWAY_DEPLOY.md / STRUCTURE.md
 ├── schemas/                    # XSD (journal3.xsd)
 ├── ipsas/
@@ -49,7 +64,7 @@ Help_desk_for_ORIS/
 ├── setup_sandbox_journal.py    # CLI базовой настройки журнала в песочнице
 ├── upload_issue_images.py      # CLI: рисунки выпуска → доп. файлы
 ├── tests/
-└── temp/ / logs/ / data/       # runtime (на Railway — эфемерны)
+└── temp/ / logs/ / data/       # runtime; в compose — именованные тома
 ```
 ---
 
@@ -251,9 +266,59 @@ pytest
 |----------------|-----------|
 | `temp/` | Загрузки, отчёты, tasks; TTL; lock’и активных jobs не чистятся |
 | `logs/` | Локально файл; в production — stdout (`LOG_TO_FILE=0`) |
-| `data/` | Зарезервировано; на Railway без volume не постоянно |
+| `data/` | Зарезервировано; в compose — именованный том `ipsas-data` |
 | `SECRET_KEY` | Обязателен при `IPSAS_ENV=production` |
 | Лимиты | `MAX_CONTENT_LENGTH`, `MAX_CONCURRENT_JOBS`, `RATE_LIMIT_PER_MINUTE` |
 | SSRF | `ISSUE_FETCH_ALLOWED_HOSTS` (**обязателен** в production) |
 | Платформа | `PLATFORM_*` / `RCSI_*`, `PLATFORM_APPLY_ENABLED` |
 | Песочница | `SANDBOX_GATE_*` / `SANDBOX_OJS_*` (alias `USER1`/`USER2`), `SANDBOX_BASE_URL` |
+| Proxy | `TRUST_PROXY_HEADERS=true` за Nginx, иначе все запросы попадают в общий rate limit |
+| Cookie | `SESSION_COOKIE_SECURE=false`, пока сервис на HTTP |
+
+---
+
+## Развёртывание (`deploy/`)
+
+Документы и шаблоны отделены от кода приложения. Ни один файл в `deploy/` не импортируется
+модулями `ipsas/`.
+
+| Файл | Роль |
+|------|------|
+| `SERVER_DEPLOY.md` | Пошаговая инструкция: подготовка хоста, `.env`, compose, Nginx, диагностика |
+| `nginx.example.conf` | Reverse proxy; в комментариях — варианты с TLS и Basic Auth |
+| `ipsas.env.production.example` | Шаблон `.env`; содержит только фиктивные значения |
+| `ipsas.service.example` | Unit-файл systemd для запуска без Docker |
+| `smoke-test.sh` / `smoke-test.ps1` | 17 проверок живого инстанса (health + маршруты `/services/*`) |
+| `IPSAS_VERSION` | Версия, которую сборка образа проставляет в `/app/IPSAS_VERSION` |
+
+Топология: Nginx слушает `:80` и проксирует на `127.0.0.1:8000`, контейнер публикует порт
+только на loopback. Поэтому снаружи доступен лишь порт 80, а проверять бэкенд удобно
+локально через `curl http://127.0.0.1:8000/health`.
+
+Пути к данным (`TEMP_DIR`, `DATA_DIR`) монтируются именованными томами `ipsas-temp` и
+`ipsas-data`: контейнер работает от непривилегированного пользователя, и bind mount каталога
+хоста приводит к неверным правам.
+
+---
+
+## Spec Kit (`.specify/`, `.opencode/`, `specs/`)
+
+Инфраструктура Spec-Driven Development, развёрнута в корне репозитория.
+
+| Каталог | Содержимое |
+|---------|------------|
+| `.specify/memory/constitution.md` | Конституция проекта: принципы, ограничения, Governance |
+| `.specify/scripts/powershell/` | `create-new-feature.ps1`, `setup-plan.ps1`, `setup-tasks.ps1`, `check-prerequisites.ps1` |
+| `.specify/templates/` | Шаблоны `spec`, `plan`, `tasks`, `checklist`, `constitution` |
+| `.opencode/commands/` | Слэш-команды `/speckit.specify`, `.clarify`, `.plan`, `.checklist`, `.tasks`, `.analyze`, `.implement` и др. |
+| `specs/NNN-<slug>/` | Спецификация конкретной фичи: `spec.md`, `plan.md`, `tasks.md` |
+
+Рабочий цикл: `/speckit.specify` → `/speckit.clarify` → `/speckit.plan` → `/speckit.checklist`
+→ `/speckit.tasks` → `/speckit.analyze` → `/speckit.implement`.
+
+Инструкция по установке и использованию — в [README.md](README.md#работа-по-spec-kit).
+Текущие спецификации: [`specs/001-speckit-baseline/`](specs/001-speckit-baseline/spec.md),
+[`specs/002-server-deployment/`](specs/002-server-deployment/spec.md).
+
+Машинное состояние (`.specify/feature.json`, `.specify/integration.json`) исключено
+`.specify/.gitignore` и в репозиторий не попадает.

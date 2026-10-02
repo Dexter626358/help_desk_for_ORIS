@@ -63,9 +63,10 @@ powershell -ExecutionPolicy Bypass -File .\deploy\smoke-test.ps1
 
 ## Production
 
-Развёртывание — две команды на сервере:
+Обновление сервера — две команды:
 
 ```bash
+cd /opt/ipsas
 git pull
 docker compose up -d --build
 ```
@@ -73,11 +74,12 @@ docker compose up -d --build
 `--build` обязателен: код находится внутри образа, и без пересборки compose
 запустит старую версию без всякой ошибки.
 
-Пошаговая инструкция первого запуска (nginx, `.env`, проверка, откат):
-**[deploy/SERVER_DEPLOY.md](deploy/SERVER_DEPLOY.md)**.
-
 Пайплайн GitLab гоняет тесты на каждом пуше — `.gitlab-ci.yml`.
-Сводка по настройкам: **[DEPLOYMENT.md](DEPLOYMENT.md)**.
+Первый запуск (nginx, `.env`, проверка, откат) — пошаговая инструкция
+**[deploy/SERVER_DEPLOY.md](deploy/SERVER_DEPLOY.md)**.
+Сводка по настройкам и ограничениям — **[DEPLOYMENT.md](DEPLOYMENT.md)**.
+
+Без Docker (systemd):
 
 ```bash
 export IPSAS_ENV=production
@@ -90,15 +92,21 @@ gunicorn -c gunicorn.conf.py ipsas.web.wsgi:app
 
 ## Docker
 
+Обычно Docker не нужен отдельно — сервис поднимает `docker compose` (см. `## Production`).
+Прямой запуск образа пригодится для отладки:
+
 ```bash
 docker build -t ipsas:latest .
-docker run --rm -p 8000:8000 \
+docker run --rm -p 127.0.0.1:8000:8000 \
   -e SECRET_KEY=… \
   -e IPSAS_ENV=production \
   -e ISSUE_FETCH_ALLOWED_HOSTS=journals.example.org \
   ipsas:latest
 curl -s http://127.0.0.1:8000/health
 ```
+
+Порт публикуется на `127.0.0.1`, а не на все интерфейсы: наружу сервис должен выходить
+через Nginx, `-p 8000:8000` открыл бы его напрямую в обход прокси.
 
 Railway: сборка через Dockerfile (`railway.json`).
 
@@ -131,10 +139,12 @@ Railway: сборка через Dockerfile (`railway.json`).
 | Файл | Содержание |
 |------|------------|
 | [QUICKSTART.md](QUICKSTART.md) | Быстрый старт и список сервисов UI |
-| [STRUCTURE.md](STRUCTURE.md) | Слои кода, модули, blueprints |
-| [DEPLOYMENT.md](DEPLOYMENT.md) | Production, env, Docker, systemd |
-| [deploy/SERVER_DEPLOY.md](deploy/SERVER_DEPLOY.md) | **Пошаговое развёртывание на сервере с нуля** (systemd + nginx) |
+| [STRUCTURE.md](STRUCTURE.md) | Слои кода, модули, blueprints, дерево каталогов |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | Production: схема развёртывания, env, Docker Compose, Nginx, systemd |
+| [deploy/SERVER_DEPLOY.md](deploy/SERVER_DEPLOY.md) | **Пошаговое развёртывание на сервере с нуля** (Docker Compose + nginx) |
 | [RAILWAY_DEPLOY.md](RAILWAY_DEPLOY.md) | Railway |
+| [specs/001-speckit-baseline/spec.md](specs/001-speckit-baseline/spec.md) | Внедрение Spec-Driven Development |
+| [specs/002-server-deployment/spec.md](specs/002-server-deployment/spec.md) | Развёртывание на внутреннем сервере |
 
 ### Скрипты развёртывания
 
@@ -147,6 +157,49 @@ Railway: сборка через Dockerfile (`railway.json`).
 | `deploy/ipsas.env.production.example` | Шаблон `.env` для сервера |
 | `deploy/ipsas.service.example` | systemd-юнит (вариант без Docker) |
 | `deploy/nginx.example.conf` | Конфигурация reverse-proxy |
+
+## Работа по Spec Kit
+
+Проект развивается по Spec-Driven Development: перед изменением кода описывается
+спецификация в `specs/NNN-<slug>/`. Правила проекта зафиксированы в конституции
+`.specify/memory/constitution.md` — принципы слоистости, совместимости shim'ов, dry-run
+для операций записи, безопасности внешних данных, quality gate и единственного worker.
+
+### Установка (один раз)
+
+```bash
+python -m pip install --upgrade uv
+uv tool update-shell                                  # добавить uv в PATH
+uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
+```
+
+Скрипты Spec Kit в этом репозитории написаны под PowerShell.
+
+### Рабочий цикл
+
+Слэш-команды определены в [`.opencode/commands/`](.opencode/commands/):
+
+| Команда | Что делает |
+|---------|-----------|
+| `/speckit.specify` | Описание намерения: пользовательские истории, требования, критерии приёмки |
+| `/speckit.clarify` | Уточнение неоднозначных требований — до написания плана |
+| `/speckit.plan` | Технический план: контекст, проверка по конституции, структура изменений |
+| `/speckit.checklist` | Чек-лист «готовность к реализации» |
+| `/speckit.tasks` | Декомпозиция плана на задачи с зависимостями |
+| `/speckit.analyze` | Согласованность артефактов и проверка по конституции |
+| `/speckit.implement` | Выполнение задач |
+| `/speckit.converge` | Сведение правок и финальная сверка с конституцией |
+
+Готовые спецификации: [`specs/001-speckit-baseline/`](specs/001-speckit-baseline/spec.md) —
+внедрение процесса, [`specs/002-server-deployment/`](specs/002-server-deployment/spec.md) —
+развёртывание на внутреннем сервере.
+
+Полезные скрипты:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass   # требуется для скриптов .specify
+.\.specify\scripts\powershell\check-prerequisites.ps1 -RequireSpec -RequireTasks
+```
 
 ## Тесты
 
