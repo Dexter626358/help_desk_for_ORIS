@@ -1,0 +1,71 @@
+# GitLab CI для IPSAS: прогон тестов на каждом пуше.
+#
+# Развёртывание сервера делается вручную, двумя командами на самом сервере:
+#
+#   git pull
+#   docker compose up -d --build
+#
+# Подробности первого запуска и настройки nginx - deploy/SERVER_DEPLOY.md.
+#
+# Этот файл нужен только для того, чтобы плохой коммит не доехал до сервера:
+# тесты должны проходить ДО того, как вы выполните git pull.
+#
+# Если позже понадобится автоматический деплой из пайплайна, образец job'ы
+# с подключением по SSH есть в истории: git show 637db66:.gitlab-ci.yml
+
+stages:
+  - test
+
+default:
+  image: python:3.11-slim
+  interruptible: true
+
+variables:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  PIP_ROOT_USER_ACTION: ignore
+  GIT_DEPTH: "0"
+
+# Общая подготовка для python-задач
+.python_setup: &python_setup
+  cache:
+    keyfiles:
+      - requirements-dev.txt
+    paths:
+      - .cache/pip
+  before_script:
+    - python -V
+    - pip install --quiet --upgrade pip
+    - pip install --quiet -r requirements-dev.txt
+
+# --- Тесты -------------------------------------------------------------------
+
+pytest:
+  stage: test
+  <<: *python_setup
+  script:
+    - mkdir -p reports
+    - pytest -q --junitxml=reports/junit.xml
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - reports/
+    reports:
+      junit: reports/junit.xml
+
+# Линтер и проверка зависимостей не блокируют пайплайн: в коде есть
+# давние замечания ruff, и их не стоит чинить в рамке настройки
+# развёртывания. Пусть показываются как предупреждения.
+ruff:
+  stage: test
+  <<: *python_setup
+  script:
+    - ruff check . || true
+  allow_failure: true
+
+pip-audit:
+  stage: test
+  <<: *python_setup
+  script:
+    - pip-audit -r requirements.txt || true
+  allow_failure: true

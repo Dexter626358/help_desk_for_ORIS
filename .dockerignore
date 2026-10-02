@@ -28,3 +28,6 @@ docs
 !DEPLOYMENT.md
 tests
 .github
+.opencode
+.specify
+specs
