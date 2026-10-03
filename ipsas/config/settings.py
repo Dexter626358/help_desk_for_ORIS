@@ -103,7 +103,8 @@ class Settings:
         if self.is_production and self.flask_debug:
             raise RuntimeError("FLASK_DEBUG must be disabled in production")
 
-        self.max_file_size: int = int(os.getenv("MAX_FILE_SIZE", "10485760"))  # 10MB
+        # 50 МБ: ZIP ENG-метаданных / рисунков часто больше прежних 10 МБ
+        self.max_file_size: int = int(os.getenv("MAX_FILE_SIZE", "52428800"))
         self.max_content_length: int = int(
             os.getenv("MAX_CONTENT_LENGTH", str(self.max_file_size))
         )
