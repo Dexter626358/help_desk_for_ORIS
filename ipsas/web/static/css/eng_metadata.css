@@ -487,6 +487,12 @@
   gap: 0.35rem;
 }
 
+.eng-article-pages {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--color-text-muted, #5c6570);
+}
+
 .eng-article-id {
   font-weight: 600;
   font-size: 0.95rem;
