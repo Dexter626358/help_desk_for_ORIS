@@ -20,6 +20,7 @@
   <p class="page-lead">
     Источник: <span class="mono">{{ manifest.source_name }}</span>
     · готово: {{ manifest.ok_count }} из {{ manifest.total }}
+    · порядок: по страницам (возрастание)
   </p>
   <p class="muted">
     <a href="{{ url_for('eng_metadata.upload_page') }}">Загрузить другой архив</a>
@@ -30,6 +31,9 @@
     {% for a in manifest.articles %}
     <article class="eng-article-card {% if a.ok %}is-ok{% else %}is-bad{% endif %}" role="listitem">
       <div class="eng-article-card-top">
+        {% if a.pages %}
+        <span class="eng-article-pages mono" title="Страницы">с. {{ a.pages }}</span>
+        {% endif %}
         <span class="eng-article-id mono">{{ a.article_id or '—' }}</span>
         {% if a.ok %}
           <span class="badge badge-success">OK</span>

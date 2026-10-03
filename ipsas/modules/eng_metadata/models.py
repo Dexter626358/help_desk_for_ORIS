@@ -14,6 +14,10 @@ class ArticlePair:
     article_id: str
     pdf_name: str | None = None
     json_name: str | None = None
+    # Из префикса имени: «3-21__article_288752» → 3, 21, «3-21»
+    page_start: int | None = None
+    page_end: int | None = None
+    pages_label: str = ""
     issues: list[str] = field(default_factory=list)
 
     @property

@@ -10,7 +10,11 @@ from pathlib import Path
 import pytest
 
 from ipsas.config.settings import reset_settings
-from ipsas.modules.eng_metadata.archive import build_article_pairs, unpack_eng_archive
+from ipsas.modules.eng_metadata.archive import (
+    build_article_pairs,
+    parse_pages_from_stem,
+    unpack_eng_archive,
+)
 from ipsas.modules.eng_metadata.payload import build_update_payload
 from ipsas.modules.eng_metadata.session import create_session_from_zip, load_article_json
 from ipsas.modules.eng_metadata.validate import validate_article_json
@@ -122,6 +126,38 @@ def test_build_pairs_and_orphan(tmp_path):
     by_stem = {p.stem: p for p in pairs}
     assert by_stem["3-21__article_288752"].json_name is None
     assert by_stem["9-10__article_999"].pdf_name is None
+    assert by_stem["3-21__article_288752"].pages_label == "3-21"
+    assert by_stem["9-10__article_999"].page_start == 9
+
+
+def test_parse_pages_from_stem():
+    assert parse_pages_from_stem("3-21__article_288752") == (3, 21)
+    assert parse_pages_from_stem("100–110__article_1") == (100, 110)
+    assert parse_pages_from_stem("article_288752") is None
+
+
+def test_articles_sorted_by_page_start(tmp_path):
+    """Числовая сортировка по страницам (не лексикографическая по имени)."""
+    zpath = tmp_path / "pages.zip"
+    with zipfile.ZipFile(zpath, "w") as zf:
+        for stem in (
+            "100-110__article_3",
+            "20-30__article_2",
+            "3-21__article_1",
+            "nopages__article_9",
+        ):
+            zf.writestr(f"{stem}.pdf", _MIN_PDF)
+            zf.writestr(f"{stem}.json", json.dumps(_SAMPLE_JSON))
+    extract = tmp_path / "ex"
+    unpack_eng_archive(zpath, extract)
+    pairs = build_article_pairs(extract)
+    assert [p.pages_label or "—" for p in pairs] == [
+        "3-21",
+        "20-30",
+        "100-110",
+        "—",
+    ]
+    assert [p.article_id for p in pairs] == ["1", "2", "3", "9"]
 
 
 def test_create_session_from_zip(tmp_path, monkeypatch):
@@ -143,7 +179,12 @@ def test_create_session_from_zip(tmp_path, monkeypatch):
     reset_settings()
 
 
-def test_build_update_payload():
+def test_build_update_payload(monkeypatch):
+    from ipsas.config import settings as settings_mod
+
+    reset_settings()
+    settings = settings_mod.get_settings()
+    monkeypatch.setattr(settings, "platform_apply_enabled", False)
     payload = build_update_payload(article_id="288752", data=_SAMPLE_JSON)
     assert payload["dry_run"] is True
     assert payload["approved"] is True
@@ -154,6 +195,7 @@ def test_build_update_payload():
     assert "dates.received" in fields
     assert "dates.accepted" in fields
     assert "dates.revised" not in fields
+    reset_settings()
 
 
 def test_issn_from_article_url():
