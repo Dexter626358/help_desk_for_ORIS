@@ -50,6 +50,7 @@ python run.py
 | Сервис | URL | Кратко |
 |--------|-----|--------|
 | Валидатор XML | `/services/xml-validator` | XSD и метаданные |
+| JATS для Метафоры | `/services/metafora-jats` | JATS XML или ZIP выпуска → обязательные данные для Метафоры |
 | Редактор XML | `/services/xml-editor` | Правка загруженного journal XML |
 | Список литературы | `/bibliography` (хаб) | Нумерация / очистка / формат |
 | Добавить PDF в XML | `/services/pdf-matching` | ZIP с PDF → привязка к XML |

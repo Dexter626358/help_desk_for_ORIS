@@ -14,6 +14,7 @@
 {% set ep = request.endpoint or '' %}
 {% set dash_active = ep in ['main.dashboard', 'main.index'] %}
 {% set xml_active = ep.startswith('xml_validation.') or ep.startswith('xml_report.') %}
+{% set metafora_jats_active = ep.startswith('metafora_jats.') %}
 {% set meta_active = false %}
 {% set issue_active = ep.startswith('issue_metadata.') %}
 {% set ref_hub_active = ep == 'main.bibliography_hub' %}
@@ -30,7 +31,7 @@
 {% set archive_sender_active = ep.startswith('archive_by_sender.') %}
 {% set supp_images_active = ep.startswith('issue_supp_images.') %}
 {% set sandbox_setup_active = ep.startswith('sandbox_journal_setup.') %}
-{% set check_open = xml_active or issue_active or site_active or eng_meta_active or archive_sender_active or sandbox_setup_active %}
+{% set check_open = xml_active or metafora_jats_active or issue_active or site_active or eng_meta_active or archive_sender_active or sandbox_setup_active %}
 {% set fix_open = bib_active or pdf_active or typo_active or xml_edit_active %}
 {% set issue_open = issue_active or csv_active or supp_images_active %}
 {% set meta_open = site_active or eng_meta_active or archive_sender_active or sandbox_setup_active %}
@@ -77,6 +78,16 @@
                            {{ 'aria-current="page"' if xml_active else '' }}>
                             <span class="nav-ico" aria-hidden="true">{{ icon('file-check', 18) }}</span>
                             <span class="nav-label">Валидатор XML</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav-link {{ 'is-active' if metafora_jats_active else '' }}"
+                           href="{{ url_for('metafora_jats.upload_page') }}"
+                           data-tooltip="Проверка JATS XML для Метафоры"
+                           title="Проверка JATS XML для Метафоры"
+                           {{ 'aria-current="page"' if metafora_jats_active else '' }}>
+                            <span class="nav-ico" aria-hidden="true">{{ icon('file-check', 18) }}</span>
+                            <span class="nav-label">JATS для Метафоры</span>
                         </a>
                     </li>
                     <li>

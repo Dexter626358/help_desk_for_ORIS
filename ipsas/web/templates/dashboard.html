@@ -22,6 +22,18 @@
       </div>
     </a>
 
+    <a class="action-card" href="{{ url_for('metafora_jats.upload_page') }}">
+      <div class="action-card-head">
+        <span class="action-card-ico" aria-hidden="true">{{ icon('file-check', 20) }}</span>
+      </div>
+      <h3>Проверка JATS XML для Метафоры</h3>
+      <p class="action-card-desc">Обязательные данные статьи или ZIP выпуска для загрузки в ИС «Метафора»</p>
+      <div class="action-card-foot">
+        <p class="action-card-io">JATS XML / ZIP выпуска → отчёт по требованиям Метафоры</p>
+        <span class="action-card-cta">Открыть инструмент →</span>
+      </div>
+    </a>
+
     <a class="action-card" href="{{ url_for('main.bibliography_hub') }}">
       <div class="action-card-head">
         <span class="action-card-ico" aria-hidden="true">{{ icon('book-open', 20) }}</span>
@@ -166,6 +178,13 @@
         <p>Проверка по XSD и контроль метаданных journal XML</p>
       </div>
       <a class="btn btn-secondary" href="{{ url_for('xml_validation.xml_validator_page') }}">Открыть</a>
+    </div>
+    <div class="tool-row">
+      <div>
+        <h3>Проверка JATS XML для Метафоры</h3>
+        <p>Обязательные поля статьи или ZIP выпуска для загрузки в Метафору</p>
+      </div>
+      <a class="btn btn-secondary" href="{{ url_for('metafora_jats.upload_page') }}">Открыть</a>
     </div>
     <div class="tool-row">
       <div>
