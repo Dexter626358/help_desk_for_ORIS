@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs, file_upload %}
+
+{% block title %}Проверка JATS XML для Метафоры — IPSAS{% endblock %}
+{% block topbar %}Проверка файлов{% endblock %}
+
+{% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Проверка JATS XML для Метафоры'}
+]) }}
+
+<div class="card">
+  <h1 class="page-title">Проверка JATS XML для Метафоры</h1>
+  <p class="page-lead">
+    Загрузите JATS XML одной статьи или ZIP-архив выпуска с XML внутри:
+    проверка обязательных данных для загрузки в ИС «Метафора».
+  </p>
+
+  <form method="POST"
+        action="{{ url_for('metafora_jats.process_upload') }}"
+        enctype="multipart/form-data"
+        data-loading-form>
+    {{ csrf_field() }}
+    {{ file_upload(
+      name='xml_file',
+      input_id='xml_file',
+      accept='.xml,.zip,application/zip',
+      label='JATS XML или ZIP выпуска',
+      help_text='Один .xml (article) или .zip с несколькими JATS XML'
+    ) }}
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Проверить</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -77,9 +77,11 @@ def create_app(*, testing: bool = False) -> Flask:
     from ipsas.web.archive_by_sender import archive_by_sender_bp
     from ipsas.web.issue_supp_images import issue_supp_images_bp
     from ipsas.web.sandbox_journal_setup import sandbox_journal_setup_bp
+    from ipsas.web.metafora_jats import metafora_jats_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(xml_validation_bp, url_prefix="/services")
+    app.register_blueprint(metafora_jats_bp, url_prefix="/services")
     app.register_blueprint(xml_report_bp, url_prefix="/services")
     app.register_blueprint(reference_processing_bp, url_prefix="/services")
     app.register_blueprint(reference_cleaning_bp, url_prefix="/services")

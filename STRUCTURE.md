@@ -188,8 +188,8 @@ Web: `/services/sandbox-journal-setup`. Env: `SANDBOX_GATE_*` / `SANDBOX_OJS_*` 
   (тихие 404 для `/favicon.ico` и служебных путей без flash «Страница не найдена»)
 - `file_ops.py` — upload/temp/download XML  
 - `routes.py` — dashboard + заглушки «В разработке»  
-- Blueprints: `xml_validation`, `xml_report`, `reference_*`, `pdf_matching`, `issue_pdf_csv`,
-  `issue_metadata`, `journal_site_check`, `eng_metadata`, `archive_by_sender`,
+- Blueprints: `xml_validation`, `metafora_jats`, `xml_report`, `reference_*`, `pdf_matching`,
+  `issue_pdf_csv`, `issue_metadata`, `journal_site_check`, `eng_metadata`, `archive_by_sender`,
   `issue_supp_images`, `sandbox_journal_setup`, `xml_editor`
 - Пакет `issue_metadata/` — `routes.py` + `inflight.py`  
 - Shim: `issue_metadata_tasks.py` → `ipsas.jobs.issue_metadata`  
@@ -213,6 +213,7 @@ Web: `/services/sandbox-journal-setup`. Env: `SANDBOX_GATE_*` / `SANDBOX_OJS_*` 
 | ENG-метаданные | `eng_metadata_review` | `eng_metadata` |
 | Архивация по отправителю | `archive_by_sender` | `archive_by_sender` |
 | Рисунки → доп. файлы | (web `issue_supp_images`) | `issue_supp_images` |
+| JATS для Метафоры | (web `metafora_jats`) / `ipsas.cli validate` (XML или ZIP) | `metafora_jats` |
 | Настройка в песочнице | (web `sandbox_journal_setup`) | `sandbox_journal_setup` |
 | Редактор XML | (web `xml_editor`) | `xml_editor` |
 
@@ -229,6 +230,7 @@ Web: `/services/sandbox-journal-setup`. Env: `SANDBOX_GATE_*` / `SANDBOX_OJS_*` 
 | ENG-метаданные | `test_eng_metadata.py` |
 | Архивация «Новые» | `test_archive_by_sender.py` |
 | Рисунки выпуска | `test_issue_supp_images.py` |
+| JATS Метафора | `test_metafora_jats.py`, `test_metafora_jats_ui.py` |
 | Песочница | `test_sandbox_journal_setup.py` |
 | Безопасность / prod | `test_security.py`, `test_production_hardening.py` |
 | Общее | `test_validator.py`, `test_maintainability.py`, `test_download_names.py`, `test_operation_history_and_cleaner.py` |

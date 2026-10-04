@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs %}
+
+{% block title %}Результат проверки JATS — IPSAS{% endblock %}
+{% block topbar %}Проверка файлов{% endblock %}
+
+{% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Проверка JATS XML для Метафоры', 'url': url_for('metafora_jats.upload_page')},
+  {'label': 'Результат'}
+]) }}
+
+<div class="card">
+  <h1 class="page-title">Проверка завершена</h1>
+  <p class="page-lead">
+    Источник: <span class="mono">{{ filename }}</span>
+    {% if result.is_batch %}
+    · статей в архиве: {{ result.article_count }}
+    · OK: {{ result.ok_count }}
+    · с ошибками: {{ result.fail_count }}
+    {% endif %}
+  </p>
+
+  {% if result.batch_error %}
+  <div class="alert alert-error" role="alert" style="margin-bottom:1rem;">
+    {{ result.batch_error }}
+  </div>
+  {% elif result.ok %}
+  <div class="alert alert-success" role="status" style="margin-bottom:1rem;">
+    <strong>Результат:</strong>
+    {% if result.is_batch %}
+    все статьи в архиве соответствуют обязательным требованиям Метафоры.
+    {% else %}
+    обязательные требования Метафоры выполнены.
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="alert alert-error" role="alert" style="margin-bottom:1rem;">
+    <strong>Результат:</strong>
+    {% if result.is_batch %}
+    в архиве есть статьи с ошибками — исправьте их перед загрузкой в Метафору.
+    {% else %}
+    обнаружены ошибки, которые необходимо исправить перед загрузкой XML в Метафору.
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="form-actions" style="margin-bottom:1.25rem;">
+    <a class="btn btn-secondary" href="{{ url_for('metafora_jats.upload_page') }}">Новая проверка</a>
+  </div>
+
+  {% if result.is_batch and result.reports %}
+  <h2 class="section-title">Статьи в архиве</h2>
+  <div class="table-wrap" style="overflow-x:auto;margin-bottom:1.5rem;">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Статья</th>
+          <th>Тип</th>
+          <th>Ссылка</th>
+          <th>Файл</th>
+          <th>Статус</th>
+          <th>Ошибки</th>
+          <th>Предупр.</th>
+          <th>Справочно</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in result.reports %}
+        <tr>
+          <td>{{ r.article_title or "—" }}</td>
+          <td>
+            {% if r.publication_type_label %}
+            {{ r.publication_type_label }}
+            <div class="muted mono">{{ r.publication_type }}</div>
+            {% else %}
+            —
+            {% endif %}
+          </td>
+          <td>
+            {% if r.article_url %}
+            <a href="{{ r.article_url }}" target="_blank" rel="noopener noreferrer">открыть</a>
+            {% else %}
+            —
+            {% endif %}
+          </td>
+          <td class="mono">{{ r.filename }}</td>
+          <td>
+            {% if r.valid_for_metafora %}
+            <span class="chip chip-ok">OK</span>
+            {% else %}
+            <span class="chip chip-err">ошибки</span>
+            {% endif %}
+          </td>
+          <td>{{ r.error_count }}</td>
+          <td>{{ r.warning_count }}</td>
+          <td>{{ r.info_count }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% for report in result.reports %}
+  {% set errors = report.issues | selectattr('severity', 'equalto', 'error') | list %}
+  {% set warnings = report.issues | selectattr('severity', 'equalto', 'warning') | list %}
+  {% set infos = report.issues | selectattr('severity', 'equalto', 'info') | list %}
+  {% set open_by_default = (errors|length > 0) or (infos|length > 0) %}
+  <details class="article-report"
+           style="margin-bottom:1rem;padding-top:0.75rem;border-top:1px solid var(--border, #e5e7eb);"
+           {% if open_by_default %}open{% endif %}>
+    <summary style="cursor:pointer;list-style-position:outside;">
+      <span style="display:inline-flex;flex-wrap:wrap;gap:0.5rem 0.75rem;align-items:baseline;">
+        {% if report.valid_for_metafora %}
+        <span class="chip chip-ok">OK</span>
+        {% else %}
+        <span class="chip chip-err">ошибки</span>
+        {% endif %}
+        <strong style="font-size:1.05rem;">
+          {{ report.article_title or report.filename }}
+        </strong>
+        {% if report.article_title %}
+        <span class="muted mono">{{ report.filename }}</span>
+        {% endif %}
+        {% if report.publication_type_label %}
+        <span class="chip" title="{{ report.publication_type }}">
+          {{ report.publication_type_label }}
+        </span>
+        {% endif %}
+        {% if report.article_url %}
+        <a href="{{ report.article_url }}"
+           target="_blank"
+           rel="noopener noreferrer"
+           onclick="event.stopPropagation()">статья</a>
+        {% endif %}
+        <span class="muted">
+          ошибок: {{ report.error_count }}
+          · предупр.: {{ report.warning_count }}
+          · справочно: {{ report.info_count }}
+        </span>
+      </span>
+    </summary>
+
+    <div style="margin-top:0.85rem;padding-left:0.25rem;">
+      {% if report.publication_type_label or report.publication_type %}
+      <p style="margin:0 0 0.5rem;">
+        <strong>Тип публикации:</strong>
+        {{ report.publication_type_label or "—" }}
+        {% if report.publication_type %}
+        <span class="muted mono">({{ report.publication_type }})</span>
+        {% endif %}
+      </p>
+      {% endif %}
+      {% if report.article_url %}
+      <p style="margin:0 0 0.75rem;">
+        <strong>Ссылка:</strong>
+        <a href="{{ report.article_url }}" target="_blank" rel="noopener noreferrer">
+          {{ report.article_url }}
+        </a>
+      </p>
+      {% endif %}
+
+      {% if infos %}
+      <h3 class="section-title" style="font-size:1rem;">Справочно</h3>
+      <ul class="history-list" style="margin-bottom:1rem;">
+        {% for i in infos %}
+        <li>
+          <div>
+            <strong class="mono">{{ i.code }}</strong>
+            <div>{{ i.message }}</div>
+          </div>
+          <span class="chip">справочно</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      {% if errors %}
+      <h3 class="section-title" style="font-size:1rem;">Ошибки</h3>
+      <ul class="history-list" style="margin-bottom:1rem;">
+        {% for i in errors %}
+        <li>
+          <div>
+            <strong class="mono">{{ i.code }}</strong>
+            <div>{{ i.message }}</div>
+            {% if i.value %}<div class="muted mono">Значение: {{ i.value }}</div>{% endif %}
+            {% if i.xpath or i.details or i.field %}
+            <details open style="margin-top:0.35rem;">
+              <summary class="muted">Подробнее</summary>
+              {% if i.field %}<div class="muted">Поле: {{ i.field }}</div>{% endif %}
+              {% if i.xpath %}<div class="muted mono">{{ i.xpath }}</div>{% endif %}
+              {% if i.details %}<div class="muted" style="white-space:pre-wrap;">{{ i.details }}</div>{% endif %}
+            </details>
+            {% endif %}
+          </div>
+          <span class="chip chip-err">ошибка</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      {% if warnings %}
+      <h3 class="section-title" style="font-size:1rem;">Предупреждения</h3>
+      <ul class="history-list" style="margin-bottom:1rem;">
+        {% for i in warnings %}
+        <li>
+          <div>
+            <strong class="mono">{{ i.code }}</strong>
+            <div>{{ i.message }}</div>
+          </div>
+          <span class="chip">предупреждение</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      {% if report.passed_checks %}
+      <h3 class="section-title" style="font-size:1rem;">Пройдено проверок ({{ report.passed_count }})</h3>
+      <ul class="muted" style="padding-left:1.2rem;margin-bottom:0.5rem;">
+        {% for p in report.passed_checks %}
+        <li>✓ {{ p.label }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+  </details>
+  {% endfor %}
+</div>
+{% endblock %}
