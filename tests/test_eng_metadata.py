@@ -257,6 +257,77 @@ def test_parse_forms_and_patch_title():
     assert fields["title[en_US]"] == "New Title"
 
 
+def test_patch_citations_moves_cyrillic_en_to_ru():
+    """Русский список из EN-поля → RU, затем в EN пишется английский."""
+    from ipsas.modules.eng_metadata.platform_update import Change, UpdateService
+
+    svc = UpdateService.__new__(UpdateService)
+    ru_list = (
+        "Хаджиев С.Н. Синтез и свойства наноразмерных систем // Нефтехимия. 2014."
+    )
+    fields = {
+        "citations": ru_list,
+        "localeCitations[ru_RU]": "",
+    }
+    applied, missing, skip = svc._patch_citations_en(
+        fields,
+        [
+            Change(field="references[0].text.en", value="Smith J. Catalysis. 2020."),
+            Change(field="references[1].text.en", value="Jones A. Oil Chem. 2021."),
+        ],
+    )
+    assert missing == []
+    assert skip is None
+    assert fields["localeCitations[ru_RU]"] == ru_list
+    assert fields["citations"] == "Smith J. Catalysis. 2020.\r\nJones A. Oil Chem. 2021."
+    assert "citations→localeCitations[ru_RU]" in applied
+    assert "references[0].text.en" in applied
+
+
+def test_patch_citations_skips_when_both_en_cyrillic_and_ru_filled():
+    """Спорный случай: не трогаем citations, просим проверить вручную."""
+    from ipsas.modules.eng_metadata.platform_update import Change, UpdateService
+
+    svc = UpdateService.__new__(UpdateService)
+    fields = {
+        "citations": "Хаджиев С.Н. Старый русский в EN.",
+        "localeCitations[ru_RU]": "Уже правильный русский список.",
+    }
+    applied, missing, skip = svc._patch_citations_en(
+        fields,
+        [Change(field="references[0].text.en", value="English Ref.")],
+    )
+    assert applied == []
+    assert missing == []
+    assert skip is not None
+    assert "не отправлен" in skip
+    assert "Проверьте" in skip
+    assert fields["citations"] == "Хаджиев С.Н. Старый русский в EN."
+    assert fields["localeCitations[ru_RU]"] == "Уже правильный русский список."
+
+
+def test_patch_citations_latin_en_moves_to_empty_ru():
+    """EN без кириллицы при пустом RU тоже переносим — список мог быть англ."""
+    from ipsas.modules.eng_metadata.platform_update import Change, UpdateService
+
+    svc = UpdateService.__new__(UpdateService)
+    old_en = "Smith J. Already English."
+    fields = {
+        "citations": old_en,
+        "localeCitations[ru_RU]": "",
+    }
+    applied, missing, skip = svc._patch_citations_en(
+        fields,
+        [Change(field="references[0].text.en", value="New English.")],
+    )
+    assert skip is None
+    assert missing == []
+    assert "references[0].text.en" in applied
+    assert "citations→localeCitations[ru_RU]" in applied
+    assert fields["localeCitations[ru_RU]"] == old_en
+    assert fields["citations"] == "New English."
+
+
 def test_parse_select_options_inside_optgroup():
     """issueId на RCSI лежит в <optgroup>; ./option ломал назначение в выпуск."""
     from ipsas.modules.eng_metadata.platform_update import UpdateService
@@ -315,8 +386,9 @@ def test_apply_skips_scheduling_dates(monkeypatch):
     )
     assert "dates.received" not in result.applied_fields
     assert "dates.accepted" not in result.applied_fields
-    assert any("updateScheduling" in e for e in result.errors)
+    assert not any("updateScheduling" in e or "Даты не отправлены" in e for e in result.errors)
     assert "article.titles.en" in result.applied_fields
+    assert result.ok
 
 
 def test_update_service_dry_run_path():
