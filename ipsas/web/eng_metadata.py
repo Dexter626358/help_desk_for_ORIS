@@ -323,14 +323,20 @@ def _run_prepare_send(session_id: str, article_id: str):
         )
         apply_info = summary.get("apply") if isinstance(summary, dict) else None
         if settings.platform_apply_enabled:
+            errs = (apply_info or {}).get("errors") or []
             if apply_info and apply_info.get("ok"):
-                flash(
+                base = (
                     f"Отправлено на платформу: {apply_info.get('message') or 'OK'}. "
-                    f"Полей: {len(apply_info.get('applied_fields') or [])}.",
-                    "success",
+                    f"Полей: {len(apply_info.get('applied_fields') or [])}."
                 )
+                if errs:
+                    flash(
+                        base + " Внимание: " + "; ".join(str(e) for e in errs[:3]),
+                        "warning",
+                    )
+                else:
+                    flash(base, "success")
             else:
-                errs = (apply_info or {}).get("errors") or []
                 flash(
                     "Отправка завершилась с ошибками: "
                     + ("; ".join(str(e) for e in errs[:5]) or "см. лог"),

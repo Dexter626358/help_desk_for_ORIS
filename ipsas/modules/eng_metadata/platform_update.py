@@ -224,15 +224,11 @@ class UpdateService:
         errors: list[str] = []
 
         # RCSI: POST updateScheduling (даже с верным issueId) снимает статью
-        # с выпуска → «Новые». Даты received/accepted на платформу не шлём.
-        date_skip_note: str | None = None
+        # с выпуска → «Новые». Даты received/accepted на платформу не шлём
+        # (без предупреждения в UI — только лог).
         if date_changes:
             skipped = ", ".join(c.field for c in date_changes)
-            date_skip_note = (
-                f"Даты не отправлены ({skipped}): форма updateScheduling на "
-                "платформе снимает статью с выпуска. Проставьте даты вручную в OJS."
-            )
-            logger.warning(
+            logger.info(
                 "skip updateScheduling for article %s (%s)",
                 article_id,
                 skipped,
@@ -262,9 +258,13 @@ class UpdateService:
                 action_url, fields = rediscovered
 
         main_applied, main_missing = self._patch_main_fields(fields, main_changes)
-        ref_applied, ref_missing = self._patch_citations_en(fields, ref_changes)
+        ref_applied, ref_missing, citations_skip_note = self._patch_citations_en(
+            fields, ref_changes
+        )
         for field in main_missing + ref_missing:
             errors.append(f"Нет поля формы для: {field}")
+        if citations_skip_note:
+            errors.append(citations_skip_note)
 
         if main_applied or ref_applied:
             status, final_url, body = self.client.post_form(
@@ -294,8 +294,7 @@ class UpdateService:
             else:
                 errors.append(detail)
 
-        if date_skip_note:
-            errors.append(date_skip_note)
+        soft_warnings = {citations_skip_note} if citations_skip_note else set()
 
         if not applied and errors:
             return ApplyResult(
@@ -306,8 +305,10 @@ class UpdateService:
                 message="не применено",
             )
 
-        # Даты только предупреждение: метаданные могли уйти успешно
-        ok = not [e for e in errors if e != date_skip_note]
+        # Спорный список литературы — предупреждение, не провал apply
+        hard_errors = [e for e in errors if e not in soft_warnings]
+        ok = not hard_errors
+        has_soft = bool(soft_warnings)
         return ApplyResult(
             article_id=article_id,
             ok=ok,
@@ -315,8 +316,10 @@ class UpdateService:
             errors=errors,
             message=(
                 "отправлено на платформу"
-                if ok and not date_skip_note
+                if ok and not has_soft
                 else "отправлено с предупреждениями"
+                if ok
+                else "отправлено с ошибками"
             ),
         )
 
@@ -349,34 +352,98 @@ class UpdateService:
             applied.append(change.field)
         return applied, missing
 
+    CITATIONS_ATTENTION_MSG = (
+        "Список литературы не отправлен: в английском поле citations есть текст "
+        "на русском, а русское поле localeCitations[ru_RU] уже заполнено. "
+        "Проверьте оба списка вручную на платформе и при необходимости "
+        "перенесите/замените сами — автоматическая замена отключена, "
+        "чтобы ничего не потерять."
+    )
+
+    @staticmethod
+    def _looks_like_cyrillic_text(text: str) -> bool:
+        """Есть ли кириллица (типичный признак русского списка в поле EN)."""
+        return bool(re.search(r"[А-Яа-яЁё]", text or ""))
+
+    def _citations_need_user_check(self, fields: dict[str, str]) -> str | None:
+        """Случаи, когда список литературы нельзя безопасно трогать автоматически."""
+        existing_en = fields.get(CITATIONS_EN_FIELD)
+        if existing_en is None:
+            return None
+        en_text = str(existing_en)
+        if not en_text.strip() or not self._looks_like_cyrillic_text(en_text):
+            return None
+        ru_raw = fields.get(CITATIONS_RU_FIELD)
+        ru_text = "" if ru_raw is None else str(ru_raw)
+        if ru_text.strip():
+            return self.CITATIONS_ATTENTION_MSG
+        return None
+
+    def _relocate_misplaced_ru_citations(self, fields: dict[str, str]) -> list[str]:
+        """Если EN-citations непустое и RU пусто — перенести EN → RU.
+
+        Список в EN может быть и на русском (кириллица), и на английском
+        без кириллицы — оба варианта сохраняем в RU перед записью нового EN.
+        """
+        existing_en = fields.get(CITATIONS_EN_FIELD)
+        if existing_en is None:
+            return []
+        en_text = str(existing_en)
+        if not en_text.strip():
+            return []
+        ru_raw = fields.get(CITATIONS_RU_FIELD)
+        ru_text = "" if ru_raw is None else str(ru_raw)
+        if ru_text.strip():
+            return []
+
+        fields[CITATIONS_RU_FIELD] = en_text
+        logger.info(
+            "перенесён список литературы из %s → %s (%s символов)",
+            CITATIONS_EN_FIELD,
+            CITATIONS_RU_FIELD,
+            len(en_text.strip()),
+        )
+        return [f"{CITATIONS_EN_FIELD}→{CITATIONS_RU_FIELD}"]
+
     def _patch_citations_en(
         self,
         fields: dict[str, str],
         ref_changes: list[Any],
-    ) -> tuple[list[str], list[str]]:
-        """Записывает EN-литературу в textarea ``citations``, RU не трогает."""
+    ) -> tuple[list[str], list[str], str | None]:
+        """Записывает EN-литературу в ``citations``.
+
+        Перед заменой: текущее содержимое EN (если RU пусто) → RU-поле.
+        Если в EN кириллица и RU уже заполнено — не трогаем список,
+        возвращаем сообщение для пользователя (3-й элемент кортежа).
+        """
         if not ref_changes:
-            return [], []
+            return [], [], None
         if CITATIONS_EN_FIELD not in fields:
-            return [], [CITATIONS_EN_FIELD]
+            return [], [CITATIONS_EN_FIELD], None
 
         by_idx: dict[int, str] = {}
-        applied: list[str] = []
         for change in ref_changes:
             m = re.match(r"references\[(\d+)\]\.text\.en$", change.field)
             if not m:
                 continue
             idx = int(m.group(1))
             by_idx[idx] = "" if change.value is None else str(change.value).strip()
-            applied.append(change.field)
 
         if not by_idx:
-            return [], []
+            return [], [], None
+
+        attention = self._citations_need_user_check(fields)
+        if attention:
+            logger.warning("skip citations apply: %s", attention)
+            return [], [], attention
+
+        applied = [f"references[{i}].text.en" for i in sorted(by_idx)]
+        applied.extend(self._relocate_misplaced_ru_citations(fields))
 
         max_idx = max(by_idx)
         lines = [by_idx[i] for i in range(max_idx + 1) if by_idx.get(i)]
         fields[CITATIONS_EN_FIELD] = "\r\n".join(lines)
-        return applied, []
+        return applied, [], None
 
     @staticmethod
     def _author_ids_from_fields(fields: dict[str, str]) -> dict[int, str]:
