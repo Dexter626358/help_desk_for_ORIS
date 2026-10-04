@@ -8,6 +8,7 @@
 
 - Валидация XML по XSD (`schemas/journal3.xsd` / пакетные ресурсы)
 - Анализ XML журнала (метаданные RUS/ENG)
+- Проверка JATS XML для загрузки в ИС «Метафора» (один файл или ZIP выпуска)
 - Обработка списков литературы
 - Парсер выпуска по URL (OJS/HTML, только чтение публичных страниц)
 - Сопоставление PDF / CSV
@@ -28,6 +29,7 @@
 
 - WSGI: `ipsas.web.wsgi:app` (корневой [wsgi.py](wsgi.py) — совместимость)
 - Локально: `ipsas-web` / [run.py](run.py) (dev-сервер Flask; **не** для production)
+- CLI: `python -m ipsas.cli report …` / `python -m ipsas.cli validate …` (JATS для Метафоры)
 
 ## Локальный запуск
 

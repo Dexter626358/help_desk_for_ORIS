@@ -6,7 +6,8 @@
 |------|-------------|
 | Локальный запуск | `run.py` → `create_app()` |
 | Production (Gunicorn) | `wsgi:app` / `ipsas.web.wsgi:app` |
-| CLI-отчёт | `python -m ipsas.cli report input.xml` |
+| CLI-отчёт journal XML | `python -m ipsas.cli report input.xml` |
+| CLI JATS → Метафора | `python -m ipsas.cli validate article.xml\|issue.zip` (`--json`) |
 | Конфиг пакета | `pyproject.toml` (+ тонкий `setup.py`) |
 
 ---
@@ -132,6 +133,23 @@ Shim: `issue_metadata_parser.py`.
 Сопоставление папок `{start}-{end}_images` из ZIP с интервалами страниц в issueToc,
 загрузка в доп. файлы статей. CLI: `upload_issue_images.py`.
 
+### JATS для Метафоры — `metafora_jats/`
+
+Проверка обязательных данных статьи перед загрузкой в ИС «Метафора»
+(без XSD, без сети). Вход: один JATS XML или ZIP выпуска (безопасно через `zip_safe`).
+
+```
+metafora_jats/
+├── models.py / parser.py / validator.py / article_types.py
+└── rules/          # M001–M010 (тип, название, дата, страницы, DOI, EDN,
+                    # авторы, литература, аффилиации-info)
+```
+
+Сервис: `ipsas/services/validate_metafora_jats.py` → `MetaforaJatsResult`.  
+Web: `/services/metafora-jats` (`ipsas/web/metafora_jats.py`).  
+CLI: `python -m ipsas.cli validate`.  
+Фикстура: `tests/fixtures/metafora_jats/valid_research_371947.xml`.
+
 ### Песочница — `sandbox_journal_setup/`
 
 Базовая настройка ветки журнала на f23g45: GATE (Basic Auth) + OJS login,
@@ -164,6 +182,7 @@ Web: `/services/sandbox-journal-setup`. Env: `SANDBOX_GATE_*` / `SANDBOX_OJS_*` 
 | `check_journal_site.py` | Проверка `.data` / сайта журнала |
 | `eng_metadata_review.py` | Сессия ENG-метаданных |
 | `archive_by_sender.py` | Архивация «Новые» по отправителю |
+| `validate_metafora_jats.py` | JATS XML / ZIP выпуска для Метафоры |
 
 ---
 
