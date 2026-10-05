@@ -120,6 +120,13 @@ Railway: сборка через Dockerfile (`railway.json`).
 - `PLATFORM_APPLY_ENABLED=1` — разрешить запись ENG-метаданных (по умолчанию выкл.)
 - `ISSUE_FETCH_ALLOWED_HOSTS` должен включать хост платформы
 
+Значение `PLATFORM_APPLY_ENABLED` — свойство экземпляра, а не репозитория. В коде и в шаблонах
+по умолчанию `0`; на внутреннем сервере `172.20.254.133` с 2026-10-05 задано `1`, и форма
+«Обновить ENG-метаданные» выполняет настоящий POST под учётной записью `gsn`. Такой POST
+необратим: его можно только исправить вручную в ОПУС. Фактическое значение на сервере
+проверяется командой `docker compose exec ipsas printenv PLATFORM_APPLY_ENABLED`.
+Общее состояние экземпляра — в [PASSPORT.md](PASSPORT.md).
+
 Для **настройки журнала в песочнице** (`/services/sandbox-journal-setup`, CLI `setup_sandbox_journal.py`):
 
 - `SANDBOX_BASE_URL` (например `https://f23g45.rcsi.science`)
@@ -128,6 +135,7 @@ Railway: сборка через Dockerfile (`railway.json`).
 - в `ISSUE_FETCH_ALLOWED_HOSTS` добавьте хост песочницы (`f23g45.rcsi.science`)
 
 По умолчанию песочница и архивация работают в **dry-run**; запись — только после снятия галочки / флага `--apply`.
+
 ## Health
 
 `GET /health` → `{"status":"ok","service":"ipsas"}`
@@ -139,12 +147,14 @@ Railway: сборка через Dockerfile (`railway.json`).
 | Файл | Содержание |
 |------|------------|
 | [QUICKSTART.md](QUICKSTART.md) | Быстрый старт и список сервисов UI |
+| [PASSPORT.md](PASSPORT.md) | **Технический паспорт**: карточка, команда, стек, инфраструктура, эксплуатация, диагностика отказа |
 | [STRUCTURE.md](STRUCTURE.md) | Слои кода, модули, blueprints, дерево каталогов |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Production: схема развёртывания, env, Docker Compose, Nginx, systemd |
 | [deploy/SERVER_DEPLOY.md](deploy/SERVER_DEPLOY.md) | **Пошаговое развёртывание на сервере с нуля** (Docker Compose + nginx) |
 | [RAILWAY_DEPLOY.md](RAILWAY_DEPLOY.md) | Railway |
 | [specs/001-speckit-baseline/spec.md](specs/001-speckit-baseline/spec.md) | Внедрение Spec-Driven Development |
 | [specs/002-server-deployment/spec.md](specs/002-server-deployment/spec.md) | Развёртывание на внутреннем сервере |
+| [specs/003-technical-passport/spec.md](specs/003-technical-passport/spec.md) | Технический паспорт и фиксация включённой записи в ОПУС |
 
 ### Скрипты развёртывания
 
@@ -192,7 +202,9 @@ uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
 
 Готовые спецификации: [`specs/001-speckit-baseline/`](specs/001-speckit-baseline/spec.md) —
 внедрение процесса, [`specs/002-server-deployment/`](specs/002-server-deployment/spec.md) —
-развёртывание на внутреннем сервере.
+развёртывание на внутреннем сервере,
+[`specs/003-technical-passport/`](specs/003-technical-passport/spec.md) — технический паспорт
+и фиксация включённой записи в ОПУС.
 
 Полезные скрипты:
 
@@ -211,7 +223,7 @@ pip-audit -r requirements.txt
 
 ## Важно
 
-- Запись на Платформу по умолчанию выключена (`PLATFORM_APPLY_ENABLED=0`); включайте осознанно.
+- Запись на Платформу по умолчанию выключена (`PLATFORM_APPLY_ENABLED=0`); включайте осознанно. На развёрнутом экземпляре флаг включён — см. [PASSPORT.md](PASSPORT.md), §3.
 - CSRF включён для POST-форм; `IPSAS_DISABLE_CSRF` в production запрещён.
 - `FLASK_DEBUG` не связан с `LOG_LEVEL`; в production debug запрещён.
 - Каталог `xml-editor/` — legacy; в production используется `ipsas.modules.xml_editor`.

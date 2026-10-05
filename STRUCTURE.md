@@ -49,6 +49,8 @@ Help_desk_for_ORIS/
 ├── .specify/                   # Spec Kit: конституция, скрипты, шаблоны
 ├── .opencode/commands/         # команды /speckit.*
 ├── specs/                      # спецификации: specs/NNN-<slug>/{spec,plan,tasks}.md
+├── PASSPORT.md                 # технический паспорт экземпляра: стек, инфраструктура,
+│                               #   эксплуатация, диагностика отказа
 ├── README.md / QUICKSTART.md / DEPLOYMENT.md / RAILWAY_DEPLOY.md / STRUCTURE.md
 ├── schemas/                    # XSD (journal3.xsd)
 ├── ipsas/
@@ -318,7 +320,8 @@ pytest
 
 Инструкция по установке и использованию — в [README.md](README.md#работа-по-spec-kit).
 Текущие спецификации: [`specs/001-speckit-baseline/`](specs/001-speckit-baseline/spec.md),
-[`specs/002-server-deployment/`](specs/002-server-deployment/spec.md).
+[`specs/002-server-deployment/`](specs/002-server-deployment/spec.md),
+[`specs/003-technical-passport/`](specs/003-technical-passport/spec.md).
 
 Машинное состояние (`.specify/feature.json`, `.specify/integration.json`) исключено
 `.specify/.gitignore` и в репозиторий не попадает.

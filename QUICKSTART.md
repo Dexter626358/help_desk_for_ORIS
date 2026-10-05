@@ -131,6 +131,10 @@ bash deploy/smoke-test.sh http://127.0.0.1/
 Подробности, включая настройку Nginx и разбор ошибок: [`DEPLOYMENT.md`](DEPLOYMENT.md)
 (сводка) и [`deploy/SERVER_DEPLOY.md`](deploy/SERVER_DEPLOY.md) (пошагово).
 
+Состояние конкретного экземпляра — стек, инфраструктура, наблюдаемость, диагностика отказа —
+описано в [`PASSPORT.md`](PASSPORT.md). Он же отвечает на вопрос, что делать, если сервис
+перестал отвечать.
+
 ## Работа по Spec Kit
 
 Изменения проекта планируются в [`specs/`](specs/001-speckit-baseline/spec.md) до написания
