@@ -19,29 +19,73 @@ _ISSN_RE = re.compile(r"\d{4}-?\d{3}[\dXx]")
 _EMAIL_RE = re.compile(r"[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}", re.I)
 _MAP_RE = re.compile(r"(google\.com/maps|yandex\.(ru|com)/maps|maps\.google|iframe)", re.I)
 
-# Технические имена плагинов → понятные подписи для отчёта
+# Технические имена плагинов → как в интерфейсе Платформы («Системные модули» и др.)
 _PLUGIN_RU: dict[str, str] = {
+    # идентификаторы
     "doipubidplugin": "DOI",
     "ednpubidplugin": "EDN",
     "urnpubidplugin": "URN",
     "openurlpubidplugin": "URL-идентификатор",
     "urlpubidplugin": "URL-идентификатор",
     "publicurlplugin": "URL-идентификатор",
+    # основные / generic (названия с Платформы)
     "browseplugin": "Браузер",
     "coinsplugin": "COinS",
     "customblockmanagerplugin": "Управление блоками пользователя",
     "driverplugin": "DRIVER",
-    "pdfjsviewerplugin": "PDF.JS",
+    "pdfjsviewerplugin": "PDF-просмотрщик PDF.JS",
+    "pdfjsplugin": "PDF-просмотрщик PDF.JS",
     "sehlplugin": "SEHL",
     "staticpagesplugin": "Статические страницы",
     "tinymceplugin": "TinyMCE",
     "webfeedplugin": "Новостная лента выпуска",
     "fundrefplugin": "FundRef",
-    "acronplugin": "ACRON",
+    "acronplugin": "Acron",
+    "customlocaleplugin": "Модуль локализации",
+    "xmlgalleyplugin": "XML-гранки",
+    "xmlgalley": "XML-гранки",
+    "usageeventplugin": "Событие использования",
+    "usageevent": "Событие использования",
+    "referralplugin": "Модуль обратных ссылок",
+    "usagestatsplugin": "Статистика использования",
+    "usagestats": "Статистика использования",
+    "dataverseplugin": "Dataverse",
+    "dataverse": "Dataverse",
+    "announcementfeedplugin": "Лента объявлений",
+    "announcementfeed": "Лента объявлений",
+    "backupplugin": "Резервное копирование",
+    "backup": "Резервное копирование",
+    "plnplugin": "PKP PLN",
+    "pln": "PKP PLN",
+    "piwikplugin": "Piwik",
+    "piwik": "Piwik",
+    "jivositeplugin": "Онлайн чат Jivosite",
+    "jivosite": "Онлайн чат Jivosite",
+    "externalfeedplugin": "Внешние источники",
+    "externalfeed": "Внешние источники",
+    "swordplugin": "SWORD",
+    "sword": "SWORD",
+    "yandexmetrikaplugin": "Yandex Metrika",
+    "yandexmetrika": "Yandex Metrika",
+    "yandexmetricaplugin": "Yandex Metrika",
+    "downloadallfilesplugin": "Загрузка всех файлов для верстки",
+    "downloadallfiles": "Загрузка всех файлов для верстки",
+    "filesforlayoutplugin": "Загрузка всех файлов для верстки",
+    "antiplagiatplugin": 'Плагин связи с "Антиплагиат"',
+    "antiplagiat": 'Плагин связи с "Антиплагиат"',
+    "domateplugin": 'Плагин связи с "Domate"',
+    "domate": 'Плагин связи с "Domate"',
+    "authorcontractplugin": "Подписание авторского договора",
+    "authoragreementplugin": "Подписание авторского договора",
+    "layoutxmlplugin": "Плагин вывода XML для импорта в макет статьи",
+    "xmlforlayoutplugin": "Плагин вывода XML для импорта в макет статьи",
+    "userlanguageplugin": "Язык пользователя",
+    "translatorplugin": "Язык пользователя",
+    # шлюзы / распознавание
     "metsgatewayplugin": "шлюз METS",
     "resolverplugin": "Распознавание",
-    "referralplugin": "Распознавание",
     "recommendbysimilarityplugin": "Распознавание",
+    # метрики
     "dimensionsplugin": "Dimensions",
     "plumxplugin": "PlumX",
     "crossrefcitedbyplugin": "Cited-by",
@@ -49,7 +93,9 @@ _PLUGIN_RU: dict[str, str] = {
     "altmetricsplugin": "Altmetrics",
     "publonsplugin": "Publons",
     "publonsbadgeplugin": "Publons",
-    "publonsreviewerconnectplugin": "Publons",
+    "publonsreviewerconnectplugin": "Publons Reviewer Connect",
+    # importexport и пр.
+    "crossrefexportplugin": "Экспорт Crossref",
 }
 
 _ITEM_PLUGIN_RU: dict[str, str] = {
@@ -61,13 +107,13 @@ _ITEM_PLUGIN_RU: dict[str, str] = {
     "modules.coins": "COinS",
     "modules.custom_blocks": "Управление блоками пользователя",
     "modules.driver": "DRIVER",
-    "modules.pdfjs": "PDF.JS",
+    "modules.pdfjs": "PDF-просмотрщик PDF.JS",
     "modules.sehl": "SEHL",
     "modules.static_pages": "Статические страницы",
     "modules.tinymce": "TinyMCE",
     "modules.webfeed": "Новостная лента выпуска",
     "modules.fundref": "FundRef",
-    "modules.acron": "ACRON",
+    "modules.acron": "Acron",
     "modules.mets_gateway": "шлюз METS",
     "modules.recognition": "Распознавание",
     "metrics.dimensions": "Dimensions",
@@ -80,15 +126,23 @@ _ITEM_PLUGIN_RU: dict[str, str] = {
 
 
 def plugin_display_name(raw: str, *, item_id: str = "") -> str:
-    """Человекочитаемое имя модуля/метрики."""
+    """Человекочитаемое имя модуля/метрики (как на Платформе)."""
     if item_id and item_id in _ITEM_PLUGIN_RU:
         return _ITEM_PLUGIN_RU[item_id]
     key = (raw or "").strip().lower()
     if key in _PLUGIN_RU:
         return _PLUGIN_RU[key]
+    # xmlGalleyPlugin → xmlgalleyplugin; также без суффикса plugin
+    compact = key.replace("_", "").replace("-", "")
+    if compact in _PLUGIN_RU:
+        return _PLUGIN_RU[compact]
+    if compact.endswith("plugin"):
+        base = compact[: -len("plugin")]
+        if base in _PLUGIN_RU:
+            return _PLUGIN_RU[base]
     if not raw:
         return ""
-    # EDNPubIdPlugin → EDN Pub Id (fallback)
+    # fallback: CamelCase → слова
     name = re.sub(r"(?i)plugin$", "", raw).strip()
     name = re.sub(r"([a-z])([A-Z])", r"\1 \2", name)
     return name or raw
@@ -569,7 +623,7 @@ def _eval_plugin(
 
 def _eval_plugin_conditional(
     export: JournalDataExport, item: ChecklistItem, ctx: dict[str, bool]
-) -> tuple[str, str, str]:
+) -> tuple:
     cond = item.condition or ""
     cond_true = bool(ctx.get(cond))
     enabled = _plugin_enabled(export, *item.plugin_keys)
@@ -582,9 +636,11 @@ def _eval_plugin_conditional(
         if not cond_true:
             if enabled:
                 return (
-                    "warn",
-                    f"DOI не настроен, но метрика «{label}» включена — обычно лишнее.",
+                    "fail",
+                    f"DOI не настроен — выключите метрику «{label}» "
+                    "(по инструкции она нужна только при DOI).",
                     f"{label}: включена без DOI",
+                    [f"disable.metric:{label}"],
                 )
             return "na", "DOI нет — пункт не применяется.", f"{label}: не требуется"
         if enabled:
@@ -593,6 +649,7 @@ def _eval_plugin_conditional(
             "fail",
             f"При наличии DOI метрика «{label}» должна быть включена.",
             f"{label}: выключена",
+            [f"enable.metric:{label}"],
         )
 
     if cond == "in_scopus":
@@ -613,6 +670,48 @@ def _eval_plugin_conditional(
         return "fail", "Журнал в Scopus — включите PlumX.", f"{label}: выключена"
 
     return "manual", "Условие не распознано.", label
+
+
+def _eval_extra_generic(
+    export: JournalDataExport, item: ChecklistItem, ctx: dict[str, bool]
+) -> tuple:
+    # Имена, которые закрываются отдельными пунктами чек-листа (не «лишние»).
+    covered_elsewhere = {
+        key.casefold()
+        for it in DEFAULT_SETUP_CHECKLIST
+        if it.kind in {"plugin", "plugin_conditional", "browse_plugin", "webfeed_plugin"}
+        for key in it.plugin_keys
+    }
+    extras: list[str] = []
+    for name, info in export.plugins.items():
+        if info.category not in {"generic", ""}:
+            continue
+        if not info.enabled:
+            continue
+        low = name.lower()
+        if low in ALLOWED_ENABLED_GENERIC:
+            continue
+        if low in covered_elsewhere:
+            continue
+        # метрики / pubIds не сюда
+        if info.category in {"metrics", "pubIds", "importexport", "blocks", "gateways"}:
+            continue
+        extras.append(plugin_display_name(name))
+    if not extras:
+        return "ok", "Лишних включённых основных модулей не найдено.", ""
+    extras_sorted = sorted(set(extras))
+    shown = extras_sorted[:12]
+    more = len(extras_sorted) - len(shown)
+    list_text = ", ".join(shown) + (f" (+ ещё {more})" if more > 0 else "")
+    deficits = [f"disable.plugin:{name}" for name in extras_sorted]
+    return (
+        "fail",
+        "По инструкции БАЗА выключите основные модули вне эталона: "
+        + list_text
+        + ".",
+        list_text,
+        deficits,
+    )
 
 
 def _eval_sections_articles(
@@ -893,30 +992,6 @@ def _eval_webfeed_plugin(
     if page in {"homepage", "all", ""}:
         return "warn", "Ожидаются страницы выпуска / текущий выпуск; сейчас: " + page_label + ".", actual
     return "warn", f"Проверьте страницу отображения ленты ({page_label}).", actual
-
-
-def _eval_extra_generic(
-    export: JournalDataExport, item: ChecklistItem, ctx: dict[str, bool]
-) -> tuple[str, str, str]:
-    extras: list[str] = []
-    for name, info in export.plugins.items():
-        if info.category not in {"generic", ""}:
-            continue
-        if not info.enabled:
-            continue
-        if name.lower() in ALLOWED_ENABLED_GENERIC:
-            continue
-        # метрики / pubIds не сюда
-        if info.category in {"metrics", "pubIds", "importexport", "blocks", "gateways"}:
-            continue
-        extras.append(plugin_display_name(name))
-    if not extras:
-        return "ok", "Лишних включённых основных модулей не найдено.", ""
-    return (
-        "warn",
-        "Включены модули вне эталона: " + ", ".join(sorted(extras)[:12]) + ".",
-        ", ".join(extras[:8]),
-    )
 
 
 def _eval_dates_display(

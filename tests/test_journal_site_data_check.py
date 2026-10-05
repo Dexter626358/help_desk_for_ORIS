@@ -84,6 +84,56 @@ def test_altmetrics_enabled_fails(sample_export) -> None:
     assert evaluate_checklist_item(sample_export, alt, ctx)["status"] == "fail"
 
 
+def test_extra_off_and_metric_without_doi_show_disable_actions(sample_export) -> None:
+    from ipsas.modules.journal_site.data_export import PluginInfo
+
+    sample_export.plugins["DOIPubIdPlugin"].enabled = False
+    sample_export.plugins["DOIPubIdPlugin"].settings = {}
+    sample_export.plugins["dimensionsplugin"] = PluginInfo(
+        name="dimensionsplugin",
+        category="metrics",
+        enabled=True,
+        settings={"enabled": True},
+    )
+    sample_export.plugins["WeirdExtraPlugin"] = PluginInfo(
+        name="WeirdExtraPlugin",
+        category="generic",
+        enabled=True,
+        settings={"enabled": True},
+    )
+    sample_export.plugins["URNPubIdPlugin"] = PluginInfo(
+        name="URNPubIdPlugin",
+        category="pubIds",
+        enabled=True,
+        settings={"enabled": True},
+    )
+
+    report = build_data_report_dict(sample_export, source_name="t")
+    by_id = {r["id"]: r for r in report["fields"]}
+
+    dim = by_id["metrics.dimensions"]
+    assert dim["status"] == "fail"
+    assert dim["bucket"] == "fix"
+    assert "выключ" in (dim.get("action") or "").lower()
+    assert "включить" not in (dim.get("action") or "").lower()
+
+    extra = by_id["modules.extra_off"]
+    assert extra["status"] == "fail"
+    assert extra["bucket"] == "fix"
+    assert "weird" in (extra.get("action") or "").lower() or "weird" in (
+        extra.get("actual") or ""
+    ).lower()
+
+    urn = by_id["modules.urn"]
+    assert urn["status"] == "fail"
+    assert "выключ" in (urn.get("action") or "").lower()
+
+    plugin_fix_ids = {r["id"] for r in report["plugins_must_fix"]}
+    assert "metrics.dimensions" in plugin_fix_ids
+    assert "modules.extra_off" in plugin_fix_ids
+    assert "modules.urn" in plugin_fix_ids
+
+
 def test_author_guidelines_empty_en(sample_export) -> None:
     ctx = _detect_flags(sample_export)
     item = next(i for i in DEFAULT_SETUP_CHECKLIST if i.id == "step3.guidelines")
@@ -166,6 +216,19 @@ def test_indexing_and_history_detected_are_human_readable() -> None:
     )
     assert "homepageImage" not in cover["detected"]
     assert "обложка на главной" in cover["detected"]
+
+
+def test_plugin_display_names_match_platform() -> None:
+    from ipsas.modules.journal_site.data_check import plugin_display_name
+
+    assert plugin_display_name("xmlGalleyPlugin") == "XML-гранки"
+    assert plugin_display_name("pdfJsViewerPlugin") == "PDF-просмотрщик PDF.JS"
+    assert plugin_display_name("acronPlugin") == "Acron"
+    assert plugin_display_name("customLocalePlugin") == "Модуль локализации"
+    assert plugin_display_name("referralplugin") == "Модуль обратных ссылок"
+    assert plugin_display_name("webFeedPlugin") == "Новостная лента выпуска"
+    assert plugin_display_name("usageStatsPlugin") == "Статистика использования"
+    assert plugin_display_name("announcementFeedPlugin") == "Лента объявлений"
 
 
 def test_plugin_detected_labels_are_human_readable(sample_export) -> None:

@@ -101,13 +101,14 @@ def test_plugin_label_ru() -> None:
 
     assert plugin_label("DOIPubIdPlugin") == "DOI"
     assert plugin_label("browseplugin") == "Браузер"
-    assert plugin_label("acronPlugin") == "ACRON"
+    assert plugin_label("acronPlugin") == "Acron"
     assert plugin_label("fundrefplugin") == "FundRef"
 
 
 def test_checklist_payload_helpers() -> None:
     from ipsas.modules.sandbox_journal_setup.steps import (
         _checklist_indexes,
+        _checklist_locales,
         _payload_without_checklist,
     )
 
@@ -116,12 +117,16 @@ def test_checklist_payload_helpers() -> None:
         ("submissionChecklist[ru_RU][0][order]", "1"),
         ("submissionChecklist[ru_RU][0][content]", "text"),
         ("submissionChecklist[ru_RU][1][order]", "2"),
+        ("submissionChecklist[en_US][0][order]", "1"),
+        ("submissionChecklist[en_US][0][content]", "en text"),
         ("metaSubject", "1"),
     ]
     assert _checklist_indexes(fields) == [0, 1]
+    assert _checklist_locales(fields) == ["en_US", "ru_RU"]
     cleared = _payload_without_checklist(fields)
     assert cleared == [("formLocale", "ru_RU"), ("metaSubject", "1")]
     assert _checklist_indexes(cleared) == []
+    assert _checklist_locales(cleared) == []
 
 
 def test_homepage_template_blank() -> None:

@@ -301,7 +301,7 @@ DEFAULT_SETUP_CHECKLIST: tuple[ChecklistItem, ...] = (
         "modules_generic",
         "Остальные основные модули: выключены",
         "extra_generic_plugins",
-        severity="recommended",
+        severity="required",
     ),
     # --- Метрики ---
     ChecklistItem(

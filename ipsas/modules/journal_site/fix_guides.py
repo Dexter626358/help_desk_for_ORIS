@@ -569,8 +569,9 @@ def get_fix_guide(
 
 def attach_fix_guide(row: Mapping[str, Any]) -> dict[str, Any]:
     """Добавить поля fix_* в строку отчёта."""
+    iid = str(row.get("id") or "")
     guide = get_fix_guide(
-        str(row.get("id") or ""),
+        iid,
         section=str(row.get("section") or ""),
         doc_url=str(row.get("doc_url") or ""),
     )
@@ -583,6 +584,39 @@ def attach_fix_guide(row: Mapping[str, Any]) -> dict[str, Any]:
         out.setdefault("fix_guide_text", "")
         return out
     steps = list(guide.steps)
+    note = str(row.get("note") or "").lower()
+    actual = str(row.get("actual") or "").lower()
+    action = str(row.get("action") or "").lower()
+    needs_disable = (
+        action.startswith("выключ")
+        or "выключите" in note
+        or "без doi" in actual
+        or any(
+            str(d).startswith("disable.")
+            for d in (row.get("deficits") or [])
+        )
+    )
+    if needs_disable:
+        if iid in {"metrics.dimensions", "metrics.citedby", "metrics.altmetrics", "metrics.publons"}:
+            label = {
+                "metrics.dimensions": "Dimensions",
+                "metrics.citedby": "Cited-by",
+                "metrics.altmetrics": "Altmetrics",
+                "metrics.publons": "Publons",
+            }[iid]
+            steps = [f"Выключите метрику {label}."]
+        elif iid == "modules.extra_off":
+            names = [
+                str(d).split(":", 1)[1]
+                for d in (row.get("deficits") or [])
+                if str(d).startswith("disable.plugin:")
+            ]
+            if names:
+                steps = [f"Выключите модуль «{name}»." for name in names]
+            else:
+                steps = [
+                    "Выключите основные модули вне эталона БАЗА (см. список в замечании).",
+                ]
     text_parts = [f"Где: {guide.path}"]
     if guide.role:
         text_parts.append(f"Роль: {guide.role}")

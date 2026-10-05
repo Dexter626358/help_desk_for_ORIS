@@ -555,6 +555,12 @@ def precise_actions(
 
     # явные дефициты от оценщика
     if deficits:
+        disable_actions = _actions_from_disable_deficits(list(deficits))
+        if disable_actions:
+            return disable_actions
+        enable_actions = _actions_from_enable_deficits(list(deficits))
+        if enable_actions:
+            return enable_actions
         if iid == "step3.copyright" or any(d.startswith("copyright.") for d in deficits):
             return [_copyright_action(list(deficits))]
         if iid == "step1.indexing_kw":
@@ -591,7 +597,26 @@ def precise_actions(
             "Новостная лента отображается на страницах выпуска и текущего выпуска"
         ]
 
+    # метрика включена без DOI — выключить, а не «включить при DOI»
+    if iid in {"metrics.dimensions", "metrics.citedby"} and (
+        "без doi" in actual.lower() or "выключите" in str(row.get("note") or "").lower()
+    ):
+        label = "Dimensions" if "dimensions" in iid else "Cited-by"
+        return [f"Выключить метрику {label}"]
+
+    if iid == "modules.extra_off" and actual.strip():
+        names = [n.strip() for n in actual.split(",") if n.strip()]
+        if names:
+            return [f"Выключить модуль «{name}»" for name in names]
+
     note = str(row.get("note") or "")
+    # если evaluator уже сказал «выключить» — не подменять на FRIENDLY «включить»
+    if "выключ" in note.lower() and status in {"fail", "warn"}:
+        friendly = FRIENDLY_ACTION_BY_ID.get(iid)
+        if friendly and friendly.lower().startswith("выключ"):
+            return [friendly]
+        # title / note based
+        return [_fallback_action(row)]
     if "Частично:" in note or "Не заполнено:" in note:
         missing = _parse_missing_tokens(note)
         locale_actions = _actions_from_locale_missing(iid, missing)
@@ -602,6 +627,30 @@ def precise_actions(
     if base:
         return [base]
     return [_fallback_action(row)]
+
+
+def _actions_from_disable_deficits(deficits: list[str]) -> list[str]:
+    actions: list[str] = []
+    for d in deficits:
+        if d.startswith("disable.plugin:"):
+            name = d.split(":", 1)[1].strip()
+            if name:
+                actions.append(f"Выключить модуль «{name}»")
+        elif d.startswith("disable.metric:"):
+            name = d.split(":", 1)[1].strip()
+            if name:
+                actions.append(f"Выключить метрику {name}")
+    return actions
+
+
+def _actions_from_enable_deficits(deficits: list[str]) -> list[str]:
+    actions: list[str] = []
+    for d in deficits:
+        if d.startswith("enable.metric:"):
+            name = d.split(":", 1)[1].strip()
+            if name:
+                actions.append(f"Включить метрику {name}")
+    return actions
 
 
 def _indexing_action(deficits: list[str]) -> list[str]:

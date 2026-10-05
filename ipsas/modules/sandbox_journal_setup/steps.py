@@ -12,6 +12,7 @@ from typing import Callable
 from ipsas.modules.eng_metadata.platform_auth import PlatformAuthClient
 from ipsas.modules.journal_site.default_setup_checklist import ALLOWED_ENABLED_GENERIC
 from ipsas.modules.sandbox_journal_setup.forms import (
+    HtmlForm,
     find_post_form,
     plugin_action_links,
 )
@@ -616,11 +617,86 @@ def _checklist_indexes(form_fields: list[tuple[str, str]]) -> list[int]:
     )
 
 
+def _checklist_locales(form_fields: list[tuple[str, str]]) -> list[str]:
+    found: set[str] = set()
+    for name, _ in form_fields:
+        m = re.match(r"submissionChecklist\[([^\]]+)]\[\d+]", name)
+        if m:
+            found.add(m.group(1))
+    return sorted(found)
+
+
 def _payload_without_checklist(
     fields: list[tuple[str, str]],
 ) -> list[tuple[str, str]]:
     """Сохранение без полей checklist очищает требования к статьям в OJS 2.4."""
     return [(n, v) for n, v in fields if not n.startswith("submissionChecklist")]
+
+
+def _clear_checklist_for_locale(
+    auth: PlatformAuthClient,
+    *,
+    url: str,
+    locale: str,
+    dry_run: bool,
+    delay: float,
+) -> tuple[bool, str, HtmlForm | None]:
+    """Очистить submissionChecklist для одной локали формы шага 3.
+
+    Returns:
+        (ok, note, form_after_or_none)
+    """
+    # OJS 2.4: переключение локали формы через query + formLocale в POST
+    locale_url = f"{url}?formLocale={locale}"
+    html = auth.get_text(locale_url)
+    form = find_post_form(html, locale_url, action_contains="saveSetup/3")
+    if form is None:
+        # fallback без query — иногда форма уже на нужной локали
+        html = auth.get_text(url)
+        form = find_post_form(html, url, action_contains="saveSetup/3")
+    if form is None:
+        return False, f"Форма шага 3 не найдена ({locale})", None
+
+    form.set_value("formLocale", locale)
+    before = _checklist_indexes(form.fields)
+    locales_in_form = _checklist_locales(form.fields)
+    if not before:
+        return True, f"требования {locale}: уже пусты", form
+
+    note = (
+        f"очистить требования {locale} "
+        f"({len(before)} пункт(ов)"
+        + (f", локали в форме: {', '.join(locales_in_form)}" if locales_in_form else "")
+        + ")"
+    )
+    if dry_run:
+        return True, note, form
+
+    payload = _payload_without_checklist(form.fields)
+    # гарантируем локаль в POST
+    payload = [(n, v) for n, v in payload if n != "formLocale"]
+    payload.append(("formLocale", locale))
+    status, _, _ = auth.request(form.action, data=payload)
+    _delay(delay)
+    if status >= 400:
+        return False, f"Не удалось очистить требования {locale} (HTTP {status})", None
+
+    html_after = auth.get_text(locale_url)
+    form_after = find_post_form(html_after, locale_url, action_contains="saveSetup/3")
+    if form_after is None:
+        return False, f"После очистки требований {locale} форма не найдена", None
+    form_after.set_value("formLocale", locale)
+    left = _checklist_indexes(form_after.fields)
+    if left:
+        return (
+            False,
+            (
+                f"Не удалось очистить требования {locale}: "
+                f"было {len(before)}, осталось {len(left)}"
+            ),
+            form_after,
+        )
+    return True, f"требования {locale}: очищены", form_after
 
 
 def step_setup3(
@@ -634,52 +710,25 @@ def step_setup3(
     url = journal_url(base_url, journal, "manager/setup/3")
     notes: list[str] = []
 
-    html = auth.get_text(url)
-    form = find_post_form(html, url, action_contains="saveSetup/3")
+    form = None
+    for locale in ("ru_RU", "en_US"):
+        ok, note, form = _clear_checklist_for_locale(
+            auth, url=url, locale=locale, dry_run=dry_run, delay=delay
+        )
+        notes.append(note)
+        if not ok:
+            return StepResult(
+                "setup3",
+                "Шаг 3. Приём статей",
+                False,
+                "; ".join(notes),
+            )
+
+    if form is None:
+        html = auth.get_text(url)
+        form = find_post_form(html, url, action_contains="saveSetup/3")
     if form is None:
         return StepResult("setup3", "Шаг 3. Приём статей", False, "Форма шага 3 не найдена")
-
-    before = _checklist_indexes(form.fields)
-    if before:
-        notes.append(
-            f"очистить требования к статьям ({len(before)} пункт(ов))"
-        )
-        if not dry_run:
-            payload = _payload_without_checklist(form.fields)
-            status, _, _ = auth.request(form.action, data=payload)
-            _delay(delay)
-            if status >= 400:
-                return StepResult(
-                    "setup3",
-                    "Шаг 3. Приём статей",
-                    False,
-                    f"Не удалось очистить требования к статьям (HTTP {status})",
-                )
-            html_after = auth.get_text(url)
-            form_after = find_post_form(html_after, url, action_contains="saveSetup/3")
-            if form_after is None:
-                return StepResult(
-                    "setup3",
-                    "Шаг 3. Приём статей",
-                    False,
-                    "После очистки требований форма шага 3 не найдена",
-                )
-            left = _checklist_indexes(form_after.fields)
-            if left:
-                return StepResult(
-                    "setup3",
-                    "Шаг 3. Приём статей",
-                    False,
-                    (
-                        "Не удалось очистить требования к статьям: "
-                        f"было {len(before)}, осталось {len(left)}. "
-                        "Проверьте шаг 3 вручную."
-                    ),
-                )
-            form = form_after
-            notes.append("требования очищены")
-    else:
-        notes.append("требования к статьям уже пусты")
 
     form.set_checkbox("metaSubject", True, "1")
     form.set_value("metaCitationOutputFilterId", VANCOUVER_OUTPUT_ID)
