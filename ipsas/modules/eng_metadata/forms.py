@@ -2,9 +2,36 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from werkzeug.datastructures import MultiDict
+
+_AUTHOR_KEY_RE = re.compile(r"^author_(\d+)_")
+_ORCID_URL_RE = re.compile(
+    r"^(?:https?://)?(?:www\.)?orcid\.org/+",
+    re.IGNORECASE,
+)
+_ORCID_ID_RE = re.compile(
+    r"(\d{4})-?(\d{4})-?(\d{4})-?(\d{3}[\dXx])",
+)
+
+
+def normalize_orcid(value: str | None) -> str | None:
+    """Привести ORCID к канону ``0000-0001-6386-0006``.
+
+    Снимает URL/мусор; если распознать 16-символьный идентификатор
+    не удалось — возвращает исходную строку без обёртки URL (как есть).
+    """
+    raw = str(value or "").strip()
+    if not raw:
+        return None
+    cleaned = _ORCID_URL_RE.sub("", raw).strip().strip("/")
+    m = _ORCID_ID_RE.search(cleaned) or _ORCID_ID_RE.search(raw)
+    if not m:
+        return cleaned or None
+    a, b, c, d = m.group(1), m.group(2), m.group(3), m.group(4).upper()
+    return f"{a}-{b}-{c}-{d}"
 
 
 def metadata_to_form_defaults(data: dict[str, Any]) -> dict[str, Any]:
@@ -24,7 +51,15 @@ def metadata_to_form_defaults(data: dict[str, Any]) -> dict[str, Any]:
         references = []
 
     dates = data.get("dates") if isinstance(data.get("dates"), dict) else {}
-    authors = data.get("authors") if isinstance(data.get("authors"), list) else []
+    authors_raw = data.get("authors") if isinstance(data.get("authors"), list) else []
+    authors: list[Any] = []
+    for author in authors_raw:
+        if not isinstance(author, dict):
+            authors.append(author)
+            continue
+        item = dict(author)
+        item["orcid"] = normalize_orcid(author.get("orcid"))
+        authors.append(item)
 
     return {
         "title_eng": str(data.get("title_eng") or ""),
@@ -49,18 +84,40 @@ def _collect_references(
     form: MultiDict[str, str],
     base: dict[str, Any],
 ) -> list[str]:
-    """Собрать литературу из отдельных полей ref_value_{i} (или legacy textarea)."""
+    """Собрать литературу из отдельных полей ref_value_{i} (или legacy textarea).
+
+    Приоритет:
+    1) ``references_blob`` — явный снимок из Raw editor / синхронизации перед submit
+    2) индексированные ``ref_value_{i}`` (+ ``references_count``)
+    3) legacy textarea ``references_eng``
+    """
+    # Явный blob из UI (одна строка = один источник) — не смешивать с base JSON
+    if form.get("references_blob_active") == "1" and form.get("references_blob") is not None:
+        return _split_lines(form.get("references_blob") or "")
+
     base_refs = base.get("references_eng") or []
     if not isinstance(base_refs, list):
         base_refs = _split_lines(str(base_refs)) if base_refs else []
 
-    count = len(base_refs)
-    try:
-        count = max(count, int(form.get("references_count") or count))
-    except ValueError:
-        pass
+    form_count_raw = form.get("references_count")
+    has_indexed_keys = any(
+        key.startswith("ref_value_") and key[len("ref_value_") :].isdigit()
+        for key in form.keys()
+    )
 
-    # Учитываем поля, добавленные в UI сверх исходного списка
+    # Если форма прислала count/поля — доверяем только форме (не max с len(base)):
+    # иначе при сокращении списка «хвост» из исходного JSON мог мешать индексации.
+    count = 0
+    if form_count_raw is not None:
+        try:
+            count = max(0, int(form_count_raw))
+        except ValueError:
+            count = 0
+    elif has_indexed_keys:
+        count = 0
+    else:
+        count = len(base_refs)
+
     for key in form.keys():
         if not key.startswith("ref_value_"):
             continue
@@ -68,9 +125,10 @@ def _collect_references(
         if suffix.isdigit():
             count = max(count, int(suffix) + 1)
 
-    # Indexed fields from the review UI
-    has_indexed = any(form.get(f"ref_value_{i}") is not None for i in range(max(count, 1)))
-    if has_indexed or form.get("references_count") is not None:
+    has_indexed = any(
+        form.get(f"ref_value_{i}") is not None for i in range(max(count, 1))
+    )
+    if has_indexed or form_count_raw is not None:
         refs: list[str] = []
         for i in range(count):
             raw = form.get(f"ref_value_{i}")
@@ -104,11 +162,7 @@ def apply_form_to_metadata(
     }
 
     authors_in = base.get("authors") if isinstance(base.get("authors"), list) else []
-    count = max(len(authors_in), 0)
-    try:
-        count = max(count, int(form.get("authors_count") or count))
-    except ValueError:
-        pass
+    count = _authors_count_from_form(form, fallback=len(authors_in))
 
     authors: list[dict[str, Any]] = []
     for i in range(count):
@@ -128,18 +182,28 @@ def apply_form_to_metadata(
         if not full and (given or surname):
             full = f"{given} {surname}".strip()
         email = (form.get(prefix + "email") or "").strip() or None
-        orcid = (form.get(prefix + "orcid") or "").strip() or None
+        orcid = normalize_orcid(form.get(prefix + "orcid"))
 
         affiliations = _collect_author_affiliations(form, prefix, base_affs)
-        has_aff_fields = any(
-            form.get(f"{prefix}aff_{j}_org_en") is not None
-            or form.get(f"{prefix}aff_{j}_address_en") is not None
-            or form.get(f"{prefix}org_en") is not None
-            or form.get(f"{prefix}address_en") is not None
-            for j in range(max(len(base_affs), 1))
-        )
+        has_author_fields = any(
+            form.get(prefix + key) is not None
+            for key in (
+                "given_en",
+                "surname_en",
+                "full_name_en",
+                "email",
+                "orcid",
+                "org_en",
+                "address_en",
+                "aff_count",
+            )
+        ) or any(key.startswith(prefix + "aff_") for key in form.keys())
 
-        if not any([given, surname, full, email, orcid]) and not has_aff_fields:
+        # Пустой слот из UI (после «Удалить» / незаполненный «Добавить») не
+        # восстанавливаем из base — иначе удалённые авторы возвращаются.
+        if not any([given, surname, full, email, orcid]) and not affiliations:
+            if has_author_fields:
+                continue
             if base_author:
                 authors.append(dict(base_author))
             continue
@@ -160,17 +224,41 @@ def apply_form_to_metadata(
     return data
 
 
+def _authors_count_from_form(
+    form: MultiDict[str, str],
+    *,
+    fallback: int = 0,
+) -> int:
+    """Число авторов: authors_count + индексы author_{i}_* (как у литературы)."""
+    count = 0
+    try:
+        count = max(count, int(form.get("authors_count") or 0))
+    except ValueError:
+        pass
+    for key in form.keys():
+        m = _AUTHOR_KEY_RE.match(key)
+        if m:
+            count = max(count, int(m.group(1)) + 1)
+    if count == 0 and fallback > 0:
+        return fallback
+    return count
+
+
 def _collect_author_affiliations(
     form: MultiDict[str, str],
     prefix: str,
     base_affs: list[Any],
 ) -> list[dict[str, Any]]:
     """Собрать все организации автора из author_{i}_aff_{j}_* (и legacy org_en)."""
-    aff_count = len(base_affs) if base_affs else 0
-    try:
-        aff_count = max(aff_count, int(form.get(prefix + "aff_count") or aff_count))
-    except ValueError:
-        pass
+    form_aff_count = form.get(prefix + "aff_count")
+    aff_count = 0
+    if form_aff_count is not None:
+        try:
+            aff_count = max(0, int(form_aff_count))
+        except ValueError:
+            aff_count = 0
+    else:
+        aff_count = len(base_affs) if base_affs else 0
 
     for key in form.keys():
         marker = prefix + "aff_"
@@ -208,15 +296,15 @@ def _collect_author_affiliations(
         return [dict(a) for a in base_affs if isinstance(a, dict)]
 
     out: list[dict[str, Any]] = []
-    for j in range(max(aff_count, 1)):
+    for j in range(aff_count):
         base_aff = (
             base_affs[j] if j < len(base_affs) and isinstance(base_affs[j], dict) else {}
         )
         org_key = f"{prefix}aff_{j}_org_en"
         addr_key = f"{prefix}aff_{j}_address_en"
         if form.get(org_key) is None and form.get(addr_key) is None:
-            # Поля не пришли — сохранить исходную запись, если есть
-            if base_aff:
+            # Явный aff_count из UI — не восстанавливать удалённые слоты из base
+            if form_aff_count is None and base_aff:
                 out.append(dict(base_aff))
             continue
         org = (form.get(org_key) or "").strip()

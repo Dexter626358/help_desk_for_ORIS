@@ -12,6 +12,7 @@ def build_update_payload(
     article_id: str,
     data: dict[str, Any],
     approved: bool = True,
+    include_references: bool = True,
 ) -> dict[str, Any]:
     """Плоский ENG JSON → структура, совместимая с PLATFORM_JSON_MAPPING."""
     changes: list[dict[str, Any]] = []
@@ -46,18 +47,19 @@ def build_update_payload(
             }
         )
 
-    refs = data.get("references_eng") or []
-    if isinstance(refs, list):
-        for idx, ref in enumerate(refs):
-            text = str(ref).strip()
-            if text:
-                changes.append(
-                    {
-                        "field": f"references[{idx}].text.en",
-                        "value": text,
-                        "source": "eng_json",
-                    }
-                )
+    if include_references:
+        refs = data.get("references_eng") or []
+        if isinstance(refs, list):
+            for idx, ref in enumerate(refs):
+                text = str(ref).strip()
+                if text:
+                    changes.append(
+                        {
+                            "field": f"references[{idx}].text.en",
+                            "value": text,
+                            "source": "eng_json",
+                        }
+                    )
 
     authors = data.get("authors") if isinstance(data.get("authors"), list) else []
     for idx, author in enumerate(authors):
@@ -101,19 +103,27 @@ def build_update_payload(
 
     settings = get_settings()
     apply_on = bool(settings.platform_apply_enabled)
+    note = (
+        "Готово к отправке на платформу."
+        if apply_on
+        else "PLATFORM_APPLY_ENABLED выключен; payload сохранён локально (dry-run)."
+    )
+    if not include_references:
+        note = (
+            f"{note} Литература не включена в отправку."
+            if note
+            else "Литература не включена в отправку."
+        )
     return {
         "article_id": article_id,
         "article_url": data.get("article_url"),
         "approved": approved,
         "platform_apply_enabled": apply_on,
         "dry_run": not apply_on,
+        "include_references": bool(include_references),
         "changes": changes,
         "source_metadata": data,
-        "note": (
-            "Готово к отправке на платформу."
-            if apply_on
-            else "PLATFORM_APPLY_ENABLED выключен; payload сохранён локально (dry-run)."
-        ),
+        "note": note,
     }
 
 
@@ -126,5 +136,6 @@ def summarize_payload(payload: dict[str, Any]) -> dict[str, Any]:
         "approved": bool(payload.get("approved")),
         "dry_run": bool(payload.get("dry_run", True)),
         "platform_apply_enabled": bool(payload.get("platform_apply_enabled")),
+        "include_references": bool(payload.get("include_references", True)),
         "note": payload.get("note"),
     }
