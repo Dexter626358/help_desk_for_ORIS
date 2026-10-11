@@ -5,7 +5,7 @@
 {% block topbar %}Сверка ENG-метаданных{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/eng_metadata.css') }}?v=refs-aff-3" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/eng_metadata.css') }}?v=refs-pdf-1" />
 {% endblock %}
 
 {% block content %}
@@ -71,7 +71,6 @@
           action="{{ url_for('eng_metadata.save_article', session_id=session_id, article_id=article_id) }}"
           id="eng-meta-form">
       {{ csrf_field() }}
-      <input type="hidden" name="authors_count" value="{{ form.authors|length }}" />
 
       <div class="eng-toolbar">
         <label class="eng-toolbar-check">
@@ -104,86 +103,113 @@
         </article>
 
         {# —— Authors —— #}
-        {% for author in form.authors %}
-        {% set i = loop.index0 %}
-        {% set affs = author.affiliations if author.affiliations else [{}] %}
-        <article class="eng-field-card" data-field-card>
-          <header class="eng-field-head">
-            <label class="eng-field-select">
-              <input type="checkbox" class="include-cb" checked>
-              <span class="eng-field-title">Автор {{ loop.index }}</span>
-            </label>
-            <div class="eng-field-meta">
-              <span class="eng-badge eng-badge-replace">Из архива</span>
-            </div>
-          </header>
-          <div class="eng-author-grid">
-            <div class="eng-mini">
-              <label class="eng-pane-label">Given (EN)</label>
-              <input type="text" name="author_{{ i }}_given_en" value="{{ author.given_en or '' }}" class="eng-pane-input" />
-            </div>
-            <div class="eng-mini">
-              <label class="eng-pane-label">Surname (EN)</label>
-              <input type="text" name="author_{{ i }}_surname_en" value="{{ author.surname_en or '' }}" class="eng-pane-input" />
-            </div>
-            <div class="eng-mini eng-mini-full">
-              <label class="eng-pane-label">Full name (EN)</label>
-              <input type="text" name="author_{{ i }}_full_name_en" value="{{ author.full_name_en or '' }}" class="eng-pane-input" />
-            </div>
-            <div class="eng-mini">
-              <label class="eng-pane-label">Email</label>
-              <input type="text" name="author_{{ i }}_email" value="{{ author.email or '' }}" class="eng-pane-input" />
-            </div>
-            <div class="eng-mini">
-              <label class="eng-pane-label">ORCID</label>
-              <input type="text" name="author_{{ i }}_orcid" value="{{ author.orcid or '' }}" class="eng-pane-input" />
-            </div>
-          </div>
-          <input type="hidden" name="author_{{ i }}_aff_count" value="{{ affs|length }}" />
-          {% for aff in affs %}
-          {% set j = loop.index0 %}
-          <div class="eng-aff-block">
-            <div class="eng-aff-title">Организация {{ loop.index }}</div>
-            <div class="eng-author-grid">
-              <div class="eng-mini eng-mini-full">
-                <label class="eng-pane-label">Organization (EN)</label>
-                <input type="text"
-                       name="author_{{ i }}_aff_{{ j }}_org_en"
-                       value="{{ aff.organization_en or '' }}"
-                       class="eng-pane-input" />
+        {% set authors_list = form.authors if form.authors else [{}] %}
+        <section class="eng-authors-panel" id="eng-authors-panel">
+          <input type="hidden" name="authors_count" id="authors_count" value="{{ authors_list|length }}" />
+          <div class="eng-authors-list" id="eng-authors-list">
+            {% for author in authors_list %}
+            {% set i = loop.index0 %}
+            {% set affs = author.affiliations if author.affiliations else [{}] %}
+            <article class="eng-field-card" data-field-card data-author-card>
+              <header class="eng-field-head">
+                <label class="eng-field-select">
+                  <input type="checkbox" class="include-cb" checked>
+                  <span class="eng-field-title">Автор {{ loop.index }}</span>
+                </label>
+                <div class="eng-field-meta">
+                  <span class="eng-badge eng-badge-replace">Из архива</span>
+                  <button type="button" class="eng-btn eng-btn-sm eng-ref-remove-btn" data-author-remove>
+                    Удалить автора
+                  </button>
+                </div>
+              </header>
+              <div class="eng-author-grid">
+                <div class="eng-mini">
+                  <label class="eng-pane-label">Given (EN)</label>
+                  <input type="text" name="author_{{ i }}_given_en" value="{{ author.given_en or '' }}" class="eng-pane-input" />
+                </div>
+                <div class="eng-mini">
+                  <label class="eng-pane-label">Surname (EN)</label>
+                  <input type="text" name="author_{{ i }}_surname_en" value="{{ author.surname_en or '' }}" class="eng-pane-input" />
+                </div>
+                <div class="eng-mini eng-mini-full">
+                  <label class="eng-pane-label">Full name (EN)</label>
+                  <input type="text" name="author_{{ i }}_full_name_en" value="{{ author.full_name_en or '' }}" class="eng-pane-input" />
+                </div>
+                <div class="eng-mini">
+                  <label class="eng-pane-label">Email</label>
+                  <input type="text" name="author_{{ i }}_email" value="{{ author.email or '' }}" class="eng-pane-input" />
+                </div>
+                <div class="eng-mini">
+                  <label class="eng-pane-label">ORCID</label>
+                  <input type="text" name="author_{{ i }}_orcid" value="{{ author.orcid or '' }}" class="eng-pane-input" />
+                </div>
               </div>
-              <div class="eng-mini eng-mini-full">
-                <label class="eng-pane-label">Address (EN)</label>
-                <input type="text"
-                       name="author_{{ i }}_aff_{{ j }}_address_en"
-                       value="{{ aff.address_en or '' }}"
-                       class="eng-pane-input" />
+              <input type="hidden" name="author_{{ i }}_aff_count" value="{{ affs|length }}" data-aff-count />
+              <div class="eng-aff-list" data-aff-list>
+                {% for aff in affs %}
+                {% set j = loop.index0 %}
+                <div class="eng-aff-block" data-aff-block>
+                  <div class="eng-aff-head">
+                    <div class="eng-aff-title">Организация {{ loop.index }}</div>
+                    <button type="button" class="eng-btn eng-btn-sm eng-ref-remove-btn" data-aff-remove>
+                      Удалить организацию
+                    </button>
+                  </div>
+                  <div class="eng-author-grid">
+                    <div class="eng-mini eng-mini-full">
+                      <label class="eng-pane-label">Organization (EN)</label>
+                      <input type="text"
+                             name="author_{{ i }}_aff_{{ j }}_org_en"
+                             value="{{ aff.organization_en or '' }}"
+                             class="eng-pane-input" />
+                    </div>
+                    <div class="eng-mini eng-mini-full">
+                      <label class="eng-pane-label">Address (EN)</label>
+                      <input type="text"
+                             name="author_{{ i }}_aff_{{ j }}_address_en"
+                             value="{{ aff.address_en or '' }}"
+                             class="eng-pane-input" />
+                    </div>
+                  </div>
+                  {% if aff.organization_ru or aff.address_ru %}
+                  <div class="eng-ru-comment">
+                    <div class="eng-ru-comment-label">RU (справочно)</div>
+                    <div class="eng-ru-comment-body">
+                      {%- if aff.organization_ru -%}{{ aff.organization_ru }}{%- endif -%}
+                      {%- if aff.organization_ru and aff.address_ru %}; {% endif -%}
+                      {%- if aff.address_ru -%}{{ aff.address_ru }}{%- endif -%}
+                    </div>
+                  </div>
+                  {% endif %}
+                </div>
+                {% endfor %}
               </div>
-            </div>
-            {% if aff.organization_ru or aff.address_ru %}
-            <div class="eng-ru-comment">
-              <div class="eng-ru-comment-label">RU (справочно)</div>
-              <div class="eng-ru-comment-body">
-                {%- if aff.organization_ru -%}{{ aff.organization_ru }}{%- endif -%}
-                {%- if aff.organization_ru and aff.address_ru %}; {% endif -%}
-                {%- if aff.address_ru -%}{{ aff.address_ru }}{%- endif -%}
+              <div class="eng-aff-toolbar">
+                <button type="button" class="eng-btn eng-btn-sm" data-aff-add>
+                  + Добавить организацию
+                </button>
               </div>
-            </div>
-            {% endif %}
+              {% if author.full_name_ru %}
+              <div class="eng-ru-comment" data-author-ru>
+                <div class="eng-ru-comment-label">ФИО RU (справочно)</div>
+                <div class="eng-ru-comment-body">{{ author.full_name_ru }}</div>
+              </div>
+              {% endif %}
+            </article>
+            {% endfor %}
           </div>
-          {% endfor %}
-          {% if author.full_name_ru %}
-          <div class="eng-ru-comment">
-            <div class="eng-ru-comment-label">ФИО RU (справочно)</div>
-            <div class="eng-ru-comment-body">{{ author.full_name_ru }}</div>
+          <div class="eng-authors-toolbar">
+            <button type="button" class="eng-btn eng-btn-sm" id="eng-authors-add">
+              + Добавить автора
+            </button>
           </div>
-          {% endif %}
-        </article>
-        {% else %}
-        <article class="eng-field-card">
-          <p class="muted" style="margin:0;">Авторы в JSON отсутствуют.</p>
-        </article>
-        {% endfor %}
+          <p class="muted eng-authors-note">
+            Добавление и удаление авторов меняет локальный JSON. На Платформе авторы
+            сопоставляются по порядку: число и порядок должны совпадать со статьёй в OJS.
+            Несколько организаций одного автора при отправке склеиваются в одно поле через «; ».
+          </p>
+        </section>
 
         {# —— Dates —— #}
         <article class="eng-field-card" data-field-card>
@@ -254,10 +280,16 @@
         <section class="eng-refs-panel" data-field-card id="eng-refs-panel">
           <header class="eng-field-head">
             <label class="eng-field-select">
-              <input type="checkbox" class="include-cb" checked>
+              <input type="checkbox"
+                     class="include-cb"
+                     name="include_references"
+                     id="include_references"
+                     value="1"
+                     checked>
               <span class="eng-field-title">Литература</span>
             </label>
             <div class="eng-field-meta">
+              <span class="eng-chip" id="eng-refs-include-chip">отправлять на Платформу</span>
               <span class="eng-chip" id="eng-refs-count-chip">
                 <span id="eng-refs-count-num">{{ refs|length }}</span>
                 <span id="eng-refs-count-word">
@@ -270,7 +302,13 @@
               </span>
             </div>
           </header>
+          <p class="muted eng-refs-include-hint">
+            Снимите галочку, если литературу нужно сохранить в черновике, но не отправлять
+            вместе с остальными метаданными.
+          </p>
           <input type="hidden" name="references_count" id="references_count" value="{{ refs|length }}" />
+          <input type="hidden" name="references_blob_active" id="references_blob_active" value="0" />
+          <input type="hidden" name="references_blob" id="references_blob" value="" />
           <div class="eng-refs-pairs" id="eng-refs-pairs">
             {% for ref in refs %}
             <article class="eng-ref-pair" data-ref-pair>
@@ -289,9 +327,66 @@
             </article>
             {% endfor %}
           </div>
-          <div class="eng-refs-toolbar">
+          <div class="eng-refs-raw-panel" id="eng-refs-raw-panel" hidden
+               data-unwrap-url="{{ url_for('eng_metadata.unwrap_references') }}">
+            <div class="eng-refs-raw-head">
+              <p class="muted eng-refs-raw-hint">
+                Одна строка = один источник. Можно вставить текст из PDF — затем
+                «Убрать переносы строк». Пустые строки игнорируются при сохранении.
+              </p>
+              <span class="eng-chip" id="eng-refs-raw-count-chip">
+                <span id="eng-refs-raw-count-num">0</span>
+                <span id="eng-refs-raw-count-word"> источников</span>
+              </span>
+            </div>
+            <div class="eng-refs-raw-tools">
+              <button type="button" class="eng-btn eng-btn-sm" id="eng-refs-raw-unwrap">
+                Убрать переносы строк
+              </button>
+              <button type="button" class="eng-btn eng-btn-sm" id="eng-refs-raw-resplit">
+                Разбить по источникам
+              </button>
+              <button type="button" class="eng-btn eng-btn-sm" id="eng-refs-raw-strip-nums">
+                Удалить нумерацию
+              </button>
+              <button type="button" class="eng-btn eng-btn-sm" id="eng-refs-raw-undo" disabled>
+                Отменить обработку
+              </button>
+              <button type="button" class="eng-btn eng-btn-sm" id="eng-refs-raw-merge-prev">
+                Объединить с предыдущей
+              </button>
+              <button type="button" class="eng-btn eng-btn-sm" id="eng-refs-raw-split-here">
+                Разделить здесь
+              </button>
+            </div>
+            <p class="muted eng-refs-raw-status" id="eng-refs-raw-status" hidden></p>
+            <div class="eng-refs-raw-editor">
+              <pre class="eng-refs-raw-gutter" id="eng-refs-raw-gutter" aria-hidden="true">1</pre>
+              <textarea
+                id="eng-refs-raw"
+                class="eng-pane-edit eng-refs-raw-edit"
+                rows="16"
+                placeholder="Вставьте список литературы из PDF или по одному источнику на строку."
+                wrap="off"></textarea>
+            </div>
+            <div class="eng-refs-raw-actions">
+              <button type="button" class="eng-btn eng-btn-sm eng-btn-primary" id="eng-refs-raw-apply">
+                Применить
+              </button>
+              <button type="button" class="eng-btn eng-btn-sm" id="eng-refs-raw-cancel">
+                Отмена
+              </button>
+            </div>
+          </div>
+          <div class="eng-refs-toolbar" id="eng-refs-toolbar">
             <button type="button" class="eng-btn eng-btn-sm" id="eng-refs-add">
               + Добавить в конец
+            </button>
+            <button type="button" class="eng-btn eng-btn-sm" id="eng-refs-strip-nums">
+              Удалить нумерацию
+            </button>
+            <button type="button" class="eng-btn eng-btn-sm" id="eng-refs-raw-open">
+              Raw editor
             </button>
           </div>
         </section>
@@ -344,15 +439,25 @@
         cb.checked = toggle.checked;
         var card = cb.closest("[data-field-card]");
         if (card) card.classList.toggle("is-unchecked", !cb.checked);
+        if (cb.id === "include_references") syncRefsIncludeChip(cb.checked);
       });
     });
   }
+  function syncRefsIncludeChip(checked) {
+    var chip = document.getElementById("eng-refs-include-chip");
+    if (!chip) return;
+    chip.textContent = checked ? "отправлять на Платформу" : "не отправлять";
+  }
+
   document.querySelectorAll(".include-cb").forEach(function (cb) {
     cb.addEventListener("change", function () {
       var card = cb.closest("[data-field-card]");
       if (card) card.classList.toggle("is-unchecked", !cb.checked);
+      if (cb.id === "include_references") syncRefsIncludeChip(cb.checked);
     });
   });
+  var refsInclude = document.getElementById("include_references");
+  if (refsInclude) syncRefsIncludeChip(refsInclude.checked);
 
   document.querySelectorAll("[data-confirm]").forEach(function (btn) {
     btn.addEventListener("click", function (e) {
@@ -485,6 +590,670 @@
       var container = document.getElementById("eng-refs-pairs");
       if (!container) return;
       insertRefAt(container.querySelectorAll("[data-ref-pair]").length);
+    });
+  }
+
+  function collectRefsFromCards() {
+    var lines = [];
+    document.querySelectorAll("#eng-refs-pairs [data-ref-pair] textarea").forEach(function (ta) {
+      var text = String(ta.value || "").replace(/\s*\n\s*/g, " ").trim();
+      if (text) lines.push(text);
+    });
+    return lines;
+  }
+
+  function rebuildRefsFromLines(lines) {
+    var container = document.getElementById("eng-refs-pairs");
+    if (!container) return;
+    container.innerHTML = "";
+    var list = lines.length ? lines : [""];
+    list.forEach(function (line, i) {
+      var article = createRefPair(i);
+      var ta = article.querySelector("textarea");
+      if (ta) {
+        ta.value = line;
+        autosizeTextarea(ta);
+      }
+      container.appendChild(article);
+    });
+    reindexRefs();
+    rebuildInsertSlots();
+  }
+
+  function setRefsRawMode(on) {
+    var pairs = document.getElementById("eng-refs-pairs");
+    var rawPanel = document.getElementById("eng-refs-raw-panel");
+    var toolbar = document.getElementById("eng-refs-toolbar");
+    if (pairs) pairs.hidden = !!on;
+    if (rawPanel) rawPanel.hidden = !on;
+    if (toolbar) toolbar.hidden = !!on;
+    var panel = document.getElementById("eng-refs-panel");
+    if (panel) panel.classList.toggle("is-raw-mode", !!on);
+  }
+
+  function countRawRefLines(text) {
+    return String(text || "")
+      .split(/\r?\n/)
+      .map(function (line) { return line.trim(); })
+      .filter(Boolean).length;
+  }
+
+  function syncRawRefsCount() {
+    var raw = document.getElementById("eng-refs-raw");
+    var n = countRawRefLines(raw ? raw.value : "");
+    var numEl = document.getElementById("eng-refs-raw-count-num");
+    var wordEl = document.getElementById("eng-refs-raw-count-word");
+    if (numEl) numEl.textContent = String(n);
+    if (wordEl) wordEl.textContent = refsWord(n);
+  }
+
+  function syncRawRefsGutter() {
+    var raw = document.getElementById("eng-refs-raw");
+    var gutter = document.getElementById("eng-refs-raw-gutter");
+    if (!raw || !gutter) return;
+    var rows = String(raw.value || "").split(/\n/);
+    if (!rows.length) rows = [""];
+    var n = 0;
+    var labels = rows.map(function (line) {
+      if (!String(line).trim()) return " ";
+      n += 1;
+      return String(n);
+    });
+    gutter.textContent = labels.join("\n");
+    gutter.scrollTop = raw.scrollTop;
+  }
+
+  function syncRawRefsUi() {
+    syncRawRefsCount();
+    syncRawRefsGutter();
+  }
+
+  function openRefsRawEditor() {
+    var raw = document.getElementById("eng-refs-raw");
+    if (!raw) return;
+    raw.value = collectRefsFromCards().join("\n");
+    setRefsRawMode(true);
+    syncRawRefsUi();
+    raw.focus();
+  }
+
+  function applyRefsRawEditor() {
+    var raw = document.getElementById("eng-refs-raw");
+    if (!raw) return;
+    var lines = String(raw.value || "")
+      .split(/\r?\n/)
+      .map(function (line) { return line.trim(); })
+      .filter(Boolean);
+    rebuildRefsFromLines(lines);
+    setRefsRawMode(false);
+    var blob = document.getElementById("references_blob");
+    var active = document.getElementById("references_blob_active");
+    var countInput = document.getElementById("references_count");
+    if (blob) blob.value = lines.join("\n");
+    if (active) active.value = "1";
+    if (countInput) countInput.value = String(lines.length);
+  }
+
+  function cancelRefsRawEditor() {
+    setRefsRawMode(false);
+  }
+
+  var rawOpenBtn = document.getElementById("eng-refs-raw-open");
+  if (rawOpenBtn) {
+    rawOpenBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      openRefsRawEditor();
+    });
+  }
+  var rawApplyBtn = document.getElementById("eng-refs-raw-apply");
+  if (rawApplyBtn) {
+    rawApplyBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      applyRefsRawEditor();
+    });
+  }
+  var rawCancelBtn = document.getElementById("eng-refs-raw-cancel");
+  if (rawCancelBtn) {
+    rawCancelBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      cancelRefsRawEditor();
+    });
+  }
+  var rawTextarea = document.getElementById("eng-refs-raw");
+  var rawPanelEl = document.getElementById("eng-refs-raw-panel");
+  var refsRawState = { rawText: null, processed: false };
+
+  function setRawUndoEnabled(on) {
+    var btn = document.getElementById("eng-refs-raw-undo");
+    if (btn) btn.disabled = !on;
+  }
+
+  function setRawStatus(message) {
+    var el = document.getElementById("eng-refs-raw-status");
+    if (!el) return;
+    if (!message) {
+      el.hidden = true;
+      el.textContent = "";
+      return;
+    }
+    el.hidden = false;
+    el.textContent = message;
+  }
+
+  function csrfToken() {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.content) return meta.content;
+    var input = document.querySelector('input[name="csrf_token"]');
+    return input ? input.value : "";
+  }
+
+  function nonEmptyRawLines(text) {
+    return String(text || "")
+      .split(/\r?\n/)
+      .map(function (line) { return line.trim(); })
+      .filter(Boolean);
+  }
+
+  function cursorLineIndex(ta) {
+    var pos = ta.selectionStart || 0;
+    return String(ta.value || "").slice(0, pos).split(/\n/).length - 1;
+  }
+
+  function applyProcessedText(text, meta) {
+    if (!rawTextarea) return;
+    rawTextarea.value = text;
+    syncRawRefsUi();
+    var count = (meta && meta.count != null) ? meta.count : countRawRefLines(text);
+    var joined = (meta && meta.joined_breaks != null) ? meta.joined_breaks : 0;
+    setRawStatus(
+      "Обнаружено источников: " + count +
+      (joined ? ". Удалено визуальных переносов строк: " + joined + "." : ".")
+    );
+  }
+
+  function unwrapRawReferences() {
+    if (!rawTextarea || !rawPanelEl) return Promise.resolve();
+    var url = rawPanelEl.getAttribute("data-unwrap-url");
+    if (!url) return Promise.resolve();
+    var current = rawTextarea.value;
+    if (!String(current || "").trim()) {
+      setRawStatus("Вставьте текст литературы.");
+      return Promise.resolve();
+    }
+    if (refsRawState.rawText === null) {
+      refsRawState.rawText = current;
+    }
+    setRawStatus("Обработка…");
+    return fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "X-CSRFToken": csrfToken()
+      },
+      body: JSON.stringify({ text: current })
+    })
+      .then(function (resp) {
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        return resp.json();
+      })
+      .then(function (data) {
+        refsRawState.processed = true;
+        setRawUndoEnabled(true);
+        applyProcessedText(data.text || "", data);
+      })
+      .catch(function () {
+        setRawStatus("Не удалось обработать текст. Проверьте соединение и повторите.");
+      });
+  }
+
+  function undoRawProcessing() {
+    if (!rawTextarea || refsRawState.rawText === null) return;
+    rawTextarea.value = refsRawState.rawText;
+    refsRawState.processed = false;
+    setRawUndoEnabled(false);
+    syncRawRefsUi();
+    setRawStatus("Восстановлен исходный текст.");
+  }
+
+  function mergeRawWithPrevious() {
+    if (!rawTextarea) return;
+    var lines = String(rawTextarea.value || "").split(/\n/);
+    var idx = cursorLineIndex(rawTextarea);
+    while (idx > 0 && !String(lines[idx] || "").trim()) idx -= 1;
+    var prev = idx - 1;
+    while (prev >= 0 && !String(lines[prev] || "").trim()) prev -= 1;
+    if (prev < 0 || idx <= prev) {
+      setRawStatus("Поставьте курсор на строку источника, которую нужно объединить с предыдущей.");
+      return;
+    }
+    if (refsRawState.rawText === null) refsRawState.rawText = rawTextarea.value;
+    lines[prev] = String(lines[prev]).replace(/\s+$/, "") + " " + String(lines[idx]).replace(/^\s+/, "");
+    lines.splice(idx, 1);
+    rawTextarea.value = lines.join("\n");
+    refsRawState.processed = true;
+    setRawUndoEnabled(true);
+    syncRawRefsUi();
+    setRawStatus("Строки объединены. Источников: " + countRawRefLines(rawTextarea.value) + ".");
+  }
+
+  function splitRawHere() {
+    if (!rawTextarea) return;
+    var value = String(rawTextarea.value || "");
+    var pos = rawTextarea.selectionStart || 0;
+    if (pos <= 0 || pos >= value.length) {
+      setRawStatus("Поставьте курсор в место разделения внутри строки источника.");
+      return;
+    }
+    if (value[pos] === "\n" || value[pos - 1] === "\n") {
+      setRawStatus("Курсор уже на границе строк.");
+      return;
+    }
+    if (refsRawState.rawText === null) refsRawState.rawText = value;
+    var left = value.slice(0, pos).replace(/\s+$/, "");
+    var right = value.slice(pos).replace(/^\s+/, "");
+    rawTextarea.value = left + "\n" + right;
+    refsRawState.processed = true;
+    setRawUndoEnabled(true);
+    syncRawRefsUi();
+    setRawStatus("Строка разделена. Источников: " + countRawRefLines(rawTextarea.value) + ".");
+  }
+
+  if (rawTextarea) {
+    rawTextarea.addEventListener("input", syncRawRefsUi);
+    rawTextarea.addEventListener("scroll", function () {
+      var gutter = document.getElementById("eng-refs-raw-gutter");
+      if (gutter) gutter.scrollTop = rawTextarea.scrollTop;
+    });
+    rawTextarea.addEventListener("paste", function () {
+      window.setTimeout(function () {
+        var text = rawTextarea.value || "";
+        var lines = text.split(/\n/).length;
+        var nonEmpty = nonEmptyRawLines(text).length;
+        // Автообработка, если вставлено несколько физических строк (типичный PDF-copy)
+        if (lines >= 4 && nonEmpty >= 2) {
+          unwrapRawReferences();
+        }
+      }, 0);
+    });
+  }
+
+  function stripLeadingRefNumber(line) {
+    return String(line || "")
+      .replace(/^(?:\[\d+\]|\d+[.)]|№\s*\d+[.)]?)\s+/, "")
+      .trim();
+  }
+
+  function stripNumbersFromLines(lines) {
+    var changed = 0;
+    var out = lines.map(function (line) {
+      var trimmed = String(line || "").trim();
+      if (!trimmed) return trimmed;
+      var cleaned = stripLeadingRefNumber(trimmed);
+      if (cleaned !== trimmed) changed += 1;
+      return cleaned;
+    });
+    return { lines: out, changed: changed };
+  }
+
+  function stripReferenceNumbersInUi() {
+    var rawPanel = document.getElementById("eng-refs-raw-panel");
+    var inRaw = rawPanel && !rawPanel.hidden;
+    if (inRaw && rawTextarea) {
+      if (refsRawState.rawText === null) refsRawState.rawText = rawTextarea.value;
+      var rawLines = String(rawTextarea.value || "").split(/\r?\n/);
+      var result = stripNumbersFromLines(rawLines);
+      rawTextarea.value = result.lines.join("\n");
+      refsRawState.processed = true;
+      setRawUndoEnabled(true);
+      syncRawRefsUi();
+      setRawStatus(
+        result.changed
+          ? "Нумерация удалена у " + result.changed + " источник(ов)."
+          : "Нумерация в начале строк не найдена."
+      );
+      return;
+    }
+    var cards = document.querySelectorAll("#eng-refs-pairs [data-ref-pair] textarea");
+    if (!cards.length) return;
+    var before = collectRefsFromCards();
+    var resultCards = stripNumbersFromLines(before);
+    if (!resultCards.changed) return;
+    rebuildRefsFromLines(resultCards.lines.filter(Boolean));
+    var blob = document.getElementById("references_blob");
+    var active = document.getElementById("references_blob_active");
+    var countInput = document.getElementById("references_count");
+    if (blob) blob.value = resultCards.lines.filter(Boolean).join("\n");
+    if (active) active.value = "1";
+    if (countInput) countInput.value = String(resultCards.lines.filter(Boolean).length);
+  }
+
+  var unwrapBtn = document.getElementById("eng-refs-raw-unwrap");
+  if (unwrapBtn) {
+    unwrapBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      unwrapRawReferences();
+    });
+  }
+  var resplitBtn = document.getElementById("eng-refs-raw-resplit");
+  if (resplitBtn) {
+    resplitBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      unwrapRawReferences();
+    });
+  }
+  var stripNumsRawBtn = document.getElementById("eng-refs-raw-strip-nums");
+  if (stripNumsRawBtn) {
+    stripNumsRawBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      stripReferenceNumbersInUi();
+    });
+  }
+  var stripNumsBtn = document.getElementById("eng-refs-strip-nums");
+  if (stripNumsBtn) {
+    stripNumsBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      stripReferenceNumbersInUi();
+    });
+  }
+  var undoBtn = document.getElementById("eng-refs-raw-undo");
+  if (undoBtn) {
+    undoBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      undoRawProcessing();
+    });
+  }
+  var mergeBtn = document.getElementById("eng-refs-raw-merge-prev");
+  if (mergeBtn) {
+    mergeBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      mergeRawWithPrevious();
+    });
+  }
+  var splitBtn = document.getElementById("eng-refs-raw-split-here");
+  if (splitBtn) {
+    splitBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      splitRawHere();
+    });
+  }
+
+  function collectRefsForSubmit() {
+    var rawPanel = document.getElementById("eng-refs-raw-panel");
+    if (rawPanel && !rawPanel.hidden) {
+      var raw = document.getElementById("eng-refs-raw");
+      return String(raw && raw.value || "")
+        .split(/\r?\n/)
+        .map(function (line) { return line.trim(); })
+        .filter(Boolean);
+    }
+    return collectRefsFromCards();
+  }
+
+  function syncReferencesBlobForSubmit() {
+    var blob = document.getElementById("references_blob");
+    var active = document.getElementById("references_blob_active");
+    var countInput = document.getElementById("references_count");
+    var lines = collectRefsForSubmit();
+    if (blob) blob.value = lines.join("\n");
+    if (active) active.value = "1";
+    if (countInput) countInput.value = String(lines.length);
+    // Карточки тоже синхронизируем, чтобы UI и POST совпадали
+    var rawPanel = document.getElementById("eng-refs-raw-panel");
+    if (rawPanel && !rawPanel.hidden) {
+      applyRefsRawEditor();
+    }
+  }
+
+  var metaForm = document.getElementById("eng-meta-form");
+  if (metaForm) {
+    metaForm.addEventListener("submit", function () {
+      syncReferencesBlobForSubmit();
+    });
+  }
+
+  // Сброс undo-состояния при каждом открытии Raw editor
+  var _openRefsRawEditorOrig = openRefsRawEditor;
+  openRefsRawEditor = function () {
+    refsRawState.rawText = null;
+    refsRawState.processed = false;
+    setRawUndoEnabled(false);
+    setRawStatus("");
+    var active = document.getElementById("references_blob_active");
+    if (active) active.value = "0";
+    _openRefsRawEditorOrig();
+  };
+
+  function clearInputs(root) {
+    if (!root) return;
+    root.querySelectorAll("input[type='text'], textarea").forEach(function (el) {
+      el.value = "";
+    });
+    var ru = root.querySelector("[data-author-ru]");
+    if (ru) ru.remove();
+    root.querySelectorAll(".eng-ru-comment").forEach(function (el) {
+      el.remove();
+    });
+  }
+
+  function normalizeOrcidValue(value) {
+    var raw = String(value || "").trim();
+    if (!raw) return "";
+    var cleaned = raw
+      .replace(/^(?:https?:\/\/)?(?:www\.)?orcid\.org\/+/i, "")
+      .replace(/^\/+|\/+$/g, "");
+    var m = cleaned.match(/(\d{4})-?(\d{4})-?(\d{4})-?(\d{3}[\dXx])/);
+    if (!m) {
+      m = raw.match(/(\d{4})-?(\d{4})-?(\d{4})-?(\d{3}[\dXx])/);
+    }
+    if (!m) return cleaned;
+    return m[1] + "-" + m[2] + "-" + m[3] + "-" + m[4].toUpperCase();
+  }
+
+  function bindOrcidNormalize(root) {
+    (root || document).querySelectorAll('input[name$="_orcid"]').forEach(function (input) {
+      if (input.dataset.orcidBound === "1") return;
+      input.dataset.orcidBound = "1";
+      input.addEventListener("blur", function () {
+        input.value = normalizeOrcidValue(input.value);
+      });
+    });
+  }
+  bindOrcidNormalize(document);
+
+  function reindexAffs(card, authorIdx) {
+    var blocks = card.querySelectorAll("[data-aff-block]");
+    blocks.forEach(function (block, j) {
+      var title = block.querySelector(".eng-aff-title");
+      if (title) title.textContent = "Организация " + (j + 1);
+      var org = block.querySelector('input[name$="_org_en"]');
+      var addr = block.querySelector('input[name$="_address_en"]');
+      if (org) org.name = "author_" + authorIdx + "_aff_" + j + "_org_en";
+      if (addr) addr.name = "author_" + authorIdx + "_aff_" + j + "_address_en";
+    });
+    var countInput = card.querySelector("[data-aff-count]");
+    if (countInput) {
+      countInput.name = "author_" + authorIdx + "_aff_count";
+      countInput.value = String(blocks.length);
+    }
+  }
+
+  function reindexAuthors() {
+    var cards = document.querySelectorAll("#eng-authors-list [data-author-card]");
+    cards.forEach(function (card, i) {
+      var title = card.querySelector(".eng-field-title");
+      if (title) title.textContent = "Автор " + (i + 1);
+      ["given_en", "surname_en", "full_name_en", "email", "orcid"].forEach(function (suffix) {
+        var input = card.querySelector('input[name$="_' + suffix + '"]');
+        if (input && input.name.indexOf("_aff_") === -1) {
+          input.name = "author_" + i + "_" + suffix;
+        }
+      });
+      reindexAffs(card, i);
+    });
+    var countInput = document.getElementById("authors_count");
+    if (countInput) countInput.value = String(cards.length);
+  }
+
+  function createAffBlock(authorIdx, affIdx) {
+    var block = document.createElement("div");
+    block.className = "eng-aff-block";
+    block.setAttribute("data-aff-block", "");
+    block.innerHTML =
+      '<div class="eng-aff-head">' +
+        '<div class="eng-aff-title">Организация ' + (affIdx + 1) + '</div>' +
+        '<button type="button" class="eng-btn eng-btn-sm eng-ref-remove-btn" data-aff-remove>' +
+          'Удалить организацию' +
+        '</button>' +
+      '</div>' +
+      '<div class="eng-author-grid">' +
+        '<div class="eng-mini eng-mini-full">' +
+          '<label class="eng-pane-label">Organization (EN)</label>' +
+          '<input type="text" name="author_' + authorIdx + '_aff_' + affIdx + '_org_en" class="eng-pane-input" />' +
+        '</div>' +
+        '<div class="eng-mini eng-mini-full">' +
+          '<label class="eng-pane-label">Address (EN)</label>' +
+          '<input type="text" name="author_' + authorIdx + '_aff_' + affIdx + '_address_en" class="eng-pane-input" />' +
+        '</div>' +
+      '</div>';
+    return block;
+  }
+
+  function createAuthorCard(idx) {
+    var card = document.createElement("article");
+    card.className = "eng-field-card";
+    card.setAttribute("data-field-card", "");
+    card.setAttribute("data-author-card", "");
+    card.innerHTML =
+      '<header class="eng-field-head">' +
+        '<label class="eng-field-select">' +
+          '<input type="checkbox" class="include-cb" checked>' +
+          '<span class="eng-field-title">Автор ' + (idx + 1) + '</span>' +
+        '</label>' +
+        '<div class="eng-field-meta">' +
+          '<span class="eng-badge eng-badge-replace">Новый</span>' +
+          '<button type="button" class="eng-btn eng-btn-sm eng-ref-remove-btn" data-author-remove>' +
+            'Удалить автора' +
+          '</button>' +
+        '</div>' +
+      '</header>' +
+      '<div class="eng-author-grid">' +
+        '<div class="eng-mini">' +
+          '<label class="eng-pane-label">Given (EN)</label>' +
+          '<input type="text" name="author_' + idx + '_given_en" class="eng-pane-input" />' +
+        '</div>' +
+        '<div class="eng-mini">' +
+          '<label class="eng-pane-label">Surname (EN)</label>' +
+          '<input type="text" name="author_' + idx + '_surname_en" class="eng-pane-input" />' +
+        '</div>' +
+        '<div class="eng-mini eng-mini-full">' +
+          '<label class="eng-pane-label">Full name (EN)</label>' +
+          '<input type="text" name="author_' + idx + '_full_name_en" class="eng-pane-input" />' +
+        '</div>' +
+        '<div class="eng-mini">' +
+          '<label class="eng-pane-label">Email</label>' +
+          '<input type="text" name="author_' + idx + '_email" class="eng-pane-input" />' +
+        '</div>' +
+        '<div class="eng-mini">' +
+          '<label class="eng-pane-label">ORCID</label>' +
+          '<input type="text" name="author_' + idx + '_orcid" class="eng-pane-input" />' +
+        '</div>' +
+      '</div>' +
+      '<input type="hidden" name="author_' + idx + '_aff_count" value="1" data-aff-count />' +
+      '<div class="eng-aff-list" data-aff-list></div>' +
+      '<div class="eng-aff-toolbar">' +
+        '<button type="button" class="eng-btn eng-btn-sm" data-aff-add>+ Добавить организацию</button>' +
+      '</div>';
+    var list = card.querySelector("[data-aff-list]");
+    if (list) list.appendChild(createAffBlock(idx, 0));
+    var cb = card.querySelector(".include-cb");
+    if (cb) {
+      cb.addEventListener("change", function () {
+        card.classList.toggle("is-unchecked", !cb.checked);
+      });
+    }
+    bindOrcidNormalize(card);
+    return card;
+  }
+
+  var authorsList = document.getElementById("eng-authors-list");
+  if (authorsList) {
+    authorsList.addEventListener("click", function (e) {
+      var affAdd = e.target.closest("[data-aff-add]");
+      if (affAdd) {
+        e.preventDefault();
+        var cardAdd = affAdd.closest("[data-author-card]");
+        if (!cardAdd) return;
+        var authorIdx = Array.prototype.indexOf.call(
+          authorsList.querySelectorAll("[data-author-card]"),
+          cardAdd
+        );
+        var affList = cardAdd.querySelector("[data-aff-list]");
+        if (!affList) return;
+        var nextIdx = affList.querySelectorAll("[data-aff-block]").length;
+        var block = createAffBlock(authorIdx, nextIdx);
+        affList.appendChild(block);
+        reindexAffs(cardAdd, authorIdx);
+        var focus = block.querySelector("input");
+        if (focus) focus.focus();
+        return;
+      }
+
+      var affRemove = e.target.closest("[data-aff-remove]");
+      if (affRemove) {
+        e.preventDefault();
+        var cardAff = affRemove.closest("[data-author-card]");
+        var blockRm = affRemove.closest("[data-aff-block]");
+        if (!cardAff || !blockRm) return;
+        var blocks = cardAff.querySelectorAll("[data-aff-block]");
+        if (blocks.length <= 1) {
+          clearInputs(blockRm);
+          return;
+        }
+        blockRm.remove();
+        var authorIdxRm = Array.prototype.indexOf.call(
+          authorsList.querySelectorAll("[data-author-card]"),
+          cardAff
+        );
+        reindexAffs(cardAff, authorIdxRm);
+        return;
+      }
+
+      var authorRemove = e.target.closest("[data-author-remove]");
+      if (!authorRemove) return;
+      e.preventDefault();
+      var cards = authorsList.querySelectorAll("[data-author-card]");
+      var cardRm = authorRemove.closest("[data-author-card]");
+      if (!cardRm) return;
+      if (cards.length <= 1) {
+        clearInputs(cardRm);
+        var onlyList = cardRm.querySelector("[data-aff-list]");
+        if (onlyList) {
+          onlyList.querySelectorAll("[data-aff-block]").forEach(function (b, idx) {
+            if (idx === 0) clearInputs(b);
+            else b.remove();
+          });
+          if (!onlyList.querySelector("[data-aff-block]")) {
+            onlyList.appendChild(createAffBlock(0, 0));
+          }
+        }
+        reindexAuthors();
+        return;
+      }
+      cardRm.remove();
+      reindexAuthors();
+    });
+  }
+
+  var authorsAddBtn = document.getElementById("eng-authors-add");
+  if (authorsAddBtn && authorsList) {
+    authorsAddBtn.addEventListener("click", function () {
+      var idx = authorsList.querySelectorAll("[data-author-card]").length;
+      var card = createAuthorCard(idx);
+      authorsList.appendChild(card);
+      reindexAuthors();
+      var focus = card.querySelector('input[name$="_surname_en"]');
+      if (focus) focus.focus();
     });
   }
 })();

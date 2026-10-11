@@ -8,6 +8,7 @@ from datetime import datetime
 from flask import (
     Blueprint,
     flash,
+    jsonify,
     redirect,
     render_template,
     request,
@@ -20,6 +21,7 @@ from ipsas.common.zip_safe import UnsafeZipError
 from ipsas.config.settings import get_settings
 from ipsas.modules.eng_metadata.forms import metadata_to_form_defaults
 from ipsas.modules.eng_metadata.platform_auth import PlatformAuthError
+from ipsas.modules.eng_metadata.references_pdf import parse_references
 from ipsas.modules.eng_metadata.session import (
     get_article_dir,
     is_safe_article_id,
@@ -39,6 +41,27 @@ from ipsas.utils.operation_history import record_operation
 logger = get_logger(__name__)
 
 eng_metadata_bp = Blueprint("eng_metadata", __name__, template_folder="templates")
+
+_MAX_UNWRAP_CHARS = 2_000_000
+
+
+@eng_metadata_bp.route("/eng-metadata/references/unwrap", methods=["POST"])
+def unwrap_references():
+    """Rule-based очистка списка литературы, скопированного из PDF."""
+    settings = get_settings()
+    payload = request.get_json(silent=True) or {}
+    text = payload.get("text")
+    if text is None:
+        text = request.form.get("text")
+    if text is None:
+        return jsonify({"error": "text_required"}), 400
+    text = str(text)
+    if len(text) > _MAX_UNWRAP_CHARS:
+        return jsonify({"error": "text_too_large", "max_chars": _MAX_UNWRAP_CHARS}), 413
+
+    include_debug = bool(payload.get("debug")) and not settings.is_production
+    result = parse_references(text)
+    return jsonify(result.to_dict(include_debug=include_debug))
 
 
 @eng_metadata_bp.route("/eng-metadata")
@@ -244,7 +267,11 @@ def save_article(session_id: str, article_id: str):
         return redirect(review_url)
 
     if intent == "prepare":
-        return _run_prepare_send(session_id, article_id)
+        return _run_prepare_send(
+            session_id,
+            article_id,
+            include_references=_include_references_from_form(request.form),
+        )
 
     flash("Метаданные сохранены", "success")
     return redirect(review_url)
@@ -280,7 +307,11 @@ def prepare_send(session_id: str, article_id: str):
                 article_id,
                 list(request.form.keys())[:40],
             )
-        return _run_prepare_send(session_id, article_id)
+        return _run_prepare_send(
+            session_id,
+            article_id,
+            include_references=_include_references_from_form(request.form),
+        )
     except ValueError as exc:
         flash(f"Не удалось подготовить/отправить: {exc}", "error")
         return redirect(review_url)
@@ -297,7 +328,22 @@ def prepare_send(session_id: str, article_id: str):
         return redirect(url_for("eng_metadata.upload_page"))
 
 
-def _run_prepare_send(session_id: str, article_id: str):
+def _include_references_from_form(form) -> bool:
+    """Галочка «Литература»: снята → не включать references в payload.
+
+    Если формы сверки нет (совместимый POST /prepare) — по умолчанию включаем.
+    """
+    if "references_count" in form or "include_references" in form:
+        return str(form.get("include_references") or "") == "1"
+    return True
+
+
+def _run_prepare_send(
+    session_id: str,
+    article_id: str,
+    *,
+    include_references: bool = True,
+):
     settings = get_settings()
     review_url = url_for(
         "eng_metadata.review_article",
@@ -306,9 +352,17 @@ def _run_prepare_send(session_id: str, article_id: str):
     )
     try:
         summary = (
-            apply_platform_update(session_id, article_id)
+            apply_platform_update(
+                session_id,
+                article_id,
+                include_references=include_references,
+            )
             if settings.platform_apply_enabled
-            else prepare_platform_dry_run(session_id, article_id)
+            else prepare_platform_dry_run(
+                session_id,
+                article_id,
+                include_references=include_references,
+            )
         )
         manifest = load_manifest(session_id)
         data = load_article_json(session_id, article_id)

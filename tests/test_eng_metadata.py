@@ -188,6 +188,7 @@ def test_build_update_payload(monkeypatch):
     payload = build_update_payload(article_id="288752", data=_SAMPLE_JSON)
     assert payload["dry_run"] is True
     assert payload["approved"] is True
+    assert payload["include_references"] is True
     fields = {c["field"] for c in payload["changes"]}
     assert "article.titles.en" in fields
     assert "authors[0].surname_en" in fields
@@ -195,6 +196,27 @@ def test_build_update_payload(monkeypatch):
     assert "dates.received" in fields
     assert "dates.accepted" in fields
     assert "dates.revised" not in fields
+    assert any(f.startswith("references[") for f in fields)
+    reset_settings()
+
+
+def test_build_update_payload_can_skip_references(monkeypatch):
+    from ipsas.config import settings as settings_mod
+
+    reset_settings()
+    settings = settings_mod.get_settings()
+    monkeypatch.setattr(settings, "platform_apply_enabled", False)
+    payload = build_update_payload(
+        article_id="288752",
+        data=_SAMPLE_JSON,
+        include_references=False,
+    )
+    assert payload["include_references"] is False
+    fields = {c["field"] for c in payload["changes"]}
+    assert "article.titles.en" in fields
+    assert "authors[0].surname_en" in fields
+    assert not any(str(f).startswith("references[") for f in fields)
+    assert "литература" in str(payload.get("note") or "").lower()
     reset_settings()
 
 
@@ -482,6 +504,112 @@ def test_form_references_preserve_middle_insert_order():
     assert out["references_eng"] == ["First", "Inserted middle", "Was second"]
 
 
+def test_form_references_blob_overrides_stale_cards_and_base():
+    """Raw editor / submit sync: references_blob важнее старых ref_value и base JSON."""
+    from werkzeug.datastructures import MultiDict
+
+    from ipsas.modules.eng_metadata.forms import apply_form_to_metadata
+
+    form = MultiDict(
+        [
+            ("title_eng", "T"),
+            ("abstract_eng", "A"),
+            ("keywords_eng", "kw"),
+            ("references_count", "2"),
+            ("ref_value_0", "OLD from card 1"),
+            ("ref_value_1", "OLD from card 2"),
+            ("references_blob_active", "1"),
+            (
+                "references_blob",
+                "117. New first from PDF unwrap\n"
+                "118. New second from PDF unwrap\n"
+                "119. New third from PDF unwrap",
+            ),
+            ("authors_count", "0"),
+        ]
+    )
+    out = apply_form_to_metadata(
+        {
+            "authors": [],
+            "references_eng": ["Original JSON only", "Second original"],
+        },
+        form,
+    )
+    assert out["references_eng"] == [
+        "117. New first from PDF unwrap",
+        "118. New second from PDF unwrap",
+        "119. New third from PDF unwrap",
+    ]
+
+
+def test_form_references_can_shrink_below_base_count():
+    """Сокращение списка не должно восстанавливать хвост из исходного JSON."""
+    from werkzeug.datastructures import MultiDict
+
+    from ipsas.modules.eng_metadata.forms import apply_form_to_metadata
+
+    form = MultiDict(
+        [
+            ("title_eng", "T"),
+            ("abstract_eng", "A"),
+            ("keywords_eng", "kw"),
+            ("references_count", "1"),
+            ("ref_value_0", "Only one kept"),
+            ("authors_count", "0"),
+        ]
+    )
+    out = apply_form_to_metadata(
+        {
+            "authors": [],
+            "references_eng": ["One", "Two", "Three", "Four"],
+        },
+        form,
+    )
+    assert out["references_eng"] == ["Only one kept"]
+
+
+def test_normalize_orcid():
+    from ipsas.modules.eng_metadata.forms import normalize_orcid
+
+    assert (
+        normalize_orcid("https://orcid.org/0000-0001-6386-0006")
+        == "0000-0001-6386-0006"
+    )
+    assert (
+        normalize_orcid("http://orcid.org/0000-0002-1825-0097")
+        == "0000-0002-1825-0097"
+    )
+    assert normalize_orcid("0000-0001-6386-0006") == "0000-0001-6386-0006"
+    assert normalize_orcid("0000000163860006") == "0000-0001-6386-0006"
+    assert normalize_orcid("orcid.org/0000-0001-2345-678X") == "0000-0001-2345-678X"
+    assert normalize_orcid("  ") is None
+    assert normalize_orcid(None) is None
+
+
+def test_form_normalizes_orcid_on_save():
+    from werkzeug.datastructures import MultiDict
+
+    from ipsas.modules.eng_metadata.forms import apply_form_to_metadata
+
+    form = MultiDict(
+        [
+            ("title_eng", "T"),
+            ("abstract_eng", "A"),
+            ("keywords_eng", "k"),
+            ("references_count", "0"),
+            ("authors_count", "1"),
+            ("author_0_given_en", "A."),
+            ("author_0_surname_en", "Author"),
+            ("author_0_full_name_en", "A. Author"),
+            ("author_0_email", ""),
+            ("author_0_orcid", "https://orcid.org/0000-0001-6386-0006"),
+            ("author_0_aff_count", "0"),
+        ]
+    )
+    out = apply_form_to_metadata({"authors": [{}]}, form)
+    assert out["authors"][0]["orcid"] == "0000-0001-6386-0006"
+
+
 def test_form_preserves_ru_on_save():
     from werkzeug.datastructures import MultiDict
 
@@ -574,6 +702,173 @@ def test_form_keeps_multiple_affiliations():
     assert affs[0]["organization_ru"] == "Универ 1"
     assert affs[1]["organization_en"] == "Univ Two EN"
     assert affs[1]["organization_ru"] == "Универ 2"
+
+
+def test_form_can_add_and_remove_authors():
+    from werkzeug.datastructures import MultiDict
+
+    from ipsas.modules.eng_metadata.forms import apply_form_to_metadata
+
+    base = {
+        "title_eng": "T",
+        "abstract_eng": "A",
+        "keywords_eng": ["k"],
+        "references_eng": [],
+        "authors": [
+            {
+                "given_en": "A.",
+                "surname_en": "First",
+                "full_name_en": "A. First",
+                "full_name_ru": "А. Первый",
+                "affiliations": [{"organization_en": "Org A", "organization_ru": "Орг А"}],
+            },
+            {
+                "given_en": "B.",
+                "surname_en": "Second",
+                "full_name_en": "B. Second",
+                "full_name_ru": "Б. Второй",
+                "affiliations": [{"organization_en": "Org B"}],
+            },
+        ],
+    }
+
+    # Удаление второго автора: authors_count=1 и только author_0_*
+    remove_form = MultiDict(
+        [
+            ("title_eng", "T"),
+            ("abstract_eng", "A"),
+            ("keywords_eng", "k"),
+            ("references_count", "0"),
+            ("authors_count", "1"),
+            ("author_0_given_en", "A."),
+            ("author_0_surname_en", "First"),
+            ("author_0_full_name_en", "A. First"),
+            ("author_0_email", ""),
+            ("author_0_orcid", ""),
+            ("author_0_aff_count", "1"),
+            ("author_0_aff_0_org_en", "Org A"),
+            ("author_0_aff_0_address_en", ""),
+        ]
+    )
+    removed = apply_form_to_metadata(base, remove_form)
+    assert len(removed["authors"]) == 1
+    assert removed["authors"][0]["surname_en"] == "First"
+    assert removed["authors"][0]["full_name_ru"] == "А. Первый"
+
+    # Добавление третьего автора сверх исходных двух
+    add_form = MultiDict(
+        [
+            ("title_eng", "T"),
+            ("abstract_eng", "A"),
+            ("keywords_eng", "k"),
+            ("references_count", "0"),
+            ("authors_count", "3"),
+            ("author_0_given_en", "A."),
+            ("author_0_surname_en", "First"),
+            ("author_0_full_name_en", "A. First"),
+            ("author_0_aff_count", "1"),
+            ("author_0_aff_0_org_en", "Org A"),
+            ("author_0_aff_0_address_en", ""),
+            ("author_1_given_en", "B."),
+            ("author_1_surname_en", "Second"),
+            ("author_1_full_name_en", "B. Second"),
+            ("author_1_aff_count", "1"),
+            ("author_1_aff_0_org_en", "Org B"),
+            ("author_1_aff_0_address_en", ""),
+            ("author_2_given_en", "C."),
+            ("author_2_surname_en", "Third"),
+            ("author_2_full_name_en", "C. Third"),
+            ("author_2_email", "c@example.com"),
+            ("author_2_orcid", ""),
+            ("author_2_aff_count", "1"),
+            ("author_2_aff_0_org_en", "Org C"),
+            ("author_2_aff_0_address_en", "City C"),
+        ]
+    )
+    added = apply_form_to_metadata(base, add_form)
+    assert len(added["authors"]) == 3
+    assert added["authors"][2]["surname_en"] == "Third"
+    assert added["authors"][2]["email"] == "c@example.com"
+    assert added["authors"][2]["affiliations"][0]["organization_en"] == "Org C"
+    assert added["authors"][0]["full_name_ru"] == "А. Первый"
+    assert added["authors"][2].get("full_name_ru") is None
+
+
+def test_form_can_add_and_remove_affiliations():
+    from werkzeug.datastructures import MultiDict
+
+    from ipsas.modules.eng_metadata.forms import apply_form_to_metadata
+
+    base = {
+        "title_eng": "T",
+        "abstract_eng": "A",
+        "keywords_eng": ["k"],
+        "references_eng": [],
+        "authors": [
+            {
+                "given_en": "A.",
+                "surname_en": "Author",
+                "full_name_en": "A. Author",
+                "affiliations": [
+                    {
+                        "organization_en": "Univ One",
+                        "organization_ru": "Универ 1",
+                        "address_en": "City 1",
+                    },
+                    {
+                        "organization_en": "Univ Two",
+                        "organization_ru": "Универ 2",
+                        "address_en": "City 2",
+                    },
+                ],
+            }
+        ],
+    }
+
+    remove_form = MultiDict(
+        [
+            ("title_eng", "T"),
+            ("abstract_eng", "A"),
+            ("keywords_eng", "k"),
+            ("references_count", "0"),
+            ("authors_count", "1"),
+            ("author_0_given_en", "A."),
+            ("author_0_surname_en", "Author"),
+            ("author_0_full_name_en", "A. Author"),
+            ("author_0_aff_count", "1"),
+            ("author_0_aff_0_org_en", "Univ One"),
+            ("author_0_aff_0_address_en", "City 1"),
+        ]
+    )
+    removed = apply_form_to_metadata(base, remove_form)
+    assert len(removed["authors"][0]["affiliations"]) == 1
+    assert removed["authors"][0]["affiliations"][0]["organization_ru"] == "Универ 1"
+
+    add_form = MultiDict(
+        [
+            ("title_eng", "T"),
+            ("abstract_eng", "A"),
+            ("keywords_eng", "k"),
+            ("references_count", "0"),
+            ("authors_count", "1"),
+            ("author_0_given_en", "A."),
+            ("author_0_surname_en", "Author"),
+            ("author_0_full_name_en", "A. Author"),
+            ("author_0_aff_count", "3"),
+            ("author_0_aff_0_org_en", "Univ One"),
+            ("author_0_aff_0_address_en", "City 1"),
+            ("author_0_aff_1_org_en", "Univ Two"),
+            ("author_0_aff_1_address_en", "City 2"),
+            ("author_0_aff_2_org_en", "Univ Three"),
+            ("author_0_aff_2_address_en", "City 3"),
+        ]
+    )
+    added = apply_form_to_metadata(base, add_form)
+    affs = added["authors"][0]["affiliations"]
+    assert len(affs) == 3
+    assert affs[2]["organization_en"] == "Univ Three"
+    assert affs[0]["organization_ru"] == "Универ 1"
+    assert affs[2].get("organization_ru") is None
 
 
 def test_upload_page(client):

@@ -68,14 +68,22 @@ def save_article_edits(
     return data
 
 
-def prepare_platform_dry_run(session_id: str, article_id: str) -> dict[str, Any]:
+def prepare_platform_dry_run(
+    session_id: str,
+    article_id: str,
+    *,
+    include_references: bool = True,
+) -> dict[str, Any]:
     data = load_article_json(session_id, article_id)
     errors = validate_article_json(data)
     if errors:
         raise ValueError("; ".join(errors))
 
     payload = build_update_payload(
-        article_id=article_id, data=data, approved=True
+        article_id=article_id,
+        data=data,
+        approved=True,
+        include_references=include_references,
     )
     article_dir = get_article_dir(session_id, article_id)
     (article_dir / "update_payload.json").write_text(
@@ -99,7 +107,12 @@ def issn_from_article_url(article_url: str | None) -> str | None:
     return m.group(1) if m else None
 
 
-def apply_platform_update(session_id: str, article_id: str) -> dict[str, Any]:
+def apply_platform_update(
+    session_id: str,
+    article_id: str,
+    *,
+    include_references: bool = True,
+) -> dict[str, Any]:
     """Собрать payload и при PLATFORM_APPLY_ENABLED отправить на OJS."""
     settings = get_settings()
     data = load_article_json(session_id, article_id)
@@ -108,7 +121,10 @@ def apply_platform_update(session_id: str, article_id: str) -> dict[str, Any]:
         raise ValueError("; ".join(errors))
 
     payload = build_update_payload(
-        article_id=article_id, data=data, approved=True
+        article_id=article_id,
+        data=data,
+        approved=True,
+        include_references=include_references,
     )
     article_dir = get_article_dir(session_id, article_id)
     (article_dir / "update_payload.json").write_text(
