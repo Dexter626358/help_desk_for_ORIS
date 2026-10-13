@@ -28,8 +28,9 @@ variables:
 # Общая подготовка для python-задач
 .python_setup: &python_setup
   cache:
-    keyfiles:
-      - requirements-dev.txt
+    key:
+      files:
+        - requirements-dev.txt
     paths:
       - .cache/pip
   before_script:
