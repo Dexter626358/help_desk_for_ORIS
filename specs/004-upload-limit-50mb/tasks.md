@@ -99,12 +99,12 @@ description: "Task list for 004-upload-limit-50mb: лимит загрузки �
 
 ## Phase 6: Вне репозитория (оператор на сервере)
 
-- [ ] T019 [US1] Обновить `/etc/nginx/sites-available/ipsas.conf` до `client_max_body_size 55m`,
+- [x] T019 [US1] Обновить `/etc/nginx/sites-available/ipsas.conf` до `client_max_body_size 55m`,
   выполнить `sudo nginx -t && sudo systemctl reload nginx`
-- [ ] T020 [US1] Обновить `MAX_FILE_SIZE` / `MAX_CONTENT_LENGTH` в `/opt/ipsas/.env`,
+- [x] T020 [US1] Обновить `MAX_FILE_SIZE` / `MAX_CONTENT_LENGTH` в `/opt/ipsas/.env`,
   пересоздать контейнер (`docker compose up -d --force-recreate`), проверить значения через
   `printenv`
-- [ ] T021 [US1] Загрузить файл 50 МБ и файл больше 55 МБ; убедиться, что первый принимается,
+- [x] T021 [US1] Загрузить файл 50 МБ и файл больше 55 МБ; убедиться, что первый принимается,
   второй отклоняется без `500` (SC-007)
 
 **Checkpoint**: Экземпляр принимает файл 50 МБ.
@@ -144,3 +144,12 @@ description: "Task list for 004-upload-limit-50mb: лимит загрузки �
 - Пересборка образа при применении не требуется: меняются только значения `.env` и конфиг
   nginx. Если же обновляется код (дефолт `settings.py`), то на сервере нужен `--build` —
   см. `PASSPORT.md`, §5.
+- T019–T021 выполнены на развёрнутом экземпляре: nginx переведён `12m → 55m`, `.env`
+  содержит `MAX_FILE_SIZE=52428800` / `MAX_CONTENT_LENGTH=57671680`. Проверка
+  `curl`-ом на `http://127.0.0.1:8000` (app) и `http://127.0.0.1` (nginx) дала
+  ожидаемое: 50 МБ → `400`, 60 МБ → `413` на обоих слоях. `400` вместо `200` — это
+  отказ CSRF без токена, а не отказ по размеру.
+- Эндпоинт загрузки собран с префиксом blueprint-а: **`/services/eng-metadata/upload`**
+  (не `/eng-metadata/upload`). Обращение по неверному пути даёт `404` → редирект на
+  `/dashboard` (`302`) ещё до разбора тела, что маскирует проверку лимита. Команды
+  проверки с правильным путём добавлены в `deploy/SERVER_DEPLOY.md`.

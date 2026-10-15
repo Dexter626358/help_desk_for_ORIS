@@ -302,6 +302,25 @@ docker compose up -d --build
 | Всё сразу «слишком много запросов» | Не работает `TRUST_PROXY_HEADERS=true` — все пользователи делят один лимит в 30 запросов/мин |
 | 404 на `/services/xml-editor` | Это нормально: канонический адрес `/services/xml-editor/` |
 
+Проверка лимита загрузки. Эндпоинт загрузки ZIP собран с префиксом `/services`
+(полный путь — `/services/eng-metadata/upload`). Обращение по неверному пути
+даёт `404` → редирект на `/dashboard`, и лимит при этом не проверяется, поэтому
+важно точное имя:
+
+```bash
+head -c 52428800 /dev/urandom > /tmp/50mb.bin
+head -c 60000000 /dev/urandom > /tmp/60mb.bin
+
+# ожидание: 50MB -> 400 (размер принят, отбивает CSRF без токена), 60MB -> 413
+curl -sS -o /dev/null -w 'app   50MB -> %{http_code}\n' -F 'zip_file=@/tmp/50mb.bin;filename=50mb.zip' http://127.0.0.1:8000/services/eng-metadata/upload
+curl -sS -o /dev/null -w 'app   60MB -> %{http_code}\n' -F 'zip_file=@/tmp/60mb.bin;filename=60mb.zip' http://127.0.0.1:8000/services/eng-metadata/upload
+curl -sS -o /dev/null -w 'nginx 50MB -> %{http_code}\n' -F 'zip_file=@/tmp/50mb.bin;filename=50mb.zip' http://127.0.0.1/services/eng-metadata/upload
+curl -sS -o /dev/null -w 'nginx 60MB -> %{http_code}\n' -F 'zip_file=@/tmp/60mb.bin;filename=60mb.zip' http://127.0.0.1/services/eng-metadata/upload
+```
+
+`400` здесь — норма: без CSRF-токена форма не проходит, но размер уже принят.
+Признак исправности — 50 МБ **не** даёт `413`, а 60 МБ даёт `413` на обоих слоях.
+
 Полезные команды:
 
 ```bash
