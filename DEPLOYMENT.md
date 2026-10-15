@@ -94,7 +94,8 @@ docker compose up -d --build
 | `TEMP_DIR` | рекомендуется | Временные файлы |
 | `DATA_DIR` | нет | Runtime-данные |
 | `LOGS_DIR` | нет | Файловые логи |
-| `MAX_CONTENT_LENGTH` | нет | Лимит тела запроса (байт) |
+| `MAX_FILE_SIZE` | нет (`52428800`, 50 МБ) | Максимальный размер одного загружаемого файла (байт) |
+| `MAX_CONTENT_LENGTH` | нет (`57671680`, 55 МБ) | Лимит тела запроса (байт). Должен быть больше `MAX_FILE_SIZE` (запас под multipart) и не больше `client_max_body_size` в Nginx. Оба значения заданы в [`.env.example`](.env.example) и [`deploy/ipsas.env.production.example`](deploy/ipsas.env.production.example); при изменении лимита правьте все слои согласованно — рассинхрон ловит `tests/test_upload_limits.py` |
 | `REQUEST_TIMEOUT` | нет | Таймаут исходящих HTTP (с) |
 | `ISSUE_FETCH_ALLOWED_HOSTS` | **да** | Allowlist хостов через запятую |
 | `SESSION_COOKIE_SECURE` | `false`, если сервис работает по HTTP | Secure-cookie (по умолчанию true в prod). **На HTTP обязательно `false`**: иначе браузер не примет cookie и POST-формы будут отклонены по CSRF |

@@ -36,6 +36,10 @@ def _load_dotenv(path: Path) -> None:
 _load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
 
 
+# Запас под служебные байты multipart между MAX_FILE_SIZE и MAX_CONTENT_LENGTH.
+_MULTIPART_HEADROOM = 5 * 1024 * 1024
+
+
 def _env_bool(name: str, default: bool) -> bool:
     raw = os.getenv(name)
     if raw is None:
@@ -103,10 +107,13 @@ class Settings:
         if self.is_production and self.flask_debug:
             raise RuntimeError("FLASK_DEBUG must be disabled in production")
 
-        # 50 МБ: ZIP ENG-метаданных / рисунков часто больше прежних 10 МБ
+        # 50 МБ: ZIP ENG-метаданных / рисунков часто больше прежних 10 МБ.
+        # MAX_CONTENT_LENGTH — размер всего тела запроса, а multipart добавляет к
+        # файлу служебные байты. Поэтому предел тела по умолчанию выше предела
+        # файла: иначе файл ровно в MAX_FILE_SIZE отклоняется по длине тела.
         self.max_file_size: int = int(os.getenv("MAX_FILE_SIZE", "52428800"))
         self.max_content_length: int = int(
-            os.getenv("MAX_CONTENT_LENGTH", str(self.max_file_size))
+            os.getenv("MAX_CONTENT_LENGTH", str(self.max_file_size + _MULTIPART_HEADROOM))
         )
         self.allowed_extensions: list[str] = [".txt", ".csv", ".json", ".xml", ".zip", ".data"]
 

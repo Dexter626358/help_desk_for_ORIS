@@ -296,6 +296,7 @@ docker compose up -d --build
 | `502 Bad Gateway` от nginx | Контейнер не слушает. `docker compose ps` и `docker compose logs --tail=50` |
 | Контейнер перезапускается по кругу | `docker compose logs --tail=50` — скорее всего, не заполнен `.env` |
 | `Permission denied` при загрузке файла | Каталог хоста примонтирован вместо тома (см. пункт 1 выше) |
+| Файл не загружается, ошибка `413` или «Файл слишком большой» | Две причины, проверять обе: лимит nginx `client_max_body_size` в `/etc/nginx/sites-available/ipsas.conf` (должен быть ≥ `MAX_CONTENT_LENGTH`, сейчас 55m) и app-лимиты `MAX_FILE_SIZE` / `MAX_CONTENT_LENGTH` в `.env`. После правки nginx — `sudo nginx -t && sudo systemctl reload nginx`; после правки `.env` — пересоздать контейнер (`docker compose up -d --force-recreate`) |
 | Статус `unhealthy` | Проверьте `docker inspect --format '{{json .State.Health}}' ipsas` |
 | Страница открывается, формы не отправляются | `SESSION_COOKIE_SECURE=true` при открытом `http://` → поставьте `false` |
 | Всё сразу «слишком много запросов» | Не работает `TRUST_PROXY_HEADERS=true` — все пользователи делят один лимит в 30 запросов/мин |
