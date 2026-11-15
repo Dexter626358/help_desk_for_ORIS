@@ -115,9 +115,11 @@ def test_normalize_and_list_sections():
     assert find_by_title_ru(sections, "Метеорология") is None
 
 
+FIXTURE_CSV = Path(__file__).resolve().parent / "fixtures" / "journal_sections.csv"
+
+
 def test_load_sections_csv_sample():
-    root = Path(__file__).resolve().parents[1]
-    specs = load_sections_csv(root / "journal_sections.csv")
+    specs = load_sections_csv(FIXTURE_CSV)
     assert len(specs) == 8
     assert specs[0].number == 1
     assert specs[0].title_ru.startswith("Физическая география")
@@ -153,11 +155,10 @@ def test_sync_dry_run_creates_missing_only():
         ):
             raise AssertionError("dry_run не должен POST")
 
-    csv_path = Path(__file__).resolve().parents[1] / "journal_sections.csv"
     report = sync_journal_sections(
         FakeAuth(),  # type: ignore[arg-type]
         journal_url_raw="https://f23g45.rcsi.science/2079-7877",
-        csv_path=csv_path,
+        csv_path=FIXTURE_CSV,
         dry_run=True,
         delay=0,
     )
@@ -198,13 +199,10 @@ def test_sync_apply_posts_create_form():
             posted.append(as_dict)
             return 200, "https://f23g45.rcsi.science/2079-7877/manager/sections", b"ok"
 
-    specs_csv = Path(__file__).resolve().parents[1] / "journal_sections.csv"
-    # минимальный CSV: один уже есть, один новый
-    # используем полный sample — создастся 6 разделов
     report = sync_journal_sections(
         FakeAuth(),  # type: ignore[arg-type]
         journal_url_raw="https://f23g45.rcsi.science/2079-7877",
-        csv_path=specs_csv,
+        csv_path=FIXTURE_CSV,
         dry_run=False,
         delay=0,
     )
@@ -260,11 +258,10 @@ def test_sort_alpha_dry_run_message():
         def request(self, *args, **kwargs):
             raise AssertionError("dry_run+sort не должен вызывать moveSection")
 
-    csv_path = Path(__file__).resolve().parents[1] / "journal_sections.csv"
     report = sync_journal_sections(
         FakeAuth(),  # type: ignore[arg-type]
         journal_url_raw="https://f23g45.rcsi.science/2079-7877",
-        csv_path=csv_path,
+        csv_path=FIXTURE_CSV,
         dry_run=True,
         sort_alpha=True,
         delay=0,

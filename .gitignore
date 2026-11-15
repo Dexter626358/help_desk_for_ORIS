@@ -142,6 +142,9 @@ ras_settings/
 .env.*
 !.env.example
 
+# Локальные CSV разделов журнала в корне (рабочие данные; пример — tests/fixtures/)
+/journal_sections.csv
+
 # Обработанные файлы
 *_processed.xml
 *_processed.XML

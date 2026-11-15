@@ -56,10 +56,11 @@ python run.py
 | Добавить PDF в XML | `/services/pdf-matching` | ZIP с PDF → привязка к XML |
 | Проверить опубликованный выпуск | `/services/issue-metadata` | Аудит выпуска по URL |
 | CSV для загрузки PDF | `/services/issue-pdf-csv` | CSV к выпуску |
-| Рисунки → доп. файлы | `/services/issue-supp-images` | images.zip → доп. файлы статей |
+| Рисунки → доп. файлы | `/services/issue-supp-images` | images.zip → доп. файлы статей (подписи ru/en) |
 | Обновление ENG-метаданных | `/services/eng-metadata` | ZIP JSON+PDF → подготовка / apply |
 | Архивация «Новые» по отправителю | `/services/archive-by-sender` | URL журнала → архив без письма |
 | Настройка журнала в песочнице | `/services/sandbox-journal-setup` | URL ветки f23g45 → базовая настройка |
+| Разделы журнала из CSV | `/services/journal-sections` | CSV и/или сортировка A→Я (песочница и платформа) |
 | Проверить сайт журнала | `/services/journal-site-check` | Файл `.data` / чек-лист БАЗА |
 
 В отчёте «Проверить сайт журнала» в подробном блоке показываются только пункты, которые ещё нужно настроить или проверить (выполненные скрыты). Документация БАЗА: [modulbaza](https://docs.rcsi.science/s/modulbaza).
@@ -94,7 +95,8 @@ python -m ipsas.cli validate article.xml --json
 
 Коды выхода: `0` — все OK, `1` — ошибки Метафоры, `2` — файл/ZIP не разобрать.
 
-Архивация по отправителю и настройка песочницы по умолчанию в режиме **только проверка** (dry-run); для записи снимите галочку на форме (CLI песочницы: `--apply`).
+Архивация по отправителю, настройка песочницы и разделы журнала по умолчанию в режиме
+**только проверка** (dry-run); для записи снимите галочку на форме (CLI: `--apply`).
 
 CLI песочницы:
 
@@ -102,6 +104,15 @@ CLI песочницы:
 python setup_sandbox_journal.py "https://f23g45.rcsi.science/257/index"
 python setup_sandbox_journal.py "https://f23g45.rcsi.science/257/index" --apply
 ```
+
+CLI разделов журнала (песочница или платформа; подробнее [`docs/journal_sections.md`](docs/journal_sections.md)):
+
+```bash
+python sync_journal_sections.py --journal-url https://journals.rcsi.science/2079-7877/manager/sections --csv my_sections.csv --dry-run
+python sync_journal_sections.py --journal-url https://journals.rcsi.science/2079-7877/manager/sections --sort-alpha --apply
+```
+
+Формат CSV и пример: `tests/fixtures/journal_sections.csv`. Локальный `journal_sections.csv` в корне в git не коммитится.
 
 ## Остановка сервера
 

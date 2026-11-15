@@ -7,11 +7,11 @@ CSV (разделитель «;», необязателен при --sort-alpha)
 Примеры:
   python sync_journal_sections.py ^
     --journal-url https://f23g45.rcsi.science/2079-7877 ^
-    --csv journal_sections.csv --dry-run
+    --csv tests/fixtures/journal_sections.csv --dry-run
 
   python sync_journal_sections.py ^
     --journal-url https://f23g45.rcsi.science/2079-7877 ^
-    --csv journal_sections.csv --apply --sort-alpha
+    --csv my_sections.csv --apply --sort-alpha
 
   # только сортировка в песочнице
   python sync_journal_sections.py ^

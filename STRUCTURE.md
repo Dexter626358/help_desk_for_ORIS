@@ -183,13 +183,16 @@ Web: `/services/sandbox-journal-setup`. Env: `SANDBOX_GATE_*` / `SANDBOX_OJS_*` 
 Сверка `manager/sections` с CSV (`number;title_ru;short_title_ru;title_en;short_title_en`)
 и создание отсутствующих через `createSection` (матч по русскому названию).
 Опция `--sort-alpha` / checkbox: выстроить разделы A→Я по RU через `moveSection`
-(можно **без CSV**, только URL журнала; раздел «Статьи» не перемещается).
+(можно **без CSV**, только URL журнала / `…/manager/sections`;
+раздел «Статьи» не перемещается).
 
 Работает с песочницей (`f23g45`) и платформой (`journals.rcsi.science`);
-auth выбирается по хосту URL.
+auth выбирается по хосту URL. Локальный `journal_sections.csv` в корне — в `.gitignore`;
+пример формата: `tests/fixtures/journal_sections.csv`.
 
 CLI: `sync_journal_sections.py --journal-url … [--csv …] [--sort-alpha]` (`--apply`).
-Web: `/services/journal-sections`.
+Web: `/services/journal-sections`.  
+Документация: [`docs/journal_sections.md`](docs/journal_sections.md).
 
 ### Прочее
 

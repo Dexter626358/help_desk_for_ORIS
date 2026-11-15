@@ -4,7 +4,9 @@
 (`check_metadata` / `analyze_journal_xml`), а не проверку по XSD-схеме.
 
 Код: `ipsas/modules/journal_xml/validators.py` (`collect_article_issues`),
-парсинг источников — `parser.py`.
+парсинг источников — `parser.py`.  
+Отчёт: `ipsas/web/templates/partials/xml_metadata_report.html`
+(в т.ч. сводная таблица «Источники по статьям» перед списком статей).
 
 ---
 
