@@ -149,6 +149,8 @@ Shim: `issue_metadata_parser.py`.
 
 Сопоставление папок `{start}-{end}_images` из ZIP с интервалами страниц в issueToc,
 загрузка в доп. файлы статей. CLI: `upload_issue_images.py`.
+Подписи: `figure_captions.json` — `{"Fig. 1": {"ru": "…", "en": "…"}}`
+(ключи опциональны; legacy-строка → RU).
 
 ### JATS для Метафоры — `metafora_jats/`
 
@@ -176,6 +178,19 @@ browse (по разделам), setup 3–5 (в т.ч. шаблон содерж
 CLI: `setup_sandbox_journal.py "https://f23g45.rcsi.science/257/index"` (`--apply` для записи).
 Web: `/services/sandbox-journal-setup`. Env: `SANDBOX_GATE_*` / `SANDBOX_OJS_*` (alias `USER1`/`USER2`).
 
+### Разделы из CSV — `journal_sections/`
+
+Сверка `manager/sections` с CSV (`number;title_ru;short_title_ru;title_en;short_title_en`)
+и создание отсутствующих через `createSection` (матч по русскому названию).
+Опция `--sort-alpha` / checkbox: выстроить разделы A→Я по RU через `moveSection`
+(можно **без CSV**, только URL журнала; раздел «Статьи» не перемещается).
+
+Работает с песочницей (`f23g45`) и платформой (`journals.rcsi.science`);
+auth выбирается по хосту URL.
+
+CLI: `sync_journal_sections.py --journal-url … [--csv …] [--sort-alpha]` (`--apply`).
+Web: `/services/journal-sections`.
+
 ### Прочее
 
 | Модуль | Назначение |
@@ -199,6 +214,7 @@ Web: `/services/sandbox-journal-setup`. Env: `SANDBOX_GATE_*` / `SANDBOX_OJS_*` 
 | `check_journal_site.py` | Проверка `.data` / сайта журнала |
 | `eng_metadata_review.py` | Сессия ENG-метаданных |
 | `archive_by_sender.py` | Архивация «Новые» по отправителю |
+| `journal_sections.py` | Разделы журнала из CSV |
 | `validate_metafora_jats.py` | JATS XML / ZIP выпуска для Метафоры |
 
 ---
@@ -211,7 +227,7 @@ Web: `/services/sandbox-journal-setup`. Env: `SANDBOX_GATE_*` / `SANDBOX_OJS_*` 
 - `routes.py` — dashboard + заглушки «В разработке»  
 - Blueprints: `xml_validation`, `metafora_jats`, `xml_report`, `reference_*`, `pdf_matching`,
   `issue_pdf_csv`, `issue_metadata`, `journal_site_check`, `eng_metadata`, `archive_by_sender`,
-  `issue_supp_images`, `sandbox_journal_setup`, `xml_editor`
+  `issue_supp_images`, `journal_sections`, `sandbox_journal_setup`, `xml_editor`
 - Пакет `issue_metadata/` — `routes.py` + `inflight.py`  
 - Shim: `issue_metadata_tasks.py` → `ipsas.jobs.issue_metadata`  
 - `templates/` + `static/css/{theme,app}.css`
@@ -236,6 +252,7 @@ Web: `/services/sandbox-journal-setup`. Env: `SANDBOX_GATE_*` / `SANDBOX_OJS_*` 
 | Рисунки → доп. файлы | (web `issue_supp_images`) | `issue_supp_images` |
 | JATS для Метафоры | (web `metafora_jats`) / `ipsas.cli validate` (XML или ZIP) | `metafora_jats` |
 | Настройка в песочнице | (web `sandbox_journal_setup`) | `sandbox_journal_setup` |
+| Разделы из CSV | `journal_sections` | `journal_sections` |
 | Редактор XML | (web `xml_editor`) | `xml_editor` |
 
 ---
@@ -253,6 +270,7 @@ Web: `/services/sandbox-journal-setup`. Env: `SANDBOX_GATE_*` / `SANDBOX_OJS_*` 
 | Рисунки выпуска | `test_issue_supp_images.py` |
 | JATS Метафора | `test_metafora_jats.py`, `test_metafora_jats_ui.py` |
 | Песочница | `test_sandbox_journal_setup.py` |
+| Разделы из CSV | `test_journal_sections.py` |
 | Безопасность / prod | `test_security.py`, `test_production_hardening.py` |
 | Общее | `test_validator.py`, `test_maintainability.py`, `test_download_names.py`, `test_operation_history_and_cleaner.py` |
 

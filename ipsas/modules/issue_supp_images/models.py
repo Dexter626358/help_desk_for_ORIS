@@ -33,15 +33,26 @@ class ImageFile:
     path: Path
     original_name: str
     folder_key: str
-    # Подпись из figure_captions.json; если пусто — берём original_name
+    # Подписи из figure_captions.json (ru/en); пустые → fallback на original_name
+    title_ru: str = ""
+    title_en: str = ""
+    # Устаревшее одно поле (legacy string в JSON); используется как RU-fallback
     title: str = ""
 
     @property
     def display_title(self) -> str:
-        text = (self.title or "").strip()
-        if text:
-            return text
-        return (self.original_name or "").strip() or "figure"
+        for text in (self.title_ru, self.title, self.title_en, self.original_name):
+            if (text or "").strip():
+                return (text or "").strip()
+        return "figure"
+
+    @property
+    def resolved_title_ru(self) -> str:
+        return (self.title_ru or self.title or "").strip()
+
+    @property
+    def resolved_title_en(self) -> str:
+        return (self.title_en or "").strip()
 
 
 @dataclass

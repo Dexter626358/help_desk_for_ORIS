@@ -1174,6 +1174,20 @@ table tbody tr:hover {
 
 .xr-table th { background: var(--surface-muted); }
 
+.xr-table tr.is-refs-mismatch td {
+  background: var(--warning-bg);
+}
+
+.xr-table tr.is-refs-mismatch td:first-child {
+  box-shadow: inset 3px 0 0 var(--warning);
+}
+
+.xr-refs-flag {
+  color: var(--warning);
+  font-weight: 700;
+  margin-left: 0.35rem;
+}
+
 details.xr-fold > summary {
   cursor: pointer;
   font-weight: 600;

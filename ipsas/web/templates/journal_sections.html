@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs, file_upload %}
+
+{% block title %}Разделы журнала из CSV — IPSAS{% endblock %}
+{% block topbar %}Метаданные и сайт{% endblock %}
+
+{% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Разделы журнала из CSV'}
+]) }}
+
+<div class="card">
+  <h1 class="page-title">Синхронизация разделов журнала</h1>
+  <p class="page-lead">
+    Работает с <strong>песочницей</strong>
+    (<span class="mono">{{ sandbox_base_url }}</span>)
+    и с <strong>платформой</strong>
+    (<span class="mono">{{ platform_base_url }}</span>).
+    CSV с разделами
+    (<span class="mono">title_ru</span> / <span class="mono">short_title_ru</span> /
+    <span class="mono">title_en</span> / <span class="mono">short_title_en</span>) —
+    по желанию: сервис сравнит с
+    <span class="mono">manager/sections</span> и создаст отсутствующие.
+    Сортировку по алфавиту можно запустить <strong>отдельно</strong>, без CSV.
+  </p>
+
+  <form method="POST"
+        action="{{ url_for('journal_sections.process_sync') }}"
+        enctype="multipart/form-data"
+        data-loading-form>
+    {{ csrf_field() }}
+
+    <div class="form-group">
+      <label for="journal_url">Ссылка на журнал *</label>
+      <input type="url"
+             id="journal_url"
+             name="journal_url"
+             class="form-control"
+             required
+             data-url-field
+             placeholder="https://journals.rcsi.science/2079-7877/manager/sections"
+             value="{{ request.form.journal_url or '' }}" />
+      <p class="form-hint">
+        Песочница:
+        <span class="mono">{{ sandbox_base_url }}/2079-7877/manager/sections</span><br>
+        Платформа:
+        <span class="mono">{{ platform_base_url }}/2079-7877/manager/sections</span>
+      </p>
+    </div>
+
+    {{ file_upload(
+      name='csv_file',
+      input_id='csv_file',
+      accept='.csv',
+      label='CSV с разделами (необязательно)',
+      help_text='Разделитель «;». Колонки: number;title_ru;short_title_ru;title_en;short_title_en. Можно не загружать, если нужна только сортировка.',
+      max_size_mb=5,
+      required=false
+    ) }}
+
+    <div class="form-group form-check">
+      <label class="form-check-label">
+        <input type="checkbox" name="dry_run" value="1" checked />
+        Только проверка (не создавать / не сортировать на платформе)
+      </label>
+    </div>
+
+    <div class="form-group form-check">
+      <label class="form-check-label">
+        <input type="checkbox" name="sort_alpha" value="1" />
+        Выстроить разделы по алфавиту (русское название; «Статьи» остаются на месте) — можно без CSV
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit"
+              class="btn btn-primary"
+              data-submit-btn
+              data-loading-text="Синхронизация…"
+              data-confirm="Запустить синхронизацию разделов?">
+        Запустить
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  document.querySelectorAll("[data-confirm]").forEach(function (btn) {
+    btn.addEventListener("click", function (e) {
+      var msg = btn.getAttribute("data-confirm");
+      if (msg && !window.confirm(msg)) e.preventDefault();
+    });
+  });
+})();
+</script>
+{% endblock %}

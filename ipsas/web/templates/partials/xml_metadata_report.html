@@ -63,6 +63,81 @@
   </div>
   {% endif %}
 
+  {% if report.articles %}
+  {% set ns = namespace(rus=0, eng=0, unk=0, any=0, has_any=false) %}
+  {% for a in report.articles %}
+    {% set ns.rus = ns.rus + (a.references_rus or 0) %}
+    {% set ns.eng = ns.eng + (a.references_eng or 0) %}
+    {% set ns.unk = ns.unk + (a.references_unk or 0) %}
+    {% set ns.any = ns.any + (a.references_any or 0) %}
+    {% if a.references_any %}{% set ns.has_any = true %}{% endif %}
+  {% endfor %}
+  <div class="xr-meta">
+    <h2 class="section-title">Источники по статьям</h2>
+    <p class="xr-muted" style="margin:0 0 0.5rem;">
+      Всего: RUS {{ ns.rus }} · ENG {{ ns.eng }} · UNK {{ ns.unk }}{% if ns.has_any %} · ANY {{ ns.any }}{% endif %}
+      · суммарно {{ ns.rus + ns.eng + ns.unk + ns.any }}.
+      Жёлтым — статьи, где ненулевые языки расходятся по числу источников.
+    </p>
+    <table class="xr-table">
+      <thead>
+        <tr>
+          <th style="width:4%;">#</th>
+          <th>Статья</th>
+          <th style="width:7%; text-align:right;">RUS</th>
+          <th style="width:7%; text-align:right;">ENG</th>
+          <th style="width:7%; text-align:right;">UNK</th>
+          {% if ns.has_any %}
+          <th style="width:7%; text-align:right;">ANY</th>
+          {% endif %}
+          <th style="width:7%; text-align:right;">Σ</th>
+          <th style="width:28%;">Статус</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in report.articles %}
+        {% set total = (a.references_rus or 0) + (a.references_eng or 0) + (a.references_unk or 0) + (a.references_any or 0) %}
+        {% set pos = [] %}
+        {% if a.references_rus %}{% set _ = pos.append(a.references_rus) %}{% endif %}
+        {% if a.references_eng %}{% set _ = pos.append(a.references_eng) %}{% endif %}
+        {% if a.references_unk %}{% set _ = pos.append(a.references_unk) %}{% endif %}
+        {% if a.references_any %}{% set _ = pos.append(a.references_any) %}{% endif %}
+        {% set mismatch = (pos|unique|list)|length > 1 %}
+        <tr class="{{ 'is-refs-mismatch' if mismatch else '' }}">
+          <td><a href="#article-{{ a.index }}">{{ a.index }}</a></td>
+          <td>
+            <a href="#article-{{ a.index }}">{{ a.title }}</a>
+            {% if a.pages %}<span class="xr-muted"> · с. {{ a.pages }}</span>{% endif %}
+            {% if mismatch %}<span class="xr-refs-flag" title="Разное число источников по языкам">⚠</span>{% endif %}
+          </td>
+          <td style="text-align:right;">{{ a.references_rus }}</td>
+          <td style="text-align:right;">{{ a.references_eng }}</td>
+          <td style="text-align:right;">{{ a.references_unk }}</td>
+          {% if ns.has_any %}
+          <td style="text-align:right;">{{ a.references_any or 0 }}</td>
+          {% endif %}
+          <td style="text-align:right;"><strong>{{ total }}</strong></td>
+          <td>{{ a.references_status.comparison or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2"><strong>Итого</strong></td>
+          <td style="text-align:right;"><strong>{{ ns.rus }}</strong></td>
+          <td style="text-align:right;"><strong>{{ ns.eng }}</strong></td>
+          <td style="text-align:right;"><strong>{{ ns.unk }}</strong></td>
+          {% if ns.has_any %}
+          <td style="text-align:right;"><strong>{{ ns.any }}</strong></td>
+          {% endif %}
+          <td style="text-align:right;"><strong>{{ ns.rus + ns.eng + ns.unk + ns.any }}</strong></td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  {% endif %}
+
   <h2 class="section-title">Статьи ({{ report.summary.articles_total }})</h2>
 
   {% for a in report.articles %}

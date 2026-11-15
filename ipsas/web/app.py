@@ -76,6 +76,7 @@ def create_app(*, testing: bool = False) -> Flask:
     from ipsas.web.eng_metadata import eng_metadata_bp
     from ipsas.web.archive_by_sender import archive_by_sender_bp
     from ipsas.web.issue_supp_images import issue_supp_images_bp
+    from ipsas.web.journal_sections import journal_sections_bp
     from ipsas.web.sandbox_journal_setup import sandbox_journal_setup_bp
     from ipsas.web.metafora_jats import metafora_jats_bp
 
@@ -94,6 +95,7 @@ def create_app(*, testing: bool = False) -> Flask:
     app.register_blueprint(eng_metadata_bp, url_prefix="/services")
     app.register_blueprint(archive_by_sender_bp, url_prefix="/services")
     app.register_blueprint(issue_supp_images_bp, url_prefix="/services")
+    app.register_blueprint(journal_sections_bp, url_prefix="/services")
     app.register_blueprint(sandbox_journal_setup_bp, url_prefix="/services")
 
     guard = RequestGuard(

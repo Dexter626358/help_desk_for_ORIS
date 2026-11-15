@@ -17,7 +17,9 @@
     Укажите ссылку на выпуск в режиме редактора и ZIP с папками
     <span class="mono">47-67_images</span>. Сервис сопоставит интервалы страниц
     со статьями, загрузит файлы как доп. файлы (тип «Рисунок — материалы исследования»),
-    подставит название файла и включит показ для скрытых языков.
+    подставит подписи из <span class="mono">figure_captions.json</span>
+    (ru/en → <span class="mono">title[ru_RU]</span>/<span class="mono">title[en_US]</span>)
+    и включит показ для скрытых языков.
   </p>
 
   <form method="POST"
@@ -47,7 +49,7 @@
       input_id='zip_file',
       accept='.zip',
       label='ZIP-архив с рисунками',
-      help_text='Структура: 47-67_images/Fig. 1.jpeg + figure_captions.json с реальными названиями',
+      help_text='Структура: 47-67_images/Fig. 1.jpeg + figure_captions.json {"Fig. 1": {"ru": "…", "en": "…"}} (достаточно одного языка)',
       max_size_mb=100
     ) }}
 

@@ -396,11 +396,36 @@ def test_generate_xml_html_report_creates_html(tmp_path: Path):
     assert "Отчёт о качестве XML" in html
     assert "Сводка" in html
     assert "Журнал и выпуск" in html
+    assert "Источники по статьям" in html
     assert "Тестовый журнал" in html
     assert "English title" in html
+    assert "Источники есть" in html
+    # В sample у 1-й статьи RUS=ENG=UNK=1 — без подсветки расхождения в <tr>
+    assert 'class="is-refs-mismatch"' not in html
     # Тот же partial, что и web: без UI-кнопок
     assert "Новая проверка" not in html
     assert "На главную" not in html
+
+
+def test_refs_mismatch_row_highlighted_in_html(tmp_path: Path):
+    """При разном числе источников по языкам строка таблицы подсвечивается."""
+    xml_path = tmp_path / "mismatch.xml"
+    words = "слово " * 80
+    eng_words = "word " * 80
+    xml_path.write_text(
+        SAMPLE_JOURNAL_XML.format(words=words, eng_words=eng_words).replace(
+            '<reference><refInfo lang="UNK"><text>Universal ref</text></refInfo></reference>',
+            '<reference><refInfo lang="UNK"><text>U1</text></refInfo></reference>'
+            '<reference><refInfo lang="UNK"><text>U2</text></refInfo></reference>'
+            '<reference><refInfo lang="UNK"><text>U3</text></refInfo></reference>',
+        ),
+        encoding="utf-8",
+    )
+    out_path = tmp_path / "report.html"
+    generate_xml_html_report(xml_path, out_path)
+    html = out_path.read_text(encoding="utf-8")
+    assert 'class="is-refs-mismatch"' in html
+    assert "xr-refs-flag" in html
 
 
 def test_generate_xml_html_report_missing_input_raises(tmp_path: Path):

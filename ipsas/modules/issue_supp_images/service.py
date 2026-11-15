@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import time
 from pathlib import Path
 from typing import Any
 
@@ -95,8 +94,6 @@ def process_issue_images(
                 result.status,
                 result.message,
             )
-            if delay > 0 and not dry_run:
-                time.sleep(delay)
 
     uploaded = sum(1 for r in results if r.status == "uploaded")
     dry_hits = sum(1 for r in results if r.status == "dry_run")

@@ -52,9 +52,18 @@ def _guess_content_type(filename: str) -> str:
     return ctype or "application/octet-stream"
 
 
-def _title_for_image(image: ImageFile) -> str:
-    """Название доп. файла: подпись из JSON или имя файла."""
-    return image.display_title
+def _titles_for_image(image: ImageFile) -> tuple[str, str]:
+    """Подписи ru/en для title доп. файла.
+
+    Returns:
+        ``(title_ru, title_en)`` — пустая строка, если подписи нет.
+        Если обеих нет — RU = имя файла (как раньше).
+    """
+    title_ru = image.resolved_title_ru
+    title_en = image.resolved_title_en
+    if not title_ru and not title_en:
+        title_ru = (image.original_name or "").strip() or "figure"
+    return title_ru, title_en
 
 
 def parse_edit_supp_redirect(final_url: str, html: str) -> tuple[int, int]:
@@ -152,11 +161,18 @@ def save_supp_metadata(
     journal: str,
     article_id: int,
     file_id: int,
-    title: str,
+    title: str = "",
+    title_ru: str = "",
+    title_en: str = "",
     supp_type: str = SUPP_TYPE_FIGURE_MATERIALS,
     form_locale: str = "ru_RU",
     delay: float = 0.35,
 ) -> None:
+    """Сохранить метаданные доп. файла.
+
+    ``title_ru`` / ``title_en`` пишутся в ``title[ru_RU]`` / ``title[en_US]``.
+    Устаревший аргумент ``title`` используется как RU, если ``title_ru`` пуст.
+    """
     base = auth.base_url.rstrip("/")
     edit_url = f"{base}/{journal}/editor/editSuppFile/{article_id}/{file_id}"
     save_url = f"{base}/{journal}/editor/saveSuppFile/{file_id}"
@@ -164,24 +180,38 @@ def save_supp_metadata(
     if _is_login(html):
         raise PlatformAuthError(f"Нет доступа к {edit_url}")
 
-    # подтянуть скрытые поля если есть
+    ru = (title_ru or title or "").strip()
+    en = (title_en or "").strip()
+    if not ru and not en:
+        raise ValueError("Нужна хотя бы одна подпись title_ru/title_en/title")
+    # Активная вкладка формы — локаль, для которой есть текст (приоритет RU)
+    active_locale = form_locale
+    if ru:
+        active_locale = "ru_RU"
+    elif en:
+        active_locale = "en_US"
+
     payload: dict[str, str] = {
         "articleId": str(article_id),
         "from": "",
-        "formLocale": form_locale,
-        f"title[{form_locale}]": title,
+        "formLocale": active_locale,
         "type": supp_type,
-        f"typeOther[{form_locale}]": "",
-        f"creator[{form_locale}]": "",
         "dateCreated": "",
         "language": "",
-        f"publisher[{form_locale}]": "",
-        f"source[{form_locale}]": "",
-        f"sponsor[{form_locale}]": "",
-        f"subject[{form_locale}]": "",
-        f"description[{form_locale}]": "",
     }
-    # dateCreated из формы
+    for locale in ("ru_RU", "en_US"):
+        payload[f"typeOther[{locale}]"] = ""
+        payload[f"creator[{locale}]"] = ""
+        payload[f"publisher[{locale}]"] = ""
+        payload[f"source[{locale}]"] = ""
+        payload[f"sponsor[{locale}]"] = ""
+        payload[f"subject[{locale}]"] = ""
+        payload[f"description[{locale}]"] = ""
+    if ru:
+        payload["title[ru_RU]"] = ru
+    if en:
+        payload["title[en_US]"] = en
+
     m = re.search(r'name="dateCreated"[^>]*value="([^"]*)"', html, re.I)
     if m:
         payload["dateCreated"] = m.group(1)
@@ -199,7 +229,6 @@ def save_supp_metadata(
         raise RuntimeError(f"saveSuppFile HTTP {status}")
     if _is_login(text):
         raise PlatformAuthError("Сессия потеряна при saveSuppFile")
-    # успех обычно возвращает на submissionEditing
     if "saveSuppFile" in (final_url or "") and "error" in text.casefold():
         raise RuntimeError("saveSuppFile вернул ошибку")
     if delay > 0:
@@ -266,15 +295,21 @@ def upload_image_to_article(
     dry_run: bool = False,
     delay: float = 0.35,
 ) -> UploadResult:
-    title = _title_for_image(image)
+    title_ru, title_en = _titles_for_image(image)
     if dry_run:
+        title_bits = []
+        if title_ru:
+            title_bits.append(f"ru={title_ru!r}")
+        if title_en:
+            title_bits.append(f"en={title_en!r}")
         return UploadResult(
             article_id=article_id,
             pages=pages_label,
             filename=image.original_name,
             status="dry_run",
             message=(
-                f"будет загружен как доп. файл, title={title!r}, "
+                f"будет загружен как доп. файл, "
+                f"{', '.join(title_bits)}, "
                 f"type={SUPP_TYPE_FIGURE_MATERIALS}"
             ),
         )
@@ -291,7 +326,8 @@ def upload_image_to_article(
             journal=journal,
             article_id=aid,
             file_id=fid,
-            title=title,
+            title_ru=title_ru,
+            title_en=title_en,
             delay=delay,
         )
         locales = enable_supp_visibility(

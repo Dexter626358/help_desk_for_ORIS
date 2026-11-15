@@ -62,6 +62,7 @@ def test_parse_issue_toc_pages():
 
 def test_parse_images_archive_and_match(tmp_path: Path):
     zpath = tmp_path / "images.zip"
+    # Legacy: строка → RU
     captions = (
         '{\n'
         '  "Fig. 1": "Корреляция",\n'
@@ -79,6 +80,8 @@ def test_parse_images_archive_and_match(tmp_path: Path):
     assert len(bundles[0].files) == 2
     by_name = {f.original_name: f for f in bundles[0].files}
     assert by_name["Fig. 1.jpeg"].display_title == "Корреляция"
+    assert by_name["Fig. 1.jpeg"].resolved_title_ru == "Корреляция"
+    assert by_name["Fig. 1.jpeg"].resolved_title_en == ""
     assert by_name["Fig. 2.jpeg"].display_title == "Второй рисунок"
     # Без JSON — fallback на имя файла
     assert bundles[1].files[0].display_title == "Fig. 1.jpeg"
@@ -94,19 +97,147 @@ def test_parse_images_archive_and_match(tmp_path: Path):
     assert match_article(articles, bundles[1].page_range).article_id == 2
 
 
+def test_parse_images_archive_bilingual_captions(tmp_path: Path):
+    zpath = tmp_path / "images.zip"
+    captions = (
+        "{\n"
+        '  "Fig. 1": {\n'
+        '    "ru": "Рис. 1. Типы взаимодействий",\n'
+        '    "en": "Fig. 1. Types of interactions"\n'
+        "  },\n"
+        '  "Fig. 2": {\n'
+        '    "ru": "Рис. 2. Только русский"\n'
+        "  },\n"
+        '  "Fig. 3": {\n'
+        '    "en": "Fig. 3. English only"\n'
+        "  }\n"
+        "}\n"
+    ).encode("utf-8")
+    with zipfile.ZipFile(zpath, "w") as zf:
+        zf.writestr("10-20_images/Fig. 1.jpeg", b"a")
+        zf.writestr("10-20_images/Fig. 2.jpeg", b"b")
+        zf.writestr("10-20_images/Fig. 3.jpeg", b"c")
+        zf.writestr("10-20_images/figure_captions.json", captions)
+    bundles = parse_images_archive(zpath, tmp_path / "ex")
+    assert len(bundles) == 1
+    by_name = {f.original_name: f for f in bundles[0].files}
+    f1 = by_name["Fig. 1.jpeg"]
+    assert f1.resolved_title_ru == "Рис. 1. Типы взаимодействий"
+    assert f1.resolved_title_en == "Fig. 1. Types of interactions"
+    assert f1.display_title == "Рис. 1. Типы взаимодействий"
+    f2 = by_name["Fig. 2.jpeg"]
+    assert f2.resolved_title_ru == "Рис. 2. Только русский"
+    assert f2.resolved_title_en == ""
+    f3 = by_name["Fig. 3.jpeg"]
+    assert f3.resolved_title_ru == ""
+    assert f3.resolved_title_en == "Fig. 3. English only"
+    assert f3.display_title == "Fig. 3. English only"
+
+
 def test_caption_lookup_helpers():
     from ipsas.modules.issue_supp_images.archive import (
+        FigureCaption,
         _caption_for_filename,
         _load_captions_json,
     )
 
-    captions = _load_captions_json(
+    legacy = _load_captions_json(
         '{"Fig. 1": "Реальное название", "Fig. 2": "  "}'.encode("utf-8")
     )
-    assert captions == {"Fig. 1": "Реальное название"}
-    assert _caption_for_filename(captions, "Fig. 1.jpeg") == "Реальное название"
-    assert _caption_for_filename(captions, "Fig. 2.jpeg") == ""
-    assert _caption_for_filename({}, "Fig. 1.jpeg") == ""
+    assert legacy == {"Fig. 1": FigureCaption(ru="Реальное название")}
+    assert _caption_for_filename(legacy, "Fig. 1.jpeg") == FigureCaption(
+        ru="Реальное название"
+    )
+    assert _caption_for_filename(legacy, "Fig. 2.jpeg") == FigureCaption()
+    assert _caption_for_filename({}, "Fig. 1.jpeg") == FigureCaption()
+
+    bilingual = _load_captions_json(
+        (
+            '{"Fig. 1": {"ru": "RU", "en": "EN"}, '
+            '"Fig. 2": {"en": "Only EN"}, '
+            '"Fig. 3": {}}'
+        ).encode("utf-8")
+    )
+    assert bilingual["Fig. 1"] == FigureCaption(ru="RU", en="EN")
+    assert bilingual["Fig. 2"] == FigureCaption(en="Only EN")
+    assert "Fig. 3" not in bilingual
+
+
+def test_titles_for_image_and_save_payload():
+    from ipsas.modules.issue_supp_images.models import ImageFile
+    from ipsas.modules.issue_supp_images.upload import (
+        _titles_for_image,
+        save_supp_metadata,
+    )
+
+    both = ImageFile(
+        path=Path("x.jpeg"),
+        original_name="Fig. 1.jpeg",
+        folder_key="1-2",
+        title_ru="RU cap",
+        title_en="EN cap",
+    )
+    assert _titles_for_image(both) == ("RU cap", "EN cap")
+
+    only_en = ImageFile(
+        path=Path("x.jpeg"),
+        original_name="Fig. 2.jpeg",
+        folder_key="1-2",
+        title_en="EN only",
+    )
+    assert _titles_for_image(only_en) == ("", "EN only")
+
+    none = ImageFile(
+        path=Path("x.jpeg"),
+        original_name="Fig. 3.jpeg",
+        folder_key="1-2",
+    )
+    assert _titles_for_image(none) == ("Fig. 3.jpeg", "")
+
+    saved: dict[str, str] = {}
+
+    class FakeAuth:
+        base_url = "https://example.test"
+
+        def get_text(self, url: str, encoding: str = "utf-8") -> str:
+            return '<input name="dateCreated" value="2024-01-01" />'
+
+        def request(
+            self,
+            url: str,
+            *,
+            data: dict[str, str] | None = None,
+            method: str | None = None,
+            headers: dict[str, str] | None = None,
+        ) -> tuple[int, str, bytes]:
+            saved.update(data or {})
+            return 200, url.replace("saveSuppFile", "submissionEditing"), b"ok"
+
+    save_supp_metadata(
+        FakeAuth(),  # type: ignore[arg-type]
+        journal="j",
+        article_id=1,
+        file_id=2,
+        title_ru="RU cap",
+        title_en="EN cap",
+        delay=0,
+    )
+    assert saved["title[ru_RU]"] == "RU cap"
+    assert saved["title[en_US]"] == "EN cap"
+    assert saved["formLocale"] == "ru_RU"
+
+    saved.clear()
+    save_supp_metadata(
+        FakeAuth(),  # type: ignore[arg-type]
+        journal="j",
+        article_id=1,
+        file_id=2,
+        title_en="EN only",
+        delay=0,
+    )
+    assert "title[ru_RU]" not in saved
+    assert saved["title[en_US]"] == "EN only"
+    assert saved["formLocale"] == "en_US"
 
 
 def test_ascii_upload_filename_and_redirect():

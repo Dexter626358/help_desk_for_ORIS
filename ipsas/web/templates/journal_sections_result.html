@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs %}
+
+{% block title %}Результат: разделы журнала — IPSAS{% endblock %}
+{% block topbar %}Метаданные и сайт{% endblock %}
+
+{% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Разделы журнала из CSV', 'url': url_for('journal_sections.sync_page')},
+  {'label': 'Результат'}
+]) }}
+
+<div class="card">
+  <h1 class="page-title">Результат синхронизации разделов</h1>
+  <p class="page-lead">
+    Журнал <span class="mono">{{ summary.journal }}</span>
+    · {{ summary.base_url }}
+    {% if summary.auth_kind %}· {{ 'песочница' if summary.auth_kind == 'sandbox' else 'платформа' }}{% endif %}
+    · {% if dry_run %}только проверка{% else %}запись{% endif %}
+  </p>
+
+  <div class="result-summary {{ 'is-ok' if summary.ok else 'is-warn' }}">
+    <div><strong>На платформе уже было:</strong> {{ summary.existing_count }}</div>
+    <div><strong>Уже есть:</strong> {{ summary.exists }}</div>
+    <div><strong>Создано:</strong> {{ summary.created }}</div>
+    <div><strong>К созданию (dry-run):</strong> {{ summary.dry_run_hits }}</div>
+    <div><strong>Ошибки:</strong> {{ summary.errors }}</div>
+    {% if summary.sort_alpha %}
+    <div><strong>Сортировка:</strong> {{ summary.sort_status or '—' }}
+      {% if summary.sort_message %}<span class="xr-muted"> — {{ summary.sort_message }}</span>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  {% if summary.results %}
+  <table class="xr-table" style="margin-top:1rem;">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Раздел (RU)</th>
+        <th>Статус</th>
+        <th>Сообщение</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in summary.results %}
+      <tr>
+        <td>{{ row.number }}</td>
+        <td>{{ row.title_ru }}</td>
+        <td>{{ row.status }}</td>
+        <td>{{ row.message }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <div class="btn-row" style="margin-top:1.5rem;">
+    <a class="btn btn-secondary" href="{{ url_for('journal_sections.sync_page') }}">Новый запуск</a>
+    <a class="btn btn-secondary" href="{{ url_for('main.dashboard') }}">На главную</a>
+  </div>
+</div>
+{% endblock %}

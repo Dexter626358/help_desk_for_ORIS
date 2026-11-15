@@ -6,7 +6,9 @@ import json
 import logging
 import re
 import zipfile
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from ipsas.modules.issue_supp_images.models import ImageBundle, ImageFile, PageRange
 
@@ -28,6 +30,18 @@ IMAGE_SUFFIXES = {
     ".bmp",
 }
 CAPTIONS_FILENAME = "figure_captions.json"
+
+
+@dataclass(frozen=True)
+class FigureCaption:
+    """Подписи рисунка из figure_captions.json."""
+
+    ru: str = ""
+    en: str = ""
+
+    @property
+    def has_any(self) -> bool:
+        return bool(self.ru or self.en)
 
 
 def parse_page_range_token(value: str) -> PageRange | None:
@@ -55,8 +69,34 @@ def parse_folder_name(name: str) -> PageRange | None:
     return PageRange(start=start, end=end)
 
 
-def _load_captions_json(raw: bytes) -> dict[str, str]:
-    """Разобрать figure_captions.json → stem файла → название."""
+def _normalize_caption_entry(value: Any) -> FigureCaption:
+    """Поддержать и legacy-строку, и объект ``{\"ru\": …, \"en\": …}``."""
+    if value is None:
+        return FigureCaption()
+    if isinstance(value, str):
+        # Старый формат: одна строка → русская подпись (как раньше писали в ru_RU)
+        text = value.strip()
+        return FigureCaption(ru=text) if text else FigureCaption()
+    if isinstance(value, dict):
+        ru = str(
+            value.get("ru")
+            or value.get("RU")
+            or value.get("ru_RU")
+            or ""
+        ).strip()
+        en = str(
+            value.get("en")
+            or value.get("EN")
+            or value.get("en_US")
+            or ""
+        ).strip()
+        return FigureCaption(ru=ru, en=en)
+    text = str(value).strip()
+    return FigureCaption(ru=text) if text else FigureCaption()
+
+
+def _load_captions_json(raw: bytes) -> dict[str, FigureCaption]:
+    """Разобрать figure_captions.json → stem файла → подписи ru/en."""
     text: str | None = None
     for encoding in ("utf-8-sig", "utf-8", "cp1251"):
         try:
@@ -73,37 +113,49 @@ def _load_captions_json(raw: bytes) -> dict[str, str]:
         logger.warning("figure_captions.json: невалидный JSON (%s)", exc)
         return {}
     if not isinstance(data, dict):
-        logger.warning("figure_captions.json: ожидался объект {имя: подпись}")
+        logger.warning(
+            "figure_captions.json: ожидался объект "
+            '{ "Fig. 1": {"ru": "...", "en": "..."} }'
+        )
         return {}
-    result: dict[str, str] = {}
+    result: dict[str, FigureCaption] = {}
     for key, value in data.items():
-        if key is None or value is None:
+        if key is None:
             continue
         stem = str(key).strip()
-        title = str(value).strip()
-        if stem and title:
-            result[stem] = title
+        if not stem:
+            continue
+        caption = _normalize_caption_entry(value)
+        if caption.has_any:
+            result[stem] = caption
     return result
 
 
-def _caption_for_filename(captions: dict[str, str], filename: str) -> str:
+def _caption_for_filename(
+    captions: dict[str, FigureCaption],
+    filename: str,
+) -> FigureCaption:
     """Подобрать подпись по имени файла (Fig. 1.jpeg → ключ «Fig. 1»)."""
     if not captions:
-        return ""
+        return FigureCaption()
     stem = Path(filename).stem.strip()
     if stem in captions:
         return captions[stem]
-    # Без учёта регистра
     low = {k.casefold(): v for k, v in captions.items()}
-    return low.get(stem.casefold(), "")
+    return low.get(stem.casefold(), FigureCaption())
 
 
 def parse_images_archive(zip_path: Path, extract_dir: Path) -> list[ImageBundle]:
     """Распаковать ZIP и сгруппировать файлы по интервалам страниц.
 
     В каждой папке ``{start}-{end}_images`` может быть
-    ``figure_captions.json`` — словарь ``{\"Fig. 1\": \"реальное название\"}``.
-    Подпись из JSON используется как title доп. файла; иначе — имя файла.
+    ``figure_captions.json``:
+
+    - новый формат: ``{\"Fig. 1\": {\"ru\": \"…\", \"en\": \"…\"}}``
+      (``ru`` / ``en`` опциональны);
+    - legacy: ``{\"Fig. 1\": \"одна подпись\"}`` → считается русской.
+
+    Подписи пишутся в title доп. файла на платформе; иначе — имя файла.
     """
     zip_path = Path(zip_path)
     extract_dir = Path(extract_dir)
@@ -113,7 +165,7 @@ def parse_images_archive(zip_path: Path, extract_dir: Path) -> list[ImageBundle]
         raise ValueError(f"Файл не является ZIP: {zip_path}")
 
     extract_dir.mkdir(parents=True, exist_ok=True)
-    captions_by_folder: dict[str, dict[str, str]] = {}
+    captions_by_folder: dict[str, dict[str, FigureCaption]] = {}
     image_members: list[tuple[zipfile.ZipInfo, PageRange, str, str]] = []
 
     with zipfile.ZipFile(zip_path) as zf:
@@ -162,7 +214,9 @@ def parse_images_archive(zip_path: Path, extract_dir: Path) -> list[ImageBundle]
                     path=target,
                     original_name=fname,
                     folder_key=key,
-                    title=caption,
+                    title_ru=caption.ru,
+                    title_en=caption.en,
+                    title=caption.ru,
                 )
             )
 

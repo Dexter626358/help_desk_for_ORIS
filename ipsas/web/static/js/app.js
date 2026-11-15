@@ -236,8 +236,9 @@
         input.addEventListener("change", function () {
           pickFiles(input.files);
         });
+        // без файла: submit разрешён, если upload необязателен (fileRequired=false)
         if (input.files && input.files[0]) renderFile(input.files[0]);
-        else setSubmitEnabled(false);
+        else renderFile(null);
       }
 
       if (clearBtn) {
