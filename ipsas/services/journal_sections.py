@@ -102,6 +102,7 @@ def execute(
                 base_url=base_url,
                 cookie_file=settings.platform_cookie_file,
                 timeout=float(settings.request_timeout),
+                ssl_verify=bool(settings.platform_ssl_verify),
             )
             delay = float(settings.platform_request_delay)
 

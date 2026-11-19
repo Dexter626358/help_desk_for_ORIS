@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs %}
+
+{% block title %}Кандидаты-дубли — IPSAS{% endblock %}
+{% block topbar %}Поиск дублей статей{% endblock %}
+
+{% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Поиск дублей статей', 'url': url_for('article_duplicates.duplicates_page')},
+  {'label': 'Кандидаты'}
+]) }}
+
+<div class="card">
+  <h1 class="page-title">Кандидаты-дубли</h1>
+  <p class="page-lead">
+    Журнал <strong>{{ summary.journal }}</strong>:
+    эталон —
+    {% if summary.source == 'issue' %}
+      выпуск
+      {% if summary.issue_url %}
+      <a href="{{ summary.issue_url }}" target="_blank" rel="noopener">{{ summary.source_label }}</a>
+      {% else %}
+      {{ summary.source_label }}
+      {% endif %}
+    {% else %}
+      XML {{ summary.xml_name or summary.source_label }}
+    {% endif %},
+    статей — {{ summary.xml_articles }},
+    рукописей в корпусе — {{ summary.corpus_size }},
+    групп с кандидатами — {{ summary.groups_with_candidates }}
+    ({{ '%.1f'|format(elapsed) }} с).
+  </p>
+  <p class="form-hint" style="margin-bottom: 1rem;">
+    Сравнивайте названия и авторов. Аннотации и ключевые слова — в «Дополнительных сведениях».
+    «Архивировать» отклоняет рукопись без письма автору.
+  </p>
+  <div class="form-actions" style="margin-bottom: 1rem;">
+    <a class="btn btn-secondary" href="{{ url_for('article_duplicates.duplicates_page') }}">Новый запуск</a>
+  </div>
+</div>
+
+{% for group in summary.groups %}
+<div class="card dup-group" data-has-candidates="{{ 1 if group.candidates else 0 }}">
+  <h2 class="section-title">Статья {% if summary.source == 'issue' %}выпуска{% else %}XML{% endif %} № {{ group.index }}</h2>
+
+  {% if not group.candidates %}
+  <p class="dup-title">{{ group.title }}</p>
+  <p class="dup-meta"><span class="dup-k">Авторы:</span> {{ group.authors or '—' }}</p>
+  {% if group.publication_date %}
+  <p class="dup-meta"><span class="dup-k">Дата публикации:</span> {{ group.publication_date }}</p>
+  {% endif %}
+  <p class="form-hint">Кандидатов выше порога не найдено.</p>
+  {% else %}
+    {% for cand in group.candidates %}
+    <div class="dup-candidate {% if cand.is_published %}is-published{% endif %} {% if cand.confidence == 'high' %}is-high{% endif %}">
+      <div class="dup-compare">
+        <div class="dup-side">
+          <p class="dup-label">{% if summary.source == 'issue' %}Опубликовано{% else %}В XML{% endif %}</p>
+          <p class="dup-title">{{ group.title }}</p>
+          <p class="dup-meta"><span class="dup-k">Авторы:</span> {{ group.authors or '—' }}</p>
+          {% if group.publication_date %}
+          <p class="dup-meta"><span class="dup-k">Дата публикации:</span> {{ group.publication_date }}</p>
+          {% endif %}
+        </div>
+        <div class="dup-side">
+          <p class="dup-label">В OJS · кандидат {{ loop.index }}</p>
+          <p class="dup-title">
+            {% if cand.url %}
+            <a href="{{ cand.url }}" target="_blank" rel="noopener">{{ cand.title }}</a>
+            {% else %}
+            {{ cand.title }}
+            {% endif %}
+          </p>
+          <p class="dup-meta"><span class="dup-k">Авторы:</span> {{ cand.authors or '—' }}</p>
+          <p class="dup-meta dup-meta-compact">
+            ID {{ cand.article_id }}
+            {% if cand.url %}· <a href="{{ cand.url }}" target="_blank" rel="noopener">открыть</a>{% endif %}
+            · {{ cand.queue_label or '—' }}
+            {% if cand.submit_date %}· {{ cand.submit_date }}{% endif %}
+          </p>
+        </div>
+        <div class="dup-side dup-actions">
+          <div class="dup-badges">
+            {% if cand.confidence == 'high' %}
+            <span class="dup-badge dup-badge-high">Высокая уверенность</span>
+            {% elif cand.confidence == 'medium' %}
+            <span class="dup-badge">Средняя уверенность</span>
+            {% else %}
+            <span class="dup-badge dup-badge-low">Низкая уверенность</span>
+            {% endif %}
+            {% if cand.uniqueness == 'unique' %}
+            <span class="dup-badge dup-badge-unique">Однозначное совпадение</span>
+            {% elif cand.uniqueness == 'likely_unique' %}
+            <span class="dup-badge dup-badge-unique">Скорее однозначное</span>
+            {% endif %}
+          </div>
+          <ul class="dup-reasons">
+            {% for reason in cand.match_reasons %}
+            <li>{{ reason }}</li>
+            {% endfor %}
+          </ul>
+          <p class="dup-meta dup-meta-compact">
+            Score {{ '%.0f'|format(cand.score * 100) }}%
+            · название {{ '%.0f'|format(cand.title_score * 100) }}%
+            · авторы {{ '%.0f'|format(cand.author_score * 100) }}%
+            {% if cand.abstract_score %}· аннотация {{ '%.0f'|format(cand.abstract_score * 100) }}%{% endif %}
+          </p>
+          {% if cand.is_published %}
+          <p class="form-hint">Опубликована — архивация недоступна</p>
+          {% else %}
+          <form method="POST"
+                action="{{ url_for('article_duplicates.process_archive') }}"
+                class="dup-archive-form"
+                data-archive-inline>
+            {{ csrf_field() }}
+            <input type="hidden" name="ajax" value="1" />
+            <input type="hidden" name="journal_url" value="{{ summary.journal_url }}" />
+            <input type="hidden" name="match_ids" value="{{ cand.article_id }}" />
+            <input type="hidden" name="dry_run" value="0" />
+            <button type="submit"
+                    class="btn btn-primary"
+                    data-archive-one
+                    data-confirm="Архивировать рукопись № {{ cand.article_id }} без письма? Статус в OJS изменится.">
+              Архивировать
+            </button>
+            <p class="dup-archive-status" hidden></p>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+
+      <details class="dup-extra">
+        <summary>Дополнительные сведения</summary>
+        <div class="dup-extra-grid">
+          <div>
+            <p class="dup-label">Эталон</p>
+            {% if group.title_en and group.title_en != group.title %}
+            <p class="dup-meta"><span class="dup-k">EN:</span> {{ group.title_en }}</p>
+            {% endif %}
+            {% if group.publication_date %}
+            <p class="dup-meta"><span class="dup-k">Дата публикации:</span> {{ group.publication_date }}</p>
+            {% endif %}
+            {% if group.pages %}
+            <p class="dup-meta"><span class="dup-k">Страницы:</span> {{ group.pages }}</p>
+            {% endif %}
+            {% if group.keywords %}
+            <p class="dup-meta"><span class="dup-k">Ключевые слова:</span> {{ group.keywords }}</p>
+            {% endif %}
+            {% if group.keywords_en and group.keywords_en != group.keywords %}
+            <p class="dup-meta"><span class="dup-k">Keywords:</span> {{ group.keywords_en }}</p>
+            {% endif %}
+            {% if group.abstract %}
+            <p class="dup-meta dup-abstract"><span class="dup-k">Аннотация:</span> {{ group.abstract }}</p>
+            {% else %}
+            <p class="form-hint">Аннотация эталона не указана</p>
+            {% endif %}
+          </div>
+          <div>
+            <p class="dup-label">Кандидат OJS</p>
+            {% if cand.title_en and cand.title_en != cand.title %}
+            <p class="dup-meta"><span class="dup-k">EN:</span> {{ cand.title_en }}</p>
+            {% endif %}
+            {% if cand.section %}
+            <p class="dup-meta"><span class="dup-k">Раздел:</span> {{ cand.section }}</p>
+            {% endif %}
+            {% if cand.ojs_status %}
+            <p class="dup-meta"><span class="dup-k">Статус OJS:</span> {{ cand.ojs_status }}</p>
+            {% endif %}
+            {% if cand.sender %}
+            <p class="dup-meta"><span class="dup-k">Отправитель:</span> {{ cand.sender }}</p>
+            {% endif %}
+            {% if cand.keywords %}
+            <p class="dup-meta"><span class="dup-k">Ключевые слова:</span> {{ cand.keywords }}</p>
+            {% endif %}
+            {% if cand.keywords_en and cand.keywords_en != cand.keywords %}
+            <p class="dup-meta"><span class="dup-k">Keywords:</span> {{ cand.keywords_en }}</p>
+            {% endif %}
+            {% if cand.abstract %}
+            <p class="dup-meta dup-abstract"><span class="dup-k">Аннотация:</span> {{ cand.abstract }}</p>
+            {% else %}
+            <p class="form-hint">Аннотация кандидата не загружена</p>
+            {% endif %}
+          </div>
+        </div>
+      </details>
+    </div>
+    {% endfor %}
+  {% endif %}
+</div>
+{% endfor %}
+
+<div class="card">
+  <div class="form-actions">
+    <a class="btn btn-secondary" href="{{ url_for('article_duplicates.duplicates_page') }}">Новый запуск</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .dup-compare {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+  @media (min-width: 960px) {
+    .dup-compare { grid-template-columns: 1fr 1fr minmax(14rem, 0.85fr); align-items: start; }
+  }
+  .dup-label { font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.7; margin: 0 0 0.35rem; }
+  .dup-title {
+    font-size: 1.02rem;
+    margin: 0 0 0.4rem;
+    font-weight: 600;
+    line-height: 1.35;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .dup-meta { margin: 0 0 0.3rem; opacity: 0.9; line-height: 1.4; }
+  .dup-meta-compact { opacity: 0.75; font-size: 0.92rem; }
+  .dup-abstract { max-height: 7em; overflow: auto; }
+  .dup-k { opacity: 0.7; font-weight: 600; }
+  .dup-candidate { border-top: 1px solid rgba(0,0,0,0.08); padding-top: 0.95rem; margin-top: 0.95rem; }
+  .dup-candidate:first-of-type { border-top: 0; padding-top: 0.25rem; margin-top: 0.35rem; }
+  .dup-candidate.is-published { opacity: 0.75; }
+  .dup-candidate.is-high { background: rgba(27, 107, 58, 0.04); margin-left: -0.6rem; margin-right: -0.6rem; padding-left: 0.6rem; padding-right: 0.6rem; border-radius: 0.4rem; }
+  .dup-actions { display: flex; flex-direction: column; gap: 0.45rem; align-items: flex-start; }
+  .dup-badges { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .dup-badge {
+    display: inline-block;
+    font-size: 0.78rem;
+    line-height: 1.2;
+    padding: 0.2rem 0.45rem;
+    border: 1px solid rgba(0,0,0,0.14);
+    border-radius: 0.25rem;
+    background: rgba(0,0,0,0.03);
+  }
+  .dup-badge-high { border-color: rgba(27, 107, 58, 0.35); background: rgba(27, 107, 58, 0.08); color: #1b6b3a; }
+  .dup-badge-unique { border-color: rgba(30, 90, 150, 0.35); background: rgba(30, 90, 150, 0.08); color: #1e5a96; }
+  .dup-badge-low { opacity: 0.85; }
+  .dup-reasons { margin: 0; padding-left: 1.1rem; line-height: 1.4; font-size: 0.95rem; }
+  .dup-reasons li { margin: 0.12rem 0; }
+  .dup-extra { margin-top: 0.65rem; }
+  .dup-extra > summary {
+    cursor: pointer;
+    font-weight: 600;
+    opacity: 0.85;
+    list-style: none;
+  }
+  .dup-extra > summary::-webkit-details-marker { display: none; }
+  .dup-extra > summary::before { content: "▸ "; }
+  .dup-extra[open] > summary::before { content: "▾ "; }
+  .dup-extra-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin-top: 0.55rem;
+  }
+  @media (min-width: 800px) {
+    .dup-extra-grid { grid-template-columns: 1fr 1fr; }
+  }
+  .dup-archive-form { margin: 0; }
+  .dup-archive-status { margin: 0.35rem 0 0; font-size: 0.92rem; line-height: 1.35; max-width: 22rem; }
+  .dup-archive-status.is-ok { color: #1b6b3a; }
+  .dup-archive-status.is-error { color: #9b1c1c; }
+  .dup-candidate.is-archived { opacity: 0.82; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  function csrfToken(form) {
+    var input = form && form.querySelector('input[name="csrf_token"]');
+    if (input && input.value) return input.value;
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    return meta && meta.content ? meta.content : "";
+  }
+
+  function setStatus(el, text, ok) {
+    if (!el) return;
+    el.hidden = false;
+    el.textContent = text;
+    el.classList.toggle("is-ok", !!ok);
+    el.classList.toggle("is-error", !ok);
+  }
+
+  function statusLabel(row) {
+    if (!row) return "Готово";
+    var st = String(row.status || "");
+    if (st === "archived") return "Заархивировано";
+    if (st === "dry_run") return "Проверка (без записи)";
+    if (st === "skipped_published") return "Пропущено: опубликована";
+    if (st === "error") return "Ошибка";
+    return st || "Готово";
+  }
+
+  document.querySelectorAll("form[data-archive-inline]").forEach(function (form) {
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var btn = form.querySelector("[data-archive-one]");
+      var statusEl = form.querySelector(".dup-archive-status");
+      var msg = (btn && btn.getAttribute("data-confirm")) ||
+        "Архивировать рукопись без письма?";
+      if (!window.confirm(msg)) return;
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Архивация…";
+      }
+      setStatus(statusEl, "Отправка…", true);
+
+      var body = new FormData(form);
+      fetch(form.action, {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "X-CSRFToken": csrfToken(form)
+        },
+        body: body,
+        credentials: "same-origin"
+      })
+        .then(function (resp) {
+          return resp.json().then(function (data) {
+            return { okHttp: resp.ok, data: data };
+          }).catch(function () {
+            throw new Error("Некорректный ответ сервера");
+          });
+        })
+        .then(function (pack) {
+          var data = pack.data || {};
+          var row = data.result || (data.results && data.results[0]) || {};
+          var ok = !!pack.okHttp && data.ok !== false &&
+            String(row.status || "") !== "error";
+          var text = statusLabel(row);
+          if (row.message) text += ": " + row.message;
+          if (!ok && data.error) text = data.error;
+          setStatus(statusEl, text, ok);
+          var card = form.closest(".dup-candidate");
+          if (card && ok && String(row.status || "") === "archived") {
+            card.classList.add("is-archived");
+          }
+          if (btn) {
+            if (ok && String(row.status || "") === "archived") {
+              btn.textContent = "Заархивировано";
+            } else {
+              btn.disabled = false;
+              btn.textContent = "Архивировать";
+            }
+          }
+        })
+        .catch(function (err) {
+          setStatus(
+            statusEl,
+            (err && err.message) || "Не удалось выполнить архивацию",
+            false
+          );
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = "Архивировать";
+          }
+        });
+    });
+  });
+})();
+</script>
+{% endblock %}

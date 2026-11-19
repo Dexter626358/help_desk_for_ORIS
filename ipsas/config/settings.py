@@ -177,6 +177,8 @@ class Settings:
             os.getenv("PLATFORM_COOKIE_FILE") or cookie_default
         ).expanduser().resolve()
         self.platform_request_delay: float = _env_float("PLATFORM_REQUEST_DELAY", 0.35)
+        # Для корпоративного MITM / self-signed на journals.rcsi.science
+        self.platform_ssl_verify: bool = _env_bool("PLATFORM_SSL_VERIFY", True)
 
         # Песочница f23g45: ворота (Basic Auth) + OJS-логин (отдельно от PLATFORM_*)
         self.sandbox_base_url: str = (

@@ -7,4 +7,5 @@ Flask-WTF>=1.2.0,<2
 WTForms>=3.0.0,<4
 lxml>=6.1,<7
 pypdf>=3.9,<7
+rapidfuzz>=3.0,<4
 gunicorn>=21.2.0,<24

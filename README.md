@@ -114,7 +114,7 @@ Railway: сборка через Dockerfile (`railway.json`).
 
 См. [.env.example](.env.example) и таблицу в [DEPLOYMENT.md](DEPLOYMENT.md). Секреты только в окружении сервера.
 
-Для сервисов, ходящих на Платформу под учётной записью редактора (ENG-метаданные apply, архивация «Новые», рисунки выпуска, разделы журнала из CSV):
+Для сервисов, ходящих на Платформу под учётной записью редактора (ENG-метаданные apply, архивация «Новые», рисунки выпуска, разделы журнала из CSV, поиск дублей статей):
 
 - `PLATFORM_USERNAME` / `PLATFORM_PASSWORD` (или `RCSI_USERNAME` / `RCSI_PASSWORD`)
 - `PLATFORM_APPLY_ENABLED=1` — разрешить запись ENG-метаданных (по умолчанию выкл.)
@@ -150,6 +150,7 @@ Railway: сборка через Dockerfile (`railway.json`).
 | [PASSPORT.md](PASSPORT.md) | **Технический паспорт**: карточка, команда, стек, инфраструктура, эксплуатация, диагностика отказа |
 | [STRUCTURE.md](STRUCTURE.md) | Слои кода, модули, blueprints, дерево каталогов |
 | [docs/journal_sections.md](docs/journal_sections.md) | Разделы журнала из CSV / сортировка (песочница и платформа) |
+| [docs/article_duplicates.md](docs/article_duplicates.md) | Поиск дублей: XML или URL выпуска ↔ активные очереди (без Архива) |
 | [docs/xml_validator_metadata_checks.md](docs/xml_validator_metadata_checks.md) | Смысловые проверки валидатора XML (не XSD) |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Production: схема развёртывания, env, Docker Compose, Nginx, systemd |
 | [deploy/SERVER_DEPLOY.md](deploy/SERVER_DEPLOY.md) | **Пошаговое развёртывание на сервере с нуля** (Docker Compose + nginx) |

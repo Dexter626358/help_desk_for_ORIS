@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs, file_upload %}
+
+{% block title %}Поиск дублей статей — IPSAS{% endblock %}
+{% block topbar %}Поиск дублей статей{% endblock %}
+
+{% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Поиск дублей статей'}
+]) }}
+
+<div class="card">
+  <h1 class="page-title">Поиск дублей статей</h1>
+  <p class="page-lead">
+    Укажите журнал и эталон статей: <strong>journal XML</strong> или ссылку на
+    <strong>опубликованный выпуск</strong>. Сервис выгрузит рукописи из активных
+    очередей редактора (Новые, На рецензии, В редакции — без Архива) и подберёт
+    до пяти похожих кандидатов на каждую статью. Окончательное решение — за сотрудником.
+  </p>
+
+  <form method="POST"
+        action="{{ url_for('article_duplicates.process_find') }}"
+        enctype="multipart/form-data"
+        data-loading-form
+        id="duplicates-find-form">
+    {{ csrf_field() }}
+
+    <div class="form-group">
+      <label for="journal_url">Ссылка на журнал или ISSN</label>
+      <input type="text"
+             id="journal_url"
+             name="journal_url"
+             class="form-control"
+             placeholder="https://journals.rcsi.science/0044-4502/ … или 0044-4502"
+             value="{{ request.form.journal_url or '' }}" />
+      <p class="form-hint">
+        Обязательно при загрузке XML. Если указан только выпуск — ISSN берётся из его URL.
+      </p>
+    </div>
+
+    <div class="form-group">
+      <label for="issue_url">Ссылка на опубликованный выпуск (вместо XML)</label>
+      <input type="url"
+             id="issue_url"
+             name="issue_url"
+             class="form-control"
+             placeholder="https://journals.rcsi.science/0044-4502/issue/view/30862"
+             value="{{ request.form.issue_url or '' }}" />
+      <p class="form-hint">
+        Эталоны берутся со страниц статей выпуска. Не указывайте одновременно с XML.
+      </p>
+    </div>
+
+    {{ file_upload(
+      name='xml_file',
+      input_id='xml_file',
+      accept='.xml',
+      label='Journal XML (вместо ссылки на выпуск)',
+      help_text='Корневой элемент journal — необязателен, если указан выпуск',
+      required=false
+    ) }}
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Найти кандидатов</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -50,6 +50,7 @@ python run.py
 | Сервис | URL | Кратко |
 |--------|-----|--------|
 | Валидатор XML | `/services/xml-validator` | XSD и метаданные journal XML |
+| Поиск дублей статей | `/services/article-duplicates` | XML или URL выпуска → кандидаты (Новые/рецензия/редакция) / архив |
 | JATS для Метафоры | `/services/metafora-jats` | JATS XML или ZIP выпуска → обязательные поля для ИС «Метафора» |
 | Редактор XML | `/services/xml-editor` | Правка загруженного journal XML |
 | Список литературы | `/bibliography` (хаб) | Нумерация / очистка / формат |
@@ -113,6 +114,14 @@ python sync_journal_sections.py --journal-url https://journals.rcsi.science/2079
 ```
 
 Формат CSV и пример: `tests/fixtures/journal_sections.csv`. Локальный `journal_sections.csv` в корне в git не коммитится.
+
+CLI поиска дублей (подробнее [`docs/article_duplicates.md`](docs/article_duplicates.md)):
+
+```bash
+python find_article_duplicates.py --journal-url https://journals.rcsi.science/0320-7919 --xml issue.xml
+python find_article_duplicates.py --issue-url https://journals.rcsi.science/0044-4502/issue/view/30862
+python find_article_duplicates.py --journal-url https://journals.rcsi.science/0320-7919 --xml issue.xml --archive-ids 125,231 --dry-run
+```
 
 ## Остановка сервера
 

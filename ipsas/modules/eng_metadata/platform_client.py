@@ -28,6 +28,7 @@ class PlatformClientSettings:
     cookie_file: Path
     request_timeout: float = 60.0
     request_delay: float = 0.35
+    ssl_verify: bool = True
 
 
 class PlatformClient:
@@ -45,6 +46,7 @@ class PlatformClient:
             base_url=settings.base_url,
             cookie_file=settings.cookie_file,
             timeout=settings.request_timeout,
+            ssl_verify=bool(settings.ssl_verify),
         )
         self.auth.timeout = float(settings.request_timeout)
 

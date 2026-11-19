@@ -194,6 +194,20 @@ CLI: `sync_journal_sections.py --journal-url … [--csv …] [--sort-alpha]` (`-
 Web: `/services/journal-sections`.  
 Документация: [`docs/journal_sections.md`](docs/journal_sections.md).
 
+### Поиск дублей — `article_duplicates/`
+
+Эталон — journal XML или опубликованный выпуск (HTML статей). Сравнение
+с рукописями **активных** очередей редактора (Новые / На рецензии / В редакции;
+Архив не берём). Локальный ranking: RapidFuzz WRatio по названию + Jaccard по
+авторам; до 5 кандидатов на статью. Полное совпадение авторов проходит даже при
+низком title score. Архивация без письма (как `archive_by_sender`) — только после
+подтверждения сотрудника и только для неопубликованных.
+
+CLI: `find_article_duplicates.py --journal-url … --xml …` или `--issue-url …`
+(`--archive-ids`, `--apply-archive`).
+Web: `/services/article-duplicates`.
+Документация: [`docs/article_duplicates.md`](docs/article_duplicates.md).
+
 ### Прочее
 
 | Модуль | Назначение |
@@ -218,6 +232,7 @@ Web: `/services/journal-sections`.
 | `eng_metadata_review.py` | Сессия ENG-метаданных |
 | `archive_by_sender.py` | Архивация «Новые» по отправителю |
 | `journal_sections.py` | Разделы журнала из CSV |
+| `article_duplicates.py` | Поиск дублей XML ↔ очереди редактора |
 | `validate_metafora_jats.py` | JATS XML / ZIP выпуска для Метафоры |
 
 ---
@@ -230,7 +245,8 @@ Web: `/services/journal-sections`.
 - `routes.py` — dashboard + заглушки «В разработке»  
 - Blueprints: `xml_validation`, `metafora_jats`, `xml_report`, `reference_*`, `pdf_matching`,
   `issue_pdf_csv`, `issue_metadata`, `journal_site_check`, `eng_metadata`, `archive_by_sender`,
-  `issue_supp_images`, `journal_sections`, `sandbox_journal_setup`, `xml_editor`
+  `issue_supp_images`, `journal_sections`, `article_duplicates`, `sandbox_journal_setup`,
+  `xml_editor`
 - Пакет `issue_metadata/` — `routes.py` + `inflight.py`  
 - Shim: `issue_metadata_tasks.py` → `ipsas.jobs.issue_metadata`  
 - `templates/` + `static/css/{theme,app}.css`
@@ -256,6 +272,7 @@ Web: `/services/journal-sections`.
 | JATS для Метафоры | (web `metafora_jats`) / `ipsas.cli validate` (XML или ZIP) | `metafora_jats` |
 | Настройка в песочнице | (web `sandbox_journal_setup`) | `sandbox_journal_setup` |
 | Разделы из CSV | `journal_sections` | `journal_sections` |
+| Поиск дублей статей | `article_duplicates` | `article_duplicates` |
 | Редактор XML | (web `xml_editor`) | `xml_editor` |
 
 ---
@@ -274,6 +291,7 @@ Web: `/services/journal-sections`.
 | JATS Метафора | `test_metafora_jats.py`, `test_metafora_jats_ui.py` |
 | Песочница | `test_sandbox_journal_setup.py` |
 | Разделы из CSV | `test_journal_sections.py` |
+| Поиск дублей | `test_article_duplicates.py` |
 | Безопасность / prod | `test_security.py`, `test_production_hardening.py` |
 | Общее | `test_validator.py`, `test_maintainability.py`, `test_download_names.py`, `test_operation_history_and_cleaner.py` |
 

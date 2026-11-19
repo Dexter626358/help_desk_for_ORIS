@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% from "macros/ui.html" import breadcrumbs %}
+
+{% block title %}Архивация дублей — IPSAS{% endblock %}
+{% block topbar %}Поиск дублей статей{% endblock %}
+
+{% block content %}
+{{ breadcrumbs([
+  {'label': 'Сервисы', 'url': url_for('main.dashboard')},
+  {'label': 'Поиск дублей статей', 'url': url_for('article_duplicates.duplicates_page')},
+  {'label': 'Архивация'}
+]) }}
+
+<div class="card">
+  <h1 class="page-title">Результат архивации</h1>
+  <p class="page-lead">
+    Журнал <strong>{{ summary.journal }}</strong>
+    {% if summary.dry_run %}(только проверка){% endif %}:
+    всего {{ summary.total }},
+    заархивировано {{ summary.archived }},
+    dry-run {{ summary.dry_run_hits }},
+    published пропущено {{ summary.skipped_published }},
+    ошибок {{ summary.errors }}
+    ({{ '%.1f'|format(elapsed) }} с).
+  </p>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Название</th>
+          <th>Статус</th>
+          <th>Сообщение</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in summary.results %}
+        <tr>
+          <td>{{ row.article_id }}</td>
+          <td>{{ row.title }}</td>
+          <td>{{ row.status }}</td>
+          <td>{{ row.message }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="form-actions">
+    <a class="btn btn-secondary" href="{{ url_for('article_duplicates.duplicates_page') }}">Новый поиск</a>
+  </div>
+</div>
+{% endblock %}

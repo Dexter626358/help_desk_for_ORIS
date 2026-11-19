@@ -127,6 +127,7 @@ def main(argv: list[str] | None = None) -> int:
                 settings.platform_cookie_file or "temp/platform_cookies.txt"
             ),
             timeout=float(settings.request_timeout or 60),
+            ssl_verify=bool(getattr(settings, "platform_ssl_verify", True)),
         )
     except PlatformAuthError as exc:
         logger.error("Авторизация: %s", exc)

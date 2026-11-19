@@ -107,9 +107,9 @@ HTTP        ipsas/web/            Flask, blueprint'ы, CSRF, rate guard, health
 Сценарии    ipsas/services/       что делает каждая страница
 Домен       ipsas/modules/        бизнес-логика по доменам: journal_xml, bibliography,
                                    issue_metadata, eng_metadata, archive_by_sender,
-                                   issue_supp_images, journal_sections, journal_site,
-                                   sandbox_journal_setup, pdf_matching, metafora_jats,
-                                   xml_validator, xml_editor
+                                   issue_supp_images, journal_sections, article_duplicates,
+                                   journal_site, sandbox_journal_setup, pdf_matching,
+                                   metafora_jats, xml_validator, xml_editor
 Общее       ipsas/common/         validation, ssrf, zip_safe, xml_secure, models, exceptions
 Задачи      ipsas/jobs/           файловый статус фоновых задач
 Конфиг      ipsas/config/         settings.py: разбор окружения и production-проверки
@@ -130,7 +130,7 @@ HTTP        ipsas/web/            Flask, blueprint'ы, CSRF, rate guard, health
 | Система | Назначение | Учётная запись | Режим записи |
 |---------|-----------|----------------|--------------|
 | Платформа (OJS) | запись ENG-метаданных | `gsn` | **включена** (`PLATFORM_APPLY_ENABLED=1`) |
-| Платформа (OJS) | архивация «Новые», рисунки выпуска, разделы из CSV | `gsn` | по умолчанию dry-run, на форме снимается галочка |
+| Платформа (OJS) | архивация «Новые», рисунки выпуска, разделы из CSV, дубли статей | `gsn` | по умолчанию dry-run, на форме снимается галочка |
 | Песочница `f23g45` | базовая настройка журнала; разделы из CSV | `developer` | по умолчанию dry-run, флаг `--apply` |
 | Журналы OJS / НППНИ | разбор опубликованного выпуска по URL | без логина | только чтение |
 

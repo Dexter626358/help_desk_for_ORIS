@@ -40,6 +40,17 @@ class PlatformAuthError(RuntimeError):
     """Ошибка входа или сессии на платформе."""
 
 
+def _platform_url_error(exc: urllib.error.URLError) -> PlatformAuthError:
+    reason = str(exc.reason if getattr(exc, "reason", None) else exc)
+    upper = reason.upper()
+    if "CERTIFICATE" in upper or "SSL" in upper:
+        return PlatformAuthError(
+            "Ошибка SSL при обращении к платформе "
+            f"({reason}). Для self-signed задайте PLATFORM_SSL_VERIFY=0 в .env"
+        )
+    return PlatformAuthError(f"Сеть/платформа недоступны: {reason}")
+
+
 @dataclass
 class PlatformAuthClient:
     """HTTP-клиент с cookie-сессией после логина."""
@@ -47,6 +58,7 @@ class PlatformAuthClient:
     base_url: str = DEFAULT_BASE_URL
     user_agent: str = DEFAULT_USER_AGENT
     timeout: float = 60.0
+    ssl_verify: bool = True
     basic_auth: tuple[str, str] | None = None
     _cookie_jar: http.cookiejar.CookieJar = field(
         default_factory=http.cookiejar.CookieJar, repr=False
@@ -60,6 +72,7 @@ class PlatformAuthClient:
     def _rebuild_opener(self) -> None:
         self._opener = build_safe_opener(
             urllib.request.HTTPCookieProcessor(self._cookie_jar),
+            ssl_verify=self.ssl_verify,
         )
 
     def _headers(self, extra: Mapping[str, str] | None = None) -> dict[str, str]:
@@ -114,6 +127,8 @@ class PlatformAuthClient:
         except urllib.error.HTTPError as exc:
             content = exc.read() if exc.fp else b""
             return exc.code, url, content
+        except urllib.error.URLError as exc:
+            raise _platform_url_error(exc) from exc
 
     def request_multipart(
         self,
@@ -171,6 +186,8 @@ class PlatformAuthClient:
         except urllib.error.HTTPError as exc:
             content = exc.read() if exc.fp else b""
             return exc.code, url, content
+        except urllib.error.URLError as exc:
+            raise _platform_url_error(exc) from exc
 
     def get_text(self, url: str, encoding: str = "utf-8") -> str:
         _, _, content = self.request(url, method="GET")
@@ -303,9 +320,12 @@ def ensure_platform_auth(
     base_url: str,
     cookie_file: Path,
     timeout: float,
+    ssl_verify: bool = True,
 ) -> PlatformAuthClient:
     """Переиспользовать cookies или выполнить логин."""
-    auth = PlatformAuthClient(base_url=base_url, timeout=timeout)
+    auth = PlatformAuthClient(
+        base_url=base_url, timeout=timeout, ssl_verify=ssl_verify
+    )
     if cookie_file.is_file():
         try:
             auth.load_cookies(cookie_file)

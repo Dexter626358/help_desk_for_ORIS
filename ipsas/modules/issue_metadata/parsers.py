@@ -1456,12 +1456,28 @@ def parse_article_page(
             "last": primary_items[-1] if primary_items else None,
         }
 
-    title_candidates = text_list("//h1/text()") + meta_values("citation_title") + meta_values("DC.Title")
+    # h1 с <sup> (H+, Ca2+) даёт несколько text()-узлов — склеиваем.
+    h1_joined: List[str] = []
+    for h1 in root.xpath("//h1"):
+        joined = normalize_spaces("".join(h1.xpath(".//text()")))
+        if joined:
+            h1_joined.append(joined)
+    # Meta обычно целее, чем разбитый h1 — ставим раньше.
+    title_candidates = (
+        meta_values("citation_title")
+        + [normalize_spaces(t) for t in (root.xpath("//meta[@property='og:title']/@content") or [])]
+        + meta_values("DC.Title")
+        + h1_joined
+        + text_list("//h1/text()")
+    )
     title_candidates = [normalize_spaces(t) for t in title_candidates if t]
     title_ru = None
     title_en = None
     for title in title_candidates:
         lang = detect_lang(title)
+        # Не брать обломки вроде "-, Ca" / "2+" от разметки формул.
+        if len(title) < 12 and not re.search(r"[А-Яа-яA-Za-z]{4,}", title):
+            continue
         if lang == "ru" and not title_ru:
             title_ru = title
         if lang == "en" and not title_en:
@@ -1518,6 +1534,18 @@ def parse_article_page(
         publication_date = pub_dates["en"][0]
     elif pub_dates["other"]:
         publication_date = pub_dates["other"][0]
+    # RCSI/OJS часто отдаёт citation_date / DC.Date.issued вместо citation_publication_date.
+    if not publication_date:
+        for meta_name in (
+            "citation_date",
+            "DC.Date.issued",
+            "DC.Date.created",
+            "DC.Date.available",
+        ):
+            vals = meta_values(meta_name)
+            if vals:
+                publication_date = vals[0]
+                break
     publication_date = normalize_date(publication_date)
     publication_date_display = format_date_ru(publication_date)
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import ipaddress
 import os
 import socket
+import ssl
 import urllib.request
 from urllib.parse import urljoin, urlparse
 
@@ -114,12 +115,28 @@ class SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
 
 def build_safe_opener(
     *handlers: urllib.request.BaseHandler,
+    ssl_verify: bool = True,
 ) -> urllib.request.OpenerDirector:
-    return urllib.request.build_opener(SafeRedirectHandler(), *handlers)
+    """
+    SSRF-safe opener.
+
+    ssl_verify=False — для внутренних стендов / MITM с self-signed
+    (PLATFORM_SSL_VERIFY=0). Не используйте в открытом интернете без нужды.
+    """
+    extra: list[urllib.request.BaseHandler] = [SafeRedirectHandler(), *handlers]
+    if not ssl_verify:
+        ctx = ssl._create_unverified_context()
+        extra.append(urllib.request.HTTPSHandler(context=ctx))
+    return urllib.request.build_opener(*extra)
 
 
-def urlopen_safe(req: urllib.request.Request | str, *, timeout: float | None = None):
-    opener = build_safe_opener()
+def urlopen_safe(
+    req: urllib.request.Request | str,
+    *,
+    timeout: float | None = None,
+    ssl_verify: bool = True,
+):
+    opener = build_safe_opener(ssl_verify=ssl_verify)
     if timeout is None:
         return opener.open(req)
     return opener.open(req, timeout=timeout)

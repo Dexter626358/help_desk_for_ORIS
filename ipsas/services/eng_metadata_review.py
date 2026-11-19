@@ -172,6 +172,7 @@ def apply_platform_update(
                 cookie_file=settings.platform_cookie_file,
                 request_timeout=float(settings.request_timeout),
                 request_delay=float(settings.platform_request_delay),
+                ssl_verify=bool(settings.platform_ssl_verify),
             )
         )
         service = UpdateService(client, issn=issn)
