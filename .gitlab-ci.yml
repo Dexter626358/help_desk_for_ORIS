@@ -43,6 +43,9 @@ variables:
 pytest:
   stage: test
   <<: *python_setup
+  # Проектный CI/CD Variable ISSUE_FETCH_ALLOWED_HOSTS не должен ломать SSRF-тесты.
+  variables:
+    ISSUE_FETCH_ALLOWED_HOSTS: ""
   script:
     - mkdir -p reports
     - pytest -q --junitxml=reports/junit.xml

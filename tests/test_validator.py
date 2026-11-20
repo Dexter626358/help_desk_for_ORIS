@@ -32,10 +32,12 @@ class TestValidator:
         assert validator.validate_email("invalid-email") is False
         assert validator.validate_email("test@") is False
 
-    def test_validate_url(self):
+    def test_validate_url(self, monkeypatch):
         """Тест валидации URL."""
+        # Без allowlist: иначе .env/CI ISSUE_FETCH_ALLOWED_HOSTS режет example.com.
+        monkeypatch.delenv("ISSUE_FETCH_ALLOWED_HOSTS", raising=False)
         validator = Validator()
-        
+
         assert validator.validate_url("https://example.com") is True
         assert validator.validate_url("http://example.com") is True
         assert validator.validate_url("invalid-url") is False

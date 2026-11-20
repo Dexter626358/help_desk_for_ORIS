@@ -82,7 +82,9 @@ def test_zip_allows_normal_pdf_xml(tmp_path: Path):
     assert "a.pdf" in names
 
 
-def test_ssrf_blocks_localhost_and_private():
+def test_ssrf_blocks_localhost_and_private(monkeypatch):
+    # Иначе .env / CI Variable ISSUE_FETCH_ALLOWED_HOSTS ломает публичный URL.
+    monkeypatch.delenv("ISSUE_FETCH_ALLOWED_HOSTS", raising=False)
     assert is_safe_fetch_url("http://127.0.0.1/admin") is False
     assert is_safe_fetch_url("http://localhost/x") is False
     assert is_safe_fetch_url("http://10.0.0.5/x") is False
