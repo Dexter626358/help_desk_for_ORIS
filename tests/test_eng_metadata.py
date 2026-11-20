@@ -232,6 +232,27 @@ def test_issn_from_article_url():
     assert issn_from_article_url(None) is None
 
 
+def test_editor_submission_url_from_article_url():
+    from ipsas.services.eng_metadata_review import (
+        editor_submission_url_from_article_url,
+    )
+
+    assert (
+        editor_submission_url_from_article_url(
+            "https://journals.rcsi.science/0023-2912/article/view/376448"
+        )
+        == "https://journals.rcsi.science/0023-2912/editor/submission/376448"
+    )
+    assert (
+        editor_submission_url_from_article_url(
+            "https://journals.rcsi.science/0005-2310/article/view/288752/"
+        )
+        == "https://journals.rcsi.science/0005-2310/editor/submission/288752"
+    )
+    assert editor_submission_url_from_article_url(None) is None
+    assert editor_submission_url_from_article_url("https://example.com/x") is None
+
+
 def test_apply_platform_update_dry_when_disabled(tmp_path, monkeypatch):
     from ipsas.config import settings as settings_mod
     from ipsas.services.eng_metadata_review import apply_platform_update
@@ -909,8 +930,12 @@ def test_upload_and_review_flow(client, tmp_path):
     assert 'name="ref_value_0"' in body
     assert 'name="ref_value_1"' in body
     assert "+ Вставить здесь" in body or "eng-refs-add" in body
-    assert "Ссылка на статью (справочно)" in body
+    assert "Просмотр статьи:" in body
     assert _SAMPLE_JSON["article_url"] in body
+    assert "В редакторе:" in body
+    assert (
+        "https://journals.rcsi.science/0005-2310/editor/submission/288752" in body
+    )
     assert 'name="article_url"' not in body
     assert "Редактировать как JSON" not in body
     assert "RU (справочно)" in body

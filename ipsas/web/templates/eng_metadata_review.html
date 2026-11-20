@@ -27,11 +27,21 @@
       · <a href="{{ url_for('eng_metadata.article_pdf', session_id=session_id, article_id=article_id) }}" target="_blank" rel="noopener">Открыть PDF</a>
     {% endif %}
   </p>
-  {% if article_url %}
-  <p class="muted eng-article-url">
-    Ссылка на статью (справочно):
-    <a href="{{ article_url }}" target="_blank" rel="noopener" class="mono">{{ article_url }}</a>
-  </p>
+  {% if article_url or editor_submission_url %}
+  <div class="muted eng-article-url">
+    {% if article_url %}
+    <p class="eng-article-url-line">
+      Просмотр статьи:
+      <a href="{{ article_url }}" target="_blank" rel="noopener" class="mono">{{ article_url }}</a>
+    </p>
+    {% endif %}
+    {% if editor_submission_url %}
+    <p class="eng-article-url-line">
+      В редакторе:
+      <a href="{{ editor_submission_url }}" target="_blank" rel="noopener" class="mono">{{ editor_submission_url }}</a>
+    </p>
+    {% endif %}
+  </div>
   {% endif %}
 </div>
 

@@ -33,6 +33,10 @@ from werkzeug.datastructures import MultiDict
 logger = get_logger(__name__)
 
 _ISSN_RE = re.compile(r"/(\d{4}-\d{3}[\dXx])/", re.I)
+_ARTICLE_VIEW_RE = re.compile(
+    r"^(?P<head>https?://[^/\s]+/\d{4}-\d{3}[\dXx])/article/view/(?P<aid>\d+)/?(?:\?.*)?$",
+    re.I,
+)
 
 
 def execute_upload(zip_path: Path, *, source_name: str = "") -> dict[str, Any]:
@@ -105,6 +109,19 @@ def issn_from_article_url(article_url: str | None) -> str | None:
         return None
     m = _ISSN_RE.search(str(article_url))
     return m.group(1) if m else None
+
+
+def editor_submission_url_from_article_url(article_url: str | None) -> str | None:
+    """Публичный /article/view/{id} → /editor/submission/{id} для OJS."""
+    raw = str(article_url or "").strip()
+    if not raw:
+        return None
+    m = _ARTICLE_VIEW_RE.match(raw)
+    if m:
+        return f"{m.group('head')}/editor/submission/{m.group('aid')}"
+    if "/article/view/" in raw:
+        return raw.replace("/article/view/", "/editor/submission/", 1).rstrip("/")
+    return None
 
 
 def apply_platform_update(

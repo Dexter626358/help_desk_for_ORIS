@@ -31,6 +31,7 @@ from ipsas.modules.eng_metadata.session import (
 )
 from ipsas.services.eng_metadata_review import (
     apply_platform_update,
+    editor_submission_url_from_article_url,
     execute_upload,
     prepare_platform_dry_run,
     save_article_edits,
@@ -43,6 +44,15 @@ logger = get_logger(__name__)
 eng_metadata_bp = Blueprint("eng_metadata", __name__, template_folder="templates")
 
 _MAX_UNWRAP_CHARS = 2_000_000
+
+
+def _editor_submission_url(entry: dict | None, form: dict | None) -> str | None:
+    article_url = ""
+    if isinstance(entry, dict):
+        article_url = str(entry.get("article_url") or "")
+    if not article_url and isinstance(form, dict):
+        article_url = str(form.get("article_url") or "")
+    return editor_submission_url_from_article_url(article_url)
 
 
 @eng_metadata_bp.route("/eng-metadata/references/unwrap", methods=["POST"])
@@ -186,6 +196,7 @@ def review_article(session_id: str, article_id: str):
         pdf_ok=pdf_ok,
         dry_run=None,
         platform_apply_enabled=settings.platform_apply_enabled,
+        editor_submission_url=_editor_submission_url(entry, form),
     )
 
 
@@ -402,15 +413,17 @@ def _run_prepare_send(
                 "(PLATFORM_APPLY_ENABLED=0).",
                 "success",
             )
+        form = metadata_to_form_defaults(data)
         return render_template(
             "eng_metadata_review.html",
             session_id=session_id,
             article_id=article_id,
             entry=entry,
-            form=metadata_to_form_defaults(data),
+            form=form,
             pdf_ok=(article_dir / "article.pdf").is_file(),
             dry_run=summary,
             platform_apply_enabled=settings.platform_apply_enabled,
+            editor_submission_url=_editor_submission_url(entry, form),
         )
     except ValueError as exc:
         flash(f"Не удалось подготовить/отправить: {exc}", "error")

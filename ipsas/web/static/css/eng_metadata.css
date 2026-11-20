@@ -32,6 +32,10 @@
   font-size: 0.92rem;
 }
 
+.eng-article-url-line {
+  margin: 0.2rem 0 0;
+}
+
 .eng-article-url a {
   text-decoration: underline;
   text-underline-offset: 2px;
